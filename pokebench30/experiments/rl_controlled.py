@@ -9,6 +9,10 @@ from pathlib import Path
 from pokebench30 import __version__
 from pokebench30.evaluation.analysis import analyze_run
 from pokebench30.evaluation.information import final_information_snapshot
+from pokebench30.evaluation.telemetry import (
+    team_catalog,
+    write_telemetry_outputs,
+)
 from pokebench30.evaluation.mirrored import (
     create_controlled_plots,
     write_mirrored_outputs,
@@ -84,7 +88,8 @@ async def run_rl_leg(
     log_actions: bool,
     deterministic: bool,
     run_id: str,
-) -> tuple[list[dict], list[dict]]:
+    allow_cross_generation: bool = False,
+) -> tuple[list[dict], list[dict], list[dict], list[dict]]:
     battle_format = rl_team.battle_format
     if opponent_team.battle_format != battle_format:
         raise ValueError("Team records disagree on battle format.")
@@ -92,7 +97,7 @@ async def run_rl_leg(
     rl_player = RLPolicyAgent(
         model_path=model_path,
         deterministic=deterministic,
-        require_same_generation=True,
+        require_same_generation=not allow_cross_generation,
         battle_format=battle_format,
         team=read_packed_team(rl_team),
         max_concurrent_battles=max_concurrent_battles,
@@ -126,6 +131,8 @@ async def run_rl_leg(
     }
 
     rows: list[dict] = []
+    team_pokemon_rows: list[dict] = []
+    team_move_rows: list[dict] = []
 
     for battle_tag in tags:
         battle = rl_player.battles[battle_tag]
@@ -134,6 +141,25 @@ async def run_rl_leg(
             raise RuntimeError(
                 f"Battle {battle_tag} missing from opponent registry."
             )
+
+        pokemon_rows, move_rows = team_catalog(
+            battle,
+            generation=generation,
+            team_id=rl_team.team_id,
+            pair_id=pair_id,
+            side=rl_team.side,
+        )
+        team_pokemon_rows.extend(pokemon_rows)
+        team_move_rows.extend(move_rows)
+        pokemon_rows, move_rows = team_catalog(
+            opponent_battle,
+            generation=generation,
+            team_id=opponent_team.team_id,
+            pair_id=pair_id,
+            side=opponent_team.side,
+        )
+        team_pokemon_rows.extend(pokemon_rows)
+        team_move_rows.extend(move_rows)
 
         if getattr(battle, "won", False):
             result_1, winner = "win", rl_player.agent_name
@@ -203,6 +229,7 @@ async def run_rl_leg(
                 opponent_team_id=opponent_team.team_id,
                 team_a_id=team_a.team_id,
                 team_b_id=team_b.team_id,
+                agent_role="rl",
             )
         )
         actions.extend(
@@ -217,6 +244,7 @@ async def run_rl_leg(
                 opponent_team_id=rl_team.team_id,
                 team_a_id=team_a.team_id,
                 team_b_id=team_b.team_id,
+                agent_role="opponent",
             )
         )
 
@@ -229,7 +257,7 @@ async def run_rl_leg(
         f"draws: {rl_player.n_tied_battles}"
     )
 
-    return rows, actions
+    return rows, actions, team_pokemon_rows, team_move_rows
 
 
 async def run_experiment(args: argparse.Namespace) -> Path:
@@ -240,7 +268,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
     validate_model_metadata(
         model_meta,
         generation=generation,
-        require_same_generation=True,
+        require_same_generation=not args.allow_cross_generation,
     )
 
     pool_root = Path(args.pool_root).resolve()
@@ -279,6 +307,8 @@ async def run_experiment(args: argparse.Namespace) -> Path:
 
     all_battles: list[dict] = []
     all_actions: list[dict] = []
+    all_team_pokemon: list[dict] = []
+    all_team_moves: list[dict] = []
     used_records: list[TeamRecord] = []
 
     for pair_id in selected_pairs:
@@ -287,7 +317,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         used_records.extend([team_a, team_b])
 
         # AB: RL uses Team A.
-        battles, actions = await run_rl_leg(
+        battles, actions, team_pokemon, team_moves = await run_rl_leg(
             generation=generation,
             pair_id=pair_id,
             mirror_leg="AB",
@@ -302,12 +332,15 @@ async def run_experiment(args: argparse.Namespace) -> Path:
             log_actions=not args.no_action_log,
             deterministic=not args.stochastic,
             run_id=run_id,
+            allow_cross_generation=args.allow_cross_generation,
         )
         all_battles.extend(battles)
         all_actions.extend(actions)
+        all_team_pokemon.extend(team_pokemon)
+        all_team_moves.extend(team_moves)
 
         # BA: same RL policy uses Team B.
-        battles, actions = await run_rl_leg(
+        battles, actions, team_pokemon, team_moves = await run_rl_leg(
             generation=generation,
             pair_id=pair_id,
             mirror_leg="BA",
@@ -322,9 +355,12 @@ async def run_experiment(args: argparse.Namespace) -> Path:
             log_actions=not args.no_action_log,
             deterministic=not args.stochastic,
             run_id=run_id,
+            allow_cross_generation=args.allow_cross_generation,
         )
         all_battles.extend(battles)
         all_actions.extend(actions)
+        all_team_pokemon.extend(team_pokemon)
+        all_team_moves.extend(team_moves)
 
     write_csv(
         run_dir / "battles.csv",
@@ -337,6 +373,13 @@ async def run_experiment(args: argparse.Namespace) -> Path:
             run_dir / "actions.csv",
             all_actions,
             CONTROLLED_ACTION_FIELDS,
+        )
+        write_telemetry_outputs(
+            run_dir,
+            actions=all_actions,
+            battles=all_battles,
+            team_pokemon_rows=all_team_pokemon,
+            team_move_rows=all_team_moves,
         )
 
     raw_summary = summarize_battles(all_battles)
@@ -376,6 +419,11 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         "run_id": run_id,
         "experiment_mode": "rl_fixed_mirrored",
         "generation": generation,
+        "training_generation": int(model_meta.training_generation),
+        "evaluation_generation": generation,
+        "cross_generation_evaluation": (
+            int(model_meta.training_generation) != generation
+        ),
         "model_path": str(model_path),
         "model_metadata": model_meta.to_dict(),
         "representation_version": model_meta.observation_schema_version,
@@ -391,7 +439,9 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         "notes": [
             "RL is always Agent 1 in the mirrored summary.",
             "Each team assignment is mirrored AB/BA.",
-            "v0.5 only permits same-generation evaluation.",
+            "v0.6.1 permits zero-shot cross-generation evaluation when explicitly enabled.",
+            "No model weights are changed during controlled evaluation.",
+            "Telemetry distinguishes availability from selection to reduce opportunity-set confounding.",
         ],
     }
     (run_dir / "metadata.json").write_text(
@@ -416,8 +466,8 @@ async def run_experiment(args: argparse.Namespace) -> Path:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Evaluate a PokéBench30 v0.5 RL model with fixed teams "
-            "and mirrored assignments."
+            "Evaluate a PokéBench30 RL model with fixed teams and mirrored "
+            "assignments, with optional v0.6.1 zero-shot cross-generation evaluation."
         )
     )
     parser.add_argument("--model", required=True)
@@ -440,6 +490,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_POOL_ROOT),
     )
     parser.add_argument("--stochastic", action="store_true")
+    parser.add_argument(
+        "--allow-cross-generation",
+        action="store_true",
+        help=(
+            "Allow a model trained in one generation to be evaluated zero-shot "
+            "in another generation. Schema/action-space compatibility is still checked."
+        ),
+    )
     parser.add_argument("--no-action-log", action="store_true")
     parser.add_argument("--no-plots", action="store_true")
     parser.add_argument(

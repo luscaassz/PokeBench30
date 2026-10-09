@@ -78,7 +78,19 @@ class UniversalObservationExtractor(BaseFeaturesExtractor):
         self.network = nn.Sequential(*layers)
 
     def forward(self, observations):
-        return self.network(observations["observation"])
+        values = observations["observation"]
+
+        # Defense in depth. The UBR encoder is finite-safe, but keep the
+        # policy boundary robust to any third-party vector-wrapper anomaly.
+        if not torch.isfinite(values).all():
+            values = torch.nan_to_num(
+                values,
+                nan=0.0,
+                posinf=1.0,
+                neginf=-1.0,
+            )
+
+        return self.network(values)
 
 
 class WangMaskedActorCriticPolicy(ActorCriticPolicy):

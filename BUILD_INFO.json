@@ -1,25 +1,16 @@
 {
   "project": "PokeBench30",
-  "version": "0.6.0",
-  "milestone": "Cross-Generation Benchmark",
-  "primary_variable": "Pokemon generation: I vs IV vs IX",
-  "training_protocol": {
-    "algorithm": "PPO with custom invalid-action masking",
-    "self_play": "shared-policy two-player PettingZoo self-play",
-    "trajectory_collection": "both player perspectives",
-    "representation": "ubr-1.2",
-    "observation_dim": 518,
-    "action_dim": 10,
-    "reward": {
-      "win": 1.0,
-      "loss": -1.0,
-      "other": 0.0
-    },
-    "nominal_steps_per_model": 900000,
-    "ppo_rollout_n_steps": 2048,
-    "player_perspectives": 2,
-    "rollout_transitions": 4096,
-    "expected_actual_final_steps": 901120,
+  "version": "0.6.1",
+  "milestone": "Zero-Shot Cross-Generation Transfer + Behavioral Telemetry",
+  "base": "PokéBench30 v0.6.0 hotfix1",
+  "training_changes": "none; no retraining required",
+  "model_weights_changed": false,
+  "source_models": {
+    "generations": [
+      1,
+      4,
+      9
+    ],
     "seeds": [
       42,
       123,
@@ -27,89 +18,96 @@
       789,
       2026
     ],
-    "generations": [
-      1,
-      4,
-      9
-    ]
+    "checkpoint": 900000,
+    "count": 15
   },
-  "wang_protocol": {
-    "learning_rate_initial": 5.888436553555884e-05,
-    "learning_rate_schedule": "initial / (8*x + 1)^1.5",
-    "n_epochs": 7,
-    "gamma": 0.9999,
-    "gae_lambda": 0.754,
-    "clip_range": 0.0829,
-    "clip_range_vf": 0.0184,
-    "entropy_coef": 0.0588,
-    "value_coef": 0.4375,
-    "max_grad_norm": 0.543,
-    "batch_size": 1024,
-    "hidden_dim": 256,
-    "shared_trunk_layers": 3,
-    "actor_head_layers": 2,
-    "critic_head_layers": 2
-  },
-  "adaptations_not_exact_wang_reproduction": [
-    "UBR 1.2 replaces Wang's Gen-IV-specific 3725-dimensional state.",
-    "One PettingZoo battle-env copy is used instead of Wang's 78 workers.",
-    "900k nominal transitions/model are used instead of 150M steps.",
-    "MCTS is not used.",
-    "Common-core 10-action space excludes generation-specific gimmicks such as Terastallization."
-  ],
-  "evaluation": {
-    "fixed_pairs_per_generation": 10,
-    "checkpoints": [
-      150000,
-      300000,
-      450000,
-      600000,
-      750000,
-      900000
-    ],
-    "diagnostic_opponents": [
+  "transfer_design": {
+    "matrix": "3 training generations x 3 evaluation generations",
+    "fine_tuning": false,
+    "primary_opponents": [
+      "max_damage",
       "type_aware"
     ],
-    "diagnostic_repeats_per_leg": 1,
-    "final_opponents": [
+    "supplementary_opponents": [
       "random",
-      "max_damage",
-      "type_aware",
       "switch_aware"
     ],
-    "final_repeats_per_leg": 3,
-    "final_battles_per_seed_opponent": 60,
-    "expected_final_battles": 3600,
-    "expected_diagnostic_battles": 1500
+    "team_pairs_per_generation": 10,
+    "mirror_legs": 2,
+    "repeats_per_leg": 3,
+    "battles_default": 5400,
+    "battles_all_opponents": 10800,
+    "primary_metric": "transfer_gap = zero-shot score - same-seed in-domain score for the evaluation generation"
   },
-  "main_outputs": [
-    "generation_summary.csv",
-    "generation_comparison.csv",
-    "generation_pairwise_differences.csv",
-    "pair_level_final.csv",
-    "learning_efficiency_typeaware.csv"
+  "telemetry_layers": [
+    "generation-wide canonical base-species structural catalog (historical National Dex cutoffs)",
+    "frozen fixed-pool team and move catalog",
+    "legal move opportunity set at each RL decision",
+    "selected action and outcome-context telemetry"
   ],
+  "move_semantics": {
+    "multi_label": true,
+    "features": [
+      "damaging",
+      "status",
+      "self_boost",
+      "self_debuff",
+      "target_boost",
+      "target_debuff",
+      "any_buff",
+      "any_debuff",
+      "status_inflict",
+      "volatile_status",
+      "healing",
+      "drain",
+      "recoil",
+      "hazard_set",
+      "hazard_remove",
+      "weather_set",
+      "terrain_set",
+      "priority",
+      "protect_like",
+      "pivot_like",
+      "force_switch"
+    ],
+    "opportunity_adjusted_metrics": [
+      "availability_rate",
+      "selected_rate",
+      "selection_given_available"
+    ]
+  },
+  "validation": {
+    "python_source_files": 92,
+    "compileall": "PASS",
+    "dependency_light_test_files": 13,
+    "dependency_light_tests": 61,
+    "tests_status": "PASS",
+    "move_features_action_fields_consistency": "PASS (21/21)",
+    "zip_integrity": "PASS",
+    "live_poke_env_showdown_smoke": "Pending user-side rerun after hotfix",
+    "hotfix_regression_tests": "12 PASS (telemetry + fixed-pool aggregation + transfer-gap)",
+    "live_poke_env_hotfix_checker": "Pending user-side: python scripts\\check_telemetry_hotfix.py",
+    "hotfix2_targeted_tests": "14 PASS (telemetry + transfer + contamination regression)"
+  },
   "config_hashes": {
-    "crossgen_benchmark.yaml": "d7b7a9412b88822190b227b9cce5ef2bfc811d6b037ffaebe2e5f515507ab298",
+    "transfer_telemetry.yaml": "cbfb07f4b14878b3ad21a926f23d39d90305633c29c87ebf89d0f43605aab720",
+    "telemetry_schema_v0.6.1.json": "2135c2c8dd414ffb765ba733016ed470b7ccba47dda43070890b87e4e1d1562a",
     "fixed_teams.yaml": "7cc1932c1c1e80aa3ccc1c1f05bcb2dc6c86f685b0d8e59f0a753810c8d8720b",
     "observation_schema_ubr_1_2.json": "30a774ba752f457be15be6d28e9af71d91ceaecc9755806ec1eaf4f1322c6d25"
   },
-  "validation": {
-    "python_files_syntax_checked": 85,
-    "compileall": "PASS",
-    "pure_tests": {
-      "test_wang_protocol.py": "PASS",
-      "test_crossgen_study.py": "PASS",
-      "test_policy_specs.py": "PASS",
-      "test_rl_model_io.py": "PASS",
-      "test_representation_schema.py": "PASS",
-      "test_universal_action_space.py": "PASS",
-      "test_metrics.py": "PASS",
-      "test_mirrored_metrics.py": "PASS",
-      "test_rl_config.py": "PASS",
-      "test_architecture_study.py": "PASS",
-      "test_algorithm_study.py": "PASS"
-    },
-    "live_poke_env_showdown_smoke": "Pending user-side execution: python run_crossgen_benchmark.py --smoke"
+  "hotfix_revision": 2,
+  "hotfix_name": "Telemetry fixed-pool aggregate isolation",
+  "hotfix_corrections": [
+    "Retains Hotfix1 canonical base-species filtering and SELF-target boost routing.",
+    "Fixed-pool structural aggregates now use packed_fixed_team rows exclusively when available.",
+    "Post-battle team telemetry is explicitly tagged battle_observation and cannot contaminate fixed_pool_* catalogs.",
+    "Pokemon structural identity is generation+pair_id+side+team_slot; move identity additionally includes move_slot.",
+    "Fail-fast validation enforces 120 Pokemon rows/generation and unique Pokemon/move-slot keys for the 10-pair benchmark."
+  ],
+  "hotfix_file_hashes": {
+    "pokebench30/evaluation/telemetry.py": "4c5035737abed60d6b34450f11272fe23003bc6073df3928fa8af569d4e67831",
+    "pokebench30/rl/transfer_study.py": "ec71e4ee619ebcb10412aa510afa93bc5ef7bf7ebfaa880cc04063df187e7916",
+    "scripts/check_telemetry_hotfix.py": "6b25d7f38959230c8a8e359a5459d5468f71ed433bac52f19155bc08c6269040",
+    "tests/test_telemetry_hotfix.py": "0120596d7fdfc0d505dab3fcd6e44308d882889f80d9f2f85b0e1d1f0d1bb17a"
   }
 }

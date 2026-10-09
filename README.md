@@ -1,556 +1,424 @@
-# PokéBench30 v0.6.0 — Cross-Generation Benchmark
+# PokéBench30 v0.6.1 — Zero-Shot Transfer + Behavioral Telemetry
 
-A partir da v0.6, o projeto deixa de tratar **qual RL é melhor** como a
-pergunta central.
+> **Hotfix 2 (fixed-pool aggregate):** corrige o último problema encontrado no smoke do Hotfix 1.
+> Os catálogos estruturais do fixed pool agora usam **exclusivamente** as linhas imutáveis
+> geradas dos arquivos `packed_fixed_team`; observações pós-batalha não podem mais
+> contaminar `fixed_pool_pokemon_catalog.csv` nem `fixed_pool_move_catalog.csv`.
+>
+> O Hotfix 2 também mantém as três correções do Hotfix 1:
+> 1. catálogo amplo de Pokémon limitado a espécies-base canônicas por geração;
+> 2. resolução canônica de registros duplicados do manifest;
+> 3. boosts `SELF` classificados como `self_boost`.
+>
+> **Nenhum modelo da v0.6.0 precisa ser retreinado.** Refazer somente o smoke/avaliação
+> v0.6.1 regenera os catálogos e resumos corretos.
 
-As versões v0.5.x ficam como estudos piloto / validação de engenharia.
+Antes do smoke, valide o hotfix:
 
-A pergunta principal agora é:
-
-> **Como o mesmo agente de Reinforcement Learning aprende e se comporta nas
-> Gerações I, IV e IX de Pokémon quando representação, algoritmo,
-> hiperparâmetros, orçamento de treino e avaliação são mantidos constantes?**
-
-## O agente oficial da v0.6
-
-O benchmark congela uma configuração de PPO inspirada diretamente em:
-
-**Jett Wang — _Winning at Pokémon Random Battles Using Reinforcement Learning_
-(MIT, 2024).**
-
-A escala prática de 900k steps também é compatível com uma das condições
-experimentais de Rossi et al. (SBGames 2024).
-
-A configuração oficial passa a ser:
-
-```text
-Algorithm          PPO + custom action masking
-Representation     UBR 1.2
-Observation dim    518
-Action dim         10
-Training           online self-play
-Reward             +1 win / -1 loss / 0 otherwise
-
-PPO:
-n_epochs           7
-gamma              0.9999
-gae_lambda          0.754
-clip_range          0.0829
-clip_range_vf       0.0184
-entropy_coef        0.0588
-value_coef          0.4375
-max_grad_norm       0.5430
-batch_size          1024
-
-Network:
-shared trunk        3 × 256 ReLU
-actor head          2 × 256
-critic head         2 × 256
+```powershell
+python scripts\check_telemetry_hotfix.py
 ```
 
-Learning rate:
+O checker agora exige, além das validações anteriores:
 
 ```text
-lr(x) = 10^-4.23 / (8x + 1)^1.5
+Gen 1 fixed pool -> 120 Pokémon
+Gen 4 fixed pool -> 120 Pokémon
+Gen 9 fixed pool -> 120 Pokémon
+nenhuma chave duplicada generation+pair+side+team_slot
+nenhuma chave duplicada generation+pair+side+team_slot+move_slot
+nenhum team_slot 7-12 no catálogo estrutural agregado
+nenhuma linha battle_observation vazando para fixed_pool_*
 ```
 
-com `x` indo de 0 a 1 durante o treinamento.
+A v0.6.1 mantém **exatamente os modelos treinados na v0.6.0**.
 
-## O que significa "inspirado em Wang"
+Não há novo treinamento, novo reward, nova arquitetura ou novo algoritmo.
 
-Não estamos afirmando reproduzir exatamente o agente da tese.
+A nova pergunta é:
 
-Wang usa, entre outras coisas:
+> **O conhecimento aprendido em uma geração transfere para outra e, quando o comportamento muda, quais aspectos estratégicos mudam exatamente?**
+
+## Experimento principal
 
 ```text
-3725-dimensional Gen-IV state
-categorical embeddings
-78 workers
-both-player trajectories
-150M steps
-MCTS at inference
+TREINO ↓ / TESTE →   Gen I   Gen IV   Gen IX
+Gen I                   ✓       ✓        ✓
+Gen IV                  ✓       ✓        ✓
+Gen IX                  ✓       ✓        ✓
 ```
 
-PokéBench30 precisa usar **a mesma interface nas três gerações**.
+Os 15 modelos finais de 900k da v0.6.0 são reutilizados sem fine-tuning.
 
-Por isso v0.6 mantém:
+A diagonal também é reavaliada porque queremos que as nove células tenham a **mesma telemetria**.
+
+## Adversários
+
+Por padrão:
 
 ```text
-UBR 1.2
-1 PettingZoo battle environment copy
-both-player PPO trajectories
-900k nominal policy transitions
-sem MCTS
+MaxDamage
+TypeAware
 ```
 
-Detalhes: `docs/LITERATURE_PROTOCOL_v0.6.md`.
+Eles são os dois adversários principais porque a v0.6.0 mostrou espaço útil entre piso e teto.
 
----
-
-# Experimento principal
+Para incluir também:
 
 ```text
-Gen I
-Gen IV
-Gen IX
+Random
+SwitchAware
+```
 
+use `--all-opponents`.
+
+## Carga
+
+Estudo principal:
+
+```text
+9 train/eval cells
 × 5 seeds
-
-42
-123
-456
-789
-2026
-
-× 900k nominal steps
+× 2 opponents
+× 10 pairs
+× 2 mirror legs
+× 3 repeats
+=
+5.400 battles
 ```
 
-Total:
+Com os quatro oponentes:
 
 ```text
-15 modelos
+10.800 battles
 ```
 
-Com `n_steps=2048` e duas perspectivas de jogador no VecEnv, cada rollout
-contém:
+## Métrica de transferência
+
+Além do score absoluto, a v0.6.1 calcula:
 
 ```text
-2048 × 2 = 4096 transitions
+transfer gap(A → B)
+=
+score(model trained A, tested B)
+-
+score(model trained B, tested B)
 ```
 
-Cada modelo deve terminar aproximadamente em:
+sempre pareando pela mesma seed.
+
+## Telemetria robusta
+
+A v0.6.1 separa quatro camadas:
 
 ```text
-901120 policy transitions
+O QUE EXISTE NA GERAÇÃO (dex do poke-env)
+        ↓
+O QUE EXISTE NO POOL FIXO DO BENCHMARK
+        ↓
+O QUE ERA LEGAL NAQUELE TURNO
+        ↓
+O QUE O AGENTE ESCOLHEU
 ```
 
-Total esperado:
+Isso evita interpretar frequência bruta como preferência.
+
+Para golpes, armazenamos:
 
 ```text
-13,516,800 policy transitions
+move id
+move type
+physical / special / status
+base power
+accuracy
+priority
+STAB
+type effectiveness
 ```
 
-Cada modelo é treinado **do zero dentro de sua própria geração**.
-
-v0.6.0 não faz transferência de pesos Gen I → IV → IX.
-
----
-
-# Self-play
-
-Durante o treino:
+mais tags multi-label:
 
 ```text
-same PPO policy
-   ↙       ↘
-Player 1  Player 2
+damaging
+status
+self buff
+self debuff
+target buff
+target debuff
+any buff
+any debuff
+status infliction
+volatile status
+healing
+drain
+recoil
+hazard set / remove
+weather
+terrain
+priority
+protect-like
+pivot-like
+force switch
 ```
 
-O ambiente PettingZoo expõe as duas perspectivas para a mesma policy.
-**As trajetórias dos dois jogadores entram no rollout PPO**, aproximando de
-forma muito mais direta o protocolo de self-play usado por Wang.
+Um golpe pode possuir várias tags simultaneamente.
 
-Assim, não existe mais:
+Também são registrados todos os golpes **legais disponíveis** no momento da decisão.
 
-```text
-treinar Gen I contra TypeAware
-treinar Gen IV contra TypeAware
-treinar Gen IX contra TypeAware
-```
-
-como potencial fonte de viés.
-
-Os scripted agents são usados apenas na avaliação.
-
----
-
-# Common-core benchmark
-
-A v0.6.0 mantém o action space universal:
+Assim conseguimos calcular:
 
 ```text
-0–3    move slots
-4–9    own team slots
-```
-
-Mecânicas específicas como **Terastallization** permanecem fora do benchmark.
-
-Isso é proposital.
-
-A v0.6.0 mede um **núcleo comum de batalha** com exatamente as mesmas ações nas
-três gerações.
-
-Uma extensão futura poderá estudar full-mechanics, mas não misturamos isso no
-primeiro benchmark entre gerações.
-
----
-
-# Fixed evaluation pool agora tem 10 pares
-
-Não copie o pool da v0.5.6.
-
-A configuração mudou de:
-
-```text
-3 pairs / generation
+availability_rate
+selected_rate
+selection_given_available
 ```
 
 para:
 
 ```text
-10 pairs / generation
+um golpe específico
+um tipo de golpe
+physical/special/status
+buff/debuff
+hazards
+healing
+priority
+etc.
 ```
 
-Os primeiros 3 pares foram preservados e 7 novos foram adicionados.
+## Tipagem dos Pokémon
 
-Isso melhora muito o desenho estatístico porque a comparação final passa a ter
-10 unidades de team-pair por geração.
-
----
-
-# 1. Instalação
-
-Na pasta da v0.6.0:
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
----
-
-# 2. Gere o novo fixed-team pool
-
-Use o mesmo clone do Pokémon Showdown:
-
-```powershell
-python prepare_fixed_teams.py `
-  --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" `
-  --force
-```
-
-Depois:
-
-```powershell
-Test-Path ".\teams\fixed\manifest.json"
-```
-
-deve retornar:
+A telemetria inclui:
 
 ```text
-True
+active Pokémon type 1 / type 2
+opponent active type 1 / type 2
+switch target type 1 / type 2
 ```
 
-O `--force` é importante porque a v0.6 usa uma configuração nova com 10 pares.
+Além disso, o benchmark cria um catálogo deduplicado dos times fixos de cada geração.
+
+Isso permite comparar, por exemplo:
+
+```text
+Gen I tem mais Psychic no pool?
+Gen IX oferece mais tipos diferentes?
+O RL escolhe golpes Water porque prefere Water
+ou simplesmente porque Water aparece mais no pool?
+```
+
+## Catálogo estrutural da geração
+
+A v0.6.1 também lê diretamente `GenData.from_gen(...)` do poke-env e produz:
+
+```text
+generation_pokemon_dex_catalog.csv
+generation_move_dex_catalog.csv
+generation_dex_overview.csv
+generation_pokemon_dex_type_summary.csv
+generation_move_dex_type_summary.csv
+generation_move_dex_category_summary.csv
+generation_move_dex_feature_summary.csv
+```
+
+Isso permite testar perguntas como:
+
+```text
+A proporção de golpes damaging cresce com a geração?
+Há mais golpes de buff/debuff disponíveis nas gerações recentes?
+A diversidade de tipos dos Pokémon aumentou?
+Quais tipos de golpe existem com maior frequência em cada geração?
+```
+
+Essa camada descreve os dados por geração fornecidos pelo poke-env, independentemente do agente.
+
+## Catálogo do pool fixo
+
+A v0.6.1 gera:
+
+```text
+fixed_pool_pokemon_catalog.csv
+fixed_pool_move_catalog.csv
+fixed_pool_pokemon_type_summary.csv
+fixed_pool_move_type_summary.csv
+fixed_pool_move_category_summary.csv
+fixed_pool_move_feature_summary.csv
+fixed_pool_move_presence_summary.csv
+```
+
+Esses arquivos descrevem os **20 times congelados usados na avaliação de cada geração**.
+
+Eles não são apresentados como uma descrição completa do metagame inteiro da geração.
 
 ---
 
-# 3. Valide tudo
+# 1. Copie o fixed pool da v0.6.0
+
+A configuração dos 10 pares não mudou.
+
+Na pasta v0.6.1:
 
 ```powershell
-python scripts\check_crossgen_setup.py
+Remove-Item ".\teams\fixed" -Recurse -Force -ErrorAction SilentlyContinue
+
+Copy-Item `
+  "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.6.0\teams\fixed" `
+  ".\teams\fixed" `
+  -Recurse
 ```
 
-O checker confirma:
+## 2. Descubra o diretório do estudo completo da v0.6.0
+
+Ele é o diretório que contém:
+
+```text
+study_manifest.json
+runs\gen1
+runs\gen4
+runs\gen9
+aggregate\generation_summary.csv
+```
+
+Exemplo:
+
+```text
+C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.6.0\crossgen_results\crossgen_YYYYMMDD_HHMMSS
+```
+
+## 3. Checker
+
+```powershell
+python scripts\check_transfer_setup.py `
+  --source-study-dir "C:\...\crossgen_YYYYMMDD_HHMMSS"
+```
+
+Ele valida:
 
 ```text
 UBR 1.2
-518 observations
-10 actions
-
-Gen I / IV / IX
+fixed pool
+Showdown provenance
+3 generations
 5 seeds
-10 fixed pairs/gen
-
-Wang learning-rate schedule
-Wang PPO hyperparameters
-900k budget
-Showdown commit/config hash
+15 final 900k models
+metadata de cada model
 ```
 
----
+## 4. Showdown
 
-# 4. Inicie o Pokémon Showdown local
-
-Recomendado:
+Em outro terminal:
 
 ```powershell
 cd "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown"
-
 node pokemon-showdown start --no-security
 ```
 
-Deixe esse terminal aberto.
-
----
-
-# 5. Smoke test
-
-Em outro PowerShell:
-
-```powershell
-conda activate games
-
-cd "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.6.0"
-
-$env:MPLBACKEND="Agg"
-
-python run_crossgen_benchmark.py --smoke
-```
-
-O smoke executa:
-
-```text
-1 seed
-Gen I + IV + IX
-8192 steps/gen
-checkpoints 4096 / 8192
-Wang-style self-play
-sparse reward
-```
-
-Para não ficar excessivamente lento, o smoke avalia apenas:
-
-```text
-pair01
-pair02
-pair03
-```
-
-Os resultados do smoke **não são resultados científicos**.
-
-Ele existe para testar:
-
-```text
-Gen I self-play
-Gen IV self-play
-Gen IX self-play
-
-sparse terminal reward
-learning-rate annealing
-custom Wang policy architecture
-PPO com masking nos logits
-checkpoint save/load
-controlled mirrored evaluation
-```
-
----
-
-# 6. Experimento completo
-
-Se o smoke passar:
+## 5. Smoke
 
 ```powershell
 $env:MPLBACKEND="Agg"
 
-python run_crossgen_benchmark.py
+python run_transfer_telemetry.py `
+  --source-study-dir "C:\...\crossgen_YYYYMMDD_HHMMSS" `
+  --smoke
 ```
 
-O estudo cria:
+O smoke usa:
 
 ```text
-crossgen_results\
-└── crossgen_YYYYMMDD_HHMMSS\
+seed 42
+3 × 3 transfer matrix
+MaxDamage apenas
+pair01–pair03
+1 repeat/leg
 ```
 
-Guarde esse nome.
+Ele existe apenas para validar cross-generation inference + telemetry.
 
----
-
-# Checkpoints
-
-Modelos são salvos em:
-
-```text
-150k
-300k
-450k
-600k
-750k
-900k
-```
-
-O PPO termina o rollout antes de salvar.
-
-Por isso o projeto guarda:
-
-```text
-nominal_checkpoint
-actual_model_timesteps
-```
-
-separadamente.
-
----
-
-# Avaliação intermediária
-
-Nos checkpoints não finais:
-
-```text
-vs TypeAware
-10 pairs
-× 2 mirror legs
-× 1 repeat
-
-= 20 battles/model/checkpoint
-```
-
-Essa avaliação é usada para a curva de aprendizagem entre gerações.
-
----
-
-# Avaliação final
-
-No 900k:
-
-```text
-Random
-MaxDamage
-TypeAware
-SwitchAware
-```
-
-Para cada adversário:
-
-```text
-10 pairs
-× 2 mirror legs
-× 3 repeats
-
-= 60 battles / seed / opponent
-```
-
-Com 15 modelos:
-
-```text
-3600 final battles
-```
-
-Mais aproximadamente:
-
-```text
-1500 diagnostic battles
-```
-
-Total esperado:
-
-```text
-5100 controlled evaluation battles
-```
-
----
-
-# Resume
-
-Se o treino parar:
+## 6. Estudo principal
 
 ```powershell
-python run_crossgen_benchmark.py `
-  --study-dir ".\crossgen_results\crossgen_YYYYMMDD_HHMMSS"
+$env:MPLBACKEND="Agg"
+
+python run_transfer_telemetry.py `
+  --source-study-dir "C:\...\crossgen_YYYYMMDD_HHMMSS"
 ```
 
-O programa procura o último checkpoint completo de cada:
+Para os quatro oponentes:
 
-```text
-generation × seed
+```powershell
+python run_transfer_telemetry.py `
+  --source-study-dir "C:\...\crossgen_YYYYMMDD_HHMMSS" `
+  --all-opponents
 ```
 
-e continua dali.
+## Resume
 
-Não crie um novo estudo se o objetivo for continuar a mesma execução.
+```powershell
+python run_transfer_telemetry.py `
+  --source-study-dir "C:\...\crossgen_YYYYMMDD_HHMMSS" `
+  --study-dir ".\transfer_results\transfer_YYYYMMDD_HHMMSS"
+```
+
+Avaliações completas já existentes são reutilizadas.
 
 ---
 
 # Principais resultados
 
-Ao final:
-
 ```text
-crossgen_results\
-└── crossgen_...\
-    ├── study_manifest.json
-    ├── runs\
-    │   ├── gen1\
-    │   ├── gen4\
-    │   └── gen9\
-    └── aggregate\
-        ├── learning_curve.csv
-        ├── aggregate_learning_curve.csv
-        ├── training_progress.csv
-        ├── generation_summary.csv
-        ├── generation_comparison.csv
-        ├── generation_pairwise_differences.csv
-        ├── pair_level_final.csv
-        ├── learning_efficiency_typeaware.csv
-        └── figures\
+transfer_results\transfer_...\aggregate\
 ```
 
-## `generation_summary.csv`
-
-Resposta principal:
+## Transferência
 
 ```text
-como o mesmo RL terminou em cada geração?
+transfer_scores_by_seed.csv
+transfer_matrix_summary.csv
+transfer_gap_by_seed.csv
+transfer_gap_summary.csv
+zero_shot_generalization_summary.csv
+figures\transfer_heatmap_*.png
+figures\transfer_gap_heatmap_*.png
 ```
 
-separado por adversário.
-
-## `generation_comparison.csv`
-
-Comparações pareadas pelas mesmas seeds:
+## Telemetria
 
 ```text
-Gen IV - Gen I
-Gen IX - Gen I
-Gen IX - Gen IV
+aggregate\telemetry\
+    behavior_by_seed.csv
+    behavior_summary.csv
+    move_by_seed.csv
+    move_summary.csv
+    move_type_by_seed.csv
+    move_type_summary.csv
+    move_category_summary.csv
+    move_feature_summary.csv
+    pokemon_type_summary.csv
+    generation_dex_overview.csv
+    generation_move_dex_catalog.csv
+    generation_pokemon_dex_catalog.csv
+    generation_move_dex_feature_summary.csv
+    fixed_pool_pokemon_catalog.csv
+    fixed_pool_move_catalog.csv
+    fixed_pool_pokemon_type_summary.csv
+    fixed_pool_move_type_summary.csv
+    fixed_pool_move_category_summary.csv
+    fixed_pool_move_feature_summary.csv
+    fixed_pool_move_presence_summary.csv
 ```
 
-## `pair_level_final.csv`
-
-Preserva os 10 team pairs.
-
-Esse arquivo é importante para análise estatística posterior porque evita
-tratar 60 batalhas repetidas como 60 unidades completamente independentes.
-
-## `learning_efficiency_typeaware.csv`
-
-Resume descritivamente a velocidade de aprendizagem contra TypeAware.
-
----
-
-# O que NÃO é mais a pergunta principal
-
-A partir daqui não continuamos fazendo:
+Cada avaliação individual ainda preserva:
 
 ```text
-qual reward é melhor?
-qual DQN é melhor?
-qual MLP é melhor?
-qual curriculum é melhor?
+actions.csv
+telemetry_move_opportunities.csv.gz
 ```
 
-a menos que apareça um bug que impeça o benchmark.
+para análises posteriores sem precisar repetir batalhas.
 
-A v0.5.x já serviu para validar o pipeline.
+Mais detalhes:
 
-A contribuição central passa a ser:
-
-```text
-SAME RL
-SAME INTERFACE
-SAME PROTOCOL
-
-       ↓
-
-GEN I
-vs
-GEN IV
-vs
-GEN IX
-```
-
-Veja também:
-
+- `docs/TRANSFER_TELEMETRY_v0.6.1.md`
 - `docs/LITERATURE_PROTOCOL_v0.6.md`
 - `docs/CROSS_GENERATION_DESIGN_v0.6.md`
-- `CHANGELOG_v0.6.0.md`

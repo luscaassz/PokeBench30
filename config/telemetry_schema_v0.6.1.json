@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "project_version": "0.6.1",
+  "unit_of_detailed_opportunity": "one RL decision x one legal move",
+  "feature_semantics": "multi_label",
+  "move_features": [
+    "damaging",
+    "status",
+    "self_boost",
+    "self_debuff",
+    "target_boost",
+    "target_debuff",
+    "any_buff",
+    "any_debuff",
+    "status_inflict",
+    "volatile_status",
+    "healing",
+    "drain",
+    "recoil",
+    "hazard_set",
+    "hazard_remove",
+    "weather_set",
+    "terrain_set",
+    "priority",
+    "protect_like",
+    "pivot_like",
+    "force_switch"
+  ],
+  "core_action_fields": [
+    "move_id",
+    "move_type",
+    "move_category",
+    "base_power",
+    "accuracy",
+    "priority_value",
+    "target",
+    "STAB",
+    "type_effectiveness"
+  ],
+  "opportunity_metrics": [
+    "availability_rate",
+    "selected_rate",
+    "selection_given_available"
+  ],
+  "pokemon_type_contexts": [
+    "active",
+    "opponent_active",
+    "switch_target"
+  ],
+  "scope_notes": [
+    "Detailed legal-move opportunity telemetry is collected for RL decisions.",
+    "Opponent actions are retained in actions.csv but are not exploded into opportunity rows by default.",
+    "Generation-wide Pokemon catalog is a canonical base-species structural catalog, not a Random Battles legality list.",
+    "Form-level and benchmark-specific Pokemon ecology is measured from the frozen fixed pool.",
+    "Fixed-pool catalogs describe the frozen benchmark teams, not the full metagame."
+  ],
+  "hotfix_revision": 1,
+  "semantic_corrections": [
+    "Main move boosts are routed by move target: SELF-target boosts are self boosts, not target boosts.",
+    "Generation-wide Pokemon catalog contains canonical base species only, bounded by historical National Dex generation cutoffs.",
+    "Fixed-pool catalogs resolve duplicate manifest records by generation/pair/side with last-record-wins, matching evaluation semantics."
+  ]
+}

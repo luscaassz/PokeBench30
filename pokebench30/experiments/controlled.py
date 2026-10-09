@@ -48,6 +48,7 @@ CONTROLLED_CONTEXT_FIELDS = [
     "opponent_team_id",
     "team_a_id",
     "team_b_id",
+    "agent_role",
 ]
 
 CONTROLLED_ACTION_FIELDS = [
@@ -174,6 +175,7 @@ def _annotate_actions(
     opponent_team_id: str,
     team_a_id: str,
     team_b_id: str,
+    agent_role: str = "",
 ) -> list[dict]:
     output = []
     for item in player.action_log:
@@ -187,6 +189,7 @@ def _annotate_actions(
             "opponent_team_id": opponent_team_id,
             "team_a_id": team_a_id,
             "team_b_id": team_b_id,
+            "agent_role": agent_role,
             **item,
             "generation": generation,
             "battle_format": battle_format,
@@ -363,6 +366,7 @@ async def run_leg(
                 opponent_team_id=agent_2_team.team_id,
                 team_a_id=team_a.team_id,
                 team_b_id=team_b.team_id,
+                agent_role="agent_1",
             )
         )
         actions.extend(
@@ -377,6 +381,7 @@ async def run_leg(
                 opponent_team_id=agent_1_team.team_id,
                 team_a_id=team_a.team_id,
                 team_b_id=team_b.team_id,
+                agent_role="agent_2",
             )
         )
 

@@ -1,0 +1,28 @@
+schema_version: 1
+
+study:
+  generations: [1, 4, 9]
+  seeds: [42, 123, 456, 789, 2026, 31415, 27182, 16180, 57721, 99991]
+  source_checkpoint: 900000
+
+  # Primary transfer analysis: these two opponents avoid Random saturation and
+  # SwitchAware floor effects observed in v0.6.0.
+  primary_opponents:
+    - max_damage
+    - type_aware
+
+  # Optional via --all-opponents.
+  supplementary_opponents:
+    - random
+    - switch_aware
+
+  team_pairs_per_generation: 10
+  repeats_per_leg: 3
+
+telemetry:
+  action_level: true
+  availability_adjusted: true
+  move_semantics: multi_label
+  compressed_opportunity_rows: true
+  fixed_pool_catalog: true
+  scope: controlled_evaluation

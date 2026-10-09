@@ -47,7 +47,23 @@ def _enum_token(value: Any) -> str:
 
 
 def _clip(value: float, low: float, high: float) -> float:
-    return float(min(max(float(value), low), high))
+    """Finite-safe scalar clipping for live battle telemetry.
+
+    poke-env can transiently expose non-finite numeric values for partially
+    initialized battle state (most notably HP-like fractions). A single NaN
+    contaminates every downstream linear logit. Treat a non-finite scalar as
+    unknown/neutral zero, while preserving the historical clipping semantics
+    for every finite value.
+    """
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+
+    if not np.isfinite(number):
+        return 0.0
+
+    return float(min(max(number, low), high))
 
 
 def _hp_fraction(pokemon: Any) -> float:
@@ -64,7 +80,10 @@ def _accuracy_fraction(value: Any) -> float:
         return 1.0
     try:
         value = float(value)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
+        return 1.0
+
+    if not np.isfinite(value):
         return 1.0
 
     if value <= 0:
@@ -522,6 +541,24 @@ class UniversalStateEncoder:
             vector.extend(_volatile_features(opponent_active))
 
         array = np.asarray(vector, dtype=np.float32)
+
+        # Hotfix 3 invariant: no non-finite value may ever leave UBR.
+        # Individual continuous encoders are finite-safe above; this remains
+        # as a final diagnostic guard so a future feature cannot silently
+        # reintroduce NaN/Inf into PPO.
+        if not np.all(np.isfinite(array)):
+            bad_indices = np.flatnonzero(~np.isfinite(array)).tolist()
+            bad_names = [
+                self.schema.feature_names[index]
+                for index in bad_indices
+                if index < len(self.schema.feature_names)
+            ]
+            raise RuntimeError(
+                "UBR produced non-finite observation values after finite "
+                "sanitization: "
+                f"indices={bad_indices}, features={bad_names}, "
+                f"battle_tag={str(_safe_attr(battle, 'battle_tag', '') or '')!r}."
+            )
 
         if array.shape != (self.schema.observation_dim,):
             raise RuntimeError(

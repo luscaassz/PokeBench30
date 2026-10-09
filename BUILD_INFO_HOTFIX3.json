@@ -1,0 +1,18 @@
+{
+  "version": "0.6.1-hotfix3",
+  "base": "0.6.1-hotfix2",
+  "purpose": "finite-safe UBR observations during Wang-style PPO self-play",
+  "scientific_condition_change_for_finite_observations": false,
+  "modified_files": [
+    "pokebench30/representation/encoder.py",
+    "pokebench30/rl/wang_style.py",
+    "tests/test_nonfinite_observation_hotfix.py",
+    "HOTFIX_v0.6.1_NONFINITE_OBSERVATION.md",
+    "CHANGELOG_v0.6.1.md"
+  ],
+  "validation": {
+    "py_compile_modified_files": "PASS",
+    "patch_assertions": "PASS",
+    "live_showdown_reproduction": "pending user-side rerun of seed 27182"
+  }
+}

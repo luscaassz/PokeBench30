@@ -29,3 +29,5 @@ algorithm_results/*
 !algorithm_results/.gitkeep
 crossgen_results/*
 !crossgen_results/.gitkeep
+transfer_results/*
+!transfer_results/.gitkeep

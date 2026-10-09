@@ -13,6 +13,11 @@ from poke_env.player import Player
 from poke_env.teambuilder.constant_teambuilder import ConstantTeambuilder
 
 from pokebench30.representation.encoder import UniversalStateEncoder
+from pokebench30.evaluation.telemetry import (
+    MOVE_FEATURES,
+    opportunity_telemetry,
+    selected_move_telemetry,
+)
 
 
 def safe_attr(obj: Any, name: str, default: Any = None) -> Any:
@@ -662,6 +667,17 @@ class InstrumentedPlayer(Player):
             "move_category": "",
             "move_stab": None,
             "move_type_effectiveness": None,
+            "move_priority": None,
+            "move_target": "",
+            "move_status_name": "",
+            "move_volatile_status_name": "",
+            "move_side_condition": "",
+            "move_weather": "",
+            "move_terrain": "",
+            "move_boosts": "{}",
+            "move_self_boosts": "{}",
+            **{f"move_feature_{feature}": False for feature in MOVE_FEATURES},
+            **opportunity_telemetry(battle),
             "switch_target_hp_fraction": None,
             "switch_target_type_1": "",
             "switch_target_type_2": "",
@@ -695,6 +711,7 @@ class InstrumentedPlayer(Player):
                     None,
                 )
             )
+            row.update(selected_move_telemetry(selected))
 
             if active is not None:
                 active_types = {
