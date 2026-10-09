@@ -48,3 +48,13 @@ multiseed:
   training_opponent: "type_aware"
   evaluation_opponents: ["random", "type_aware"]
   repeats_per_leg: 10
+
+
+budget_study:
+  representations: ["ubr-1.1", "ubr-1.2"]
+  seeds: [42, 123, 456, 789, 2026]
+  budgets: [10000, 50000]
+  baseline_budget: 10000
+  training_opponent: "type_aware"
+  evaluation_opponents: ["random", "type_aware"]
+  repeats_per_leg: 10

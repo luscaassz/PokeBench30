@@ -468,7 +468,7 @@ def run_multiseed(args: argparse.Namespace) -> Path:
             )
             _aggregate(eval_results, aggregate_root)
 
-    print("\n=== PokéBench30 v0.5.2 multi-seed experiment complete ===")
+    print("\n=== PokéBench30 legacy 10k multi-seed experiment complete ===")
     print(f"Experiment: {experiment_root}")
     print(f"Models: {len(training_rows)}")
     print(f"Evaluations: {len(eval_results)}")
@@ -483,7 +483,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Automate the PokéBench30 v0.5.2 multi-seed UBR 1.1 vs 1.2 "
+            "Automate the PokéBench30 legacy multi-seed UBR 1.1 vs 1.2 "
             "MaskablePPO ablation."
         )
     )

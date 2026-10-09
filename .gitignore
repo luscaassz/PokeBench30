@@ -19,3 +19,5 @@ results/*
 
 multiseed_results/*
 !multiseed_results/.gitkeep
+budget_results/*
+!budget_results/.gitkeep

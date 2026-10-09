@@ -1,227 +1,211 @@
-# PokéBench30 v0.5.2 — Multi-seed Representation Ablation
+# PokéBench30 v0.5.3 — Training Budget Study
 
-v0.5.2 automates the next experiment in PokéBench30: compare the two already
-validated universal battle representations across several independent
-MaskablePPO runs.
+A v0.5.3 mantém as representações e o algoritmo da v0.5.2 e muda apenas a
+pergunta experimental.
 
-```text
-UBR 1.1: 472 observations + 10 actions
-UBR 1.2: 518 observations + 10 actions
-```
-
-Both representations now live in the **same codebase**, which avoids comparing
-models trained by two different project snapshots.
-
-## What changed
-
-The RL command now accepts either representation:
-
-```powershell
-python train_rl.py --generation 9 --ubr ubr-1.1 --opponent type_aware --timesteps 10000 --seed 42
-python train_rl.py --generation 9 --ubr ubr-1.2 --opponent type_aware --timesteps 10000 --seed 42
-```
-
-`RLPolicyAgent` reads `metadata.json` and automatically uses the correct encoder
-when a saved model is evaluated.
-
-The main new entry point is:
+Na v0.5.2, com cinco seeds e 10k timesteps, obtivemos:
 
 ```text
-run_multiseed.py
+                    Random      TypeAware
+UBR 1.1             0.7033        0.0600
+UBR 1.2             0.7033        0.0600
 ```
 
-It trains both UBR profiles, evaluates every model with the same fixed/mirrored
-benchmark, and creates aggregate CSVs and plots.
+A v0.5.3 pergunta se a UBR 1.2 precisa de mais experiência para aproveitar o
+battle context adicional.
 
----
+## Representações
 
-## 1. Install and check
+```text
+UBR 1.1: 472 observações, 10 ações
+UBR 1.2: 518 observações, 10 ações
+```
+
+Nenhuma feature ou ação foi alterada nesta versão.
+
+Com o default `n_steps=2048`, os budgets são valores solicitados ao PPO.
+O Stable-Baselines3 encerra após rollouts completos, então normalmente:
+
+```text
+10.000 solicitados → 10.240 executados
+50.000 solicitados → 51.200 executados
+```
+
+O `metadata.json` e as tabelas registram o **budget solicitado**, enquanto os
+logs do PPO mostram o total efetivamente coletado.
+
+## Estudo padrão
+
+```text
+Budgets:
+10k
+50k
+
+Representações:
+UBR 1.1
+UBR 1.2
+
+Seeds:
+42
+123
+456
+789
+2026
+
+Treino:
+Gen IX
+MaskablePPO
+vs TypeAware
+
+Avaliação:
+vs Random
+vs TypeAware
+3 fixed pairs
+AB/BA mirrored
+10 repeats por leg
+```
+
+## Novos arquivos
+
+```text
+run_budget_study.py
+pokebench30/rl/budget_study.py
+scripts/check_budget_study_setup.py
+docs/TRAINING_BUDGET_v0.5.3.md
+docs/V0_5_2_RESULTS.md
+```
+
+## Instalação
 
 ```powershell
 python -m pip install -r requirements.txt
-python scripts\check_rl_setup.py
 ```
 
-The checker should confirm:
-
-```text
-UBR 1.1: 472 observations, 10 actions
-UBR 1.2: 518 observations, 10 actions
-UBR 1.2 preserves the exact 472-feature UBR 1.1 prefix
-```
-
-You can also test either encoder offline:
-
-```powershell
-python scripts\check_representation.py --ubr ubr-1.1
-python scripts\check_representation.py --ubr ubr-1.2
-```
-
----
-
-## 2. Prepare the fixed benchmark once
-
-If `teams\fixed\manifest.json` does not exist:
+Prepare o fixed-team pool, se necessário:
 
 ```powershell
 python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
 ```
 
-Then:
+## Reutilizar seu experimento v0.5.2
+
+Essa é a opção recomendada, pois você já executou os 10 modelos de 10k.
+
+No seu caso, o experimento anterior foi:
+
+```text
+PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322
+```
+
+Primeiro valide a compatibilidade:
 
 ```powershell
-python scripts\check_multiseed_setup.py
+python scripts\check_budget_study_setup.py --baseline-experiment-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322"
 ```
 
-Keep the local Pokémon Showdown server running during training/evaluation, as
-in the previous versions.
-
----
-
-## 3. Recommended small smoke test
-
-Before launching the complete experiment:
+Depois execute:
 
 ```powershell
-python run_multiseed.py --seeds 42 123 --timesteps 1024 --repeats 1 --n-steps 256 --batch-size 64
+python run_budget_study.py --baseline-experiment-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322"
 ```
 
-This trains four small models:
+Isso importa os resultados de 10k e executa somente os dez modelos novos de
+50k.
+
+## Carga nova de trabalho
+
+Com baseline 10k importada:
 
 ```text
-UBR 1.1 seed 42
-UBR 1.1 seed 123
-UBR 1.2 seed 42
-UBR 1.2 seed 123
+10 modelos novos
+500.000 timesteps novos no total
+
+10 modelos
+× 2 adversários
+× 60 batalhas
+=
+1.200 novas batalhas de avaliação
 ```
 
-and evaluates them against Random and TypeAware with only one repeat per mirror
-leg. This is a pipeline test only.
+## Smoke test
 
----
-
-## 4. Official v0.5.2 experiment
-
-After the smoke test succeeds, the default command is simply:
+Antes do estudo completo, você pode testar a automação sem importar baseline:
 
 ```powershell
-python run_multiseed.py
+python run_budget_study.py --budgets 1024 2048 --seeds 42 123 --repeats 1 --n-steps 256 --batch-size 64
 ```
 
-Defaults:
+Não use esse smoke como resultado científico.
+
+## Estrutura de saída
 
 ```text
-Generation              Gen IX
-UBRs                    1.1 and 1.2
-Seeds                   42, 123, 456, 789, 2026
-Training opponent       TypeAwareAgent
-Timesteps/model         10,000
-PPO n_steps             2,048
-PPO batch size          128
-Evaluation opponents    RandomAgent, TypeAwareAgent
-Repeats/mirror leg      10
-Pairs                   pair01, pair02, pair03
+budget_results/
+└── budget_gen9_YYYYMMDD_HHMMSS/
+    ├── study_manifest.json
+    ├── imported_baseline/
+    ├── budget_50000/
+    │   ├── models/
+    │   └── evaluations/
+    └── aggregate/
+        ├── training_summary.csv
+        ├── per_model_budget_results.csv
+        ├── aggregate_summary.csv
+        ├── representation_paired_differences.csv
+        ├── representation_comparison_by_budget.csv
+        ├── budget_gain_by_seed.csv
+        ├── budget_comparison.csv
+        ├── budget_representation_interaction.csv
+        └── figures/
 ```
 
-This creates:
+## Arquivo principal para a pergunta da v0.5.3
 
 ```text
-10 models
-20 controlled evaluation runs
-1,200 controlled evaluation battles
+budget_representation_interaction.csv
 ```
 
-The experiment directory is printed immediately when the command starts.
-
----
-
-## 5. Resume an interrupted run
-
-Suppose the runner printed:
+Ele calcula descritivamente:
 
 ```text
-multiseed_results\multiseed_gen9_20260928_160000
+ganho UBR 1.2 de 10k → 50k
+-
+ganho UBR 1.1 de 10k → 50k
 ```
 
-Rerun:
+Se for positivo, a UBR 1.2 melhorou mais com orçamento adicional; se for
+negativo, a UBR 1.1 melhorou mais.
+
+Com cinco seeds, isso deve ser interpretado como evidência descritiva, não como
+teste definitivo de equivalência ou superioridade.
+
+## Resume
+
+O estudo é retomável.
+
+Quando o programa informar:
+
+```text
+[INFO] Budget-study directory:
+...\budget_results\budget_gen9_YYYYMMDD_HHMMSS
+```
+
+guarde esse caminho.
+
+Se houver interrupção:
 
 ```powershell
-python run_multiseed.py --experiment-dir "multiseed_results\multiseed_gen9_20260928_160000"
+python run_budget_study.py --study-dir "budget_results\budget_gen9_YYYYMMDD_HHMMSS" --baseline-experiment-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322"
 ```
 
-The configuration is checked. Completed models and evaluations are reused;
-missing work continues.
+Use sempre os mesmos parâmetros ao retomar.
 
----
-
-## 6. Main outputs
-
-Inside `aggregate\`:
+## Continuidade do projeto
 
 ```text
-training_summary.csv
+v0.5     RL baseline
+v0.5.1   battle-context representation
+v0.5.2   5-seed UBR ablation at 10k
+v0.5.3   10k vs 50k training-budget study
+v0.6     cross-generation transfer
 ```
-
-One row/model with episode count, mean training reward, final-window reward,
-and episode length.
-
-```text
-per_model_results.csv
-```
-
-One row for each seed × UBR × evaluation opponent.
-
-```text
-aggregate_summary.csv
-```
-
-Mean and sample standard deviation of mirrored score across seeds.
-
-```text
-paired_differences.csv
-```
-
-For each seed/opponent:
-
-```text
-UBR 1.2 mirror score - UBR 1.1 mirror score
-```
-
-```text
-representation_comparison.csv
-```
-
-Compact UBR-level comparison based on the matched seed labels.
-
-The `figures\` folder plots the seed-wise UBR 1.1 → UBR 1.2 change separately
-for each opponent.
-
----
-
-## 7. Scientific interpretation
-
-The experiment unit for representation stability is the **trained model/seed**,
-not an individual battle. The 60 battles per evaluation improve measurement of
-one model's performance on the three fixed pairs, but they do not create 60
-independent training replicates.
-
-Also, the same PPO seed does not imply identical Pokémon Showdown battle RNG
-between UBR 1.1 and UBR 1.2. Once the representation changes, trajectories
-change. v0.5.2 therefore uses matched seed labels for organization and paired
-summaries, but does not claim a strict common-random-numbers experiment.
-
----
-
-## 8. Current research sequence
-
-```text
-v0.3   fixed teams + mirrored benchmark
-v0.4.1 UBR 1.1 structurally validated
-v0.5   MaskablePPO + UBR 1.1 baseline
-v0.5.1 UBR 1.2 battle-context ablation, seed 42
-v0.5.2 multi-seed UBR 1.1 vs UBR 1.2
-v0.6   cross-generation transfer (after representation selection)
-```
-
-See `docs\MULTISEED_v0.5.2.md` for the experiment design and
-`CHANGELOG_v0.5.2.md` for implementation details.

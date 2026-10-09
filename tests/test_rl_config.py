@@ -30,5 +30,18 @@ class RLConfigTests(unittest.TestCase):
         self.assertEqual(block["repeats_per_leg"], 10)
 
 
+    def test_budget_study_defaults(self):
+        config = yaml.safe_load(
+            (ROOT / "config" / "rl_baseline.yaml").read_text(encoding="utf-8")
+        )
+        block = config["budget_study"]
+        self.assertEqual(block["representations"], ["ubr-1.1", "ubr-1.2"])
+        self.assertEqual(block["seeds"], [42, 123, 456, 789, 2026])
+        self.assertEqual(block["budgets"], [10000, 50000])
+        self.assertEqual(block["baseline_budget"], 10000)
+        self.assertEqual(block["evaluation_opponents"], ["random", "type_aware"])
+        self.assertEqual(block["repeats_per_leg"], 10)
+
+
 if __name__ == "__main__":
     unittest.main()
