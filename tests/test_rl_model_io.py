@@ -100,5 +100,29 @@ class RLModelIOTests(unittest.TestCase):
         validate_model_metadata(metadata, generation=9)
 
 
+    def test_resolve_masked_dqn_directory(self):
+        metadata = self.make_metadata(9, "ubr-1.2")
+        metadata = ModelMetadata(
+            **{
+                **metadata.to_dict(),
+                "algorithm": "MaskedDQN",
+                "algorithm_config": {"replay_capacity": 50000},
+            }
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            model = root / "masked_dqn.pt"
+            model.write_bytes(b"placeholder")
+            (root / "metadata.json").write_text(
+                json.dumps(metadata.to_dict()),
+                encoding="utf-8",
+            )
+            self.assertEqual(resolve_model_file(root), model.resolve())
+
+    def test_algorithm_config_default_is_backward_compatible(self):
+        metadata = self.make_metadata(9, "ubr-1.2")
+        self.assertEqual(metadata.algorithm_config, {})
+
+
 if __name__ == "__main__":
     unittest.main()

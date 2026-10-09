@@ -143,5 +143,42 @@ class UniversalActionSpaceTests(unittest.TestCase):
         self.assertEqual([move.id for move in slots], ["a", "b", "c", "d"])
 
 
+    def test_valid_orders_supplement_available_moves(self):
+        battle = DummyBattle(force_switch=False)
+        space = UniversalActionSpace()
+
+        known = [
+            DummyMove("stoneedge"),
+            DummyMove("knockoff"),
+            DummyMove("earthquake"),
+            DummyMove("swordsdance", base_power=0),
+        ]
+        battle.active_pokemon.moves = {move.id: move for move in known}
+
+        # Simulate the rare poke-env edge case observed during v0.5.5:
+        # Earthquake is legal in valid_orders but absent from available_moves.
+        battle.available_moves = [known[0], known[1]]
+
+        class DummyOrder:
+            def __init__(self, selected):
+                self.order = selected
+                self.mega = False
+                self.z_move = False
+                self.dynamax = False
+                self.terastallize = False
+
+        battle.valid_orders = [
+            DummyOrder(known[0]),
+            DummyOrder(known[1]),
+            DummyOrder(known[2]),
+        ]
+
+        mask = space.legal_mask(battle)
+        index = space.index_for_selected(battle, known[2])
+
+        self.assertIsNotNone(index)
+        self.assertEqual(mask[index], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

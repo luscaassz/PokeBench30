@@ -97,3 +97,33 @@ policy_study:
   curriculum:
     - {opponent: "random", timesteps: 100000}
     - {opponent: "type_aware", timesteps: 200000}
+
+
+algorithm_study:
+  representation: "ubr-1.2"
+  algorithms:
+    - "maskable_ppo"
+    - "masked_dqn"
+    - "masked_double_dqn"
+  seeds: [42, 123, 456, 789, 2026]
+  total_timesteps: 300000
+  checkpoint_interval: 50000
+  checkpoint_repeats_per_leg: 1
+  final_repeats_per_leg: 10
+  evaluation_opponents: ["random", "max_damage", "type_aware"]
+  curriculum:
+    - {opponent: "random", timesteps: 100000}
+    - {opponent: "type_aware", timesteps: 200000}
+  dqn:
+    learning_rate: 0.00025
+    gamma: 0.99
+    batch_size: 128
+    replay_capacity: 50000
+    learning_starts: 5000
+    train_frequency: 4
+    gradient_steps: 1
+    target_update_interval: 2000
+    epsilon_start: 1.0
+    epsilon_final: 0.05
+    epsilon_fraction: 0.50
+    max_grad_norm: 10.0

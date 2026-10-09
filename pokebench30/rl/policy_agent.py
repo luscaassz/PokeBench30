@@ -17,7 +17,7 @@ from .policy_specs import get_policy_spec, padded_history
 
 
 class RLPolicyAgent(InstrumentedPlayer):
-    """Inference-only MaskablePPO player with policy-architecture metadata."""
+    """Inference-only RL player for MaskablePPO and masked Q-learning models."""
 
     agent_name = "RLPolicyAgent"
 
@@ -29,15 +29,7 @@ class RLPolicyAgent(InstrumentedPlayer):
         require_same_generation: bool = True,
         **kwargs: Any,
     ) -> None:
-        try:
-            from sb3_contrib import MaskablePPO
-        except ImportError as exc:
-            raise ImportError(
-                "RLPolicyAgent requires sb3-contrib. "
-                "Run: python -m pip install -r requirements.txt"
-            ) from exc
-
-        # Import custom extractor before deserializing v0.5.5 temporal models.
+        # Import custom extractor before deserializing temporal PPO models.
         try:
             from . import temporal_policy as _temporal_policy  # noqa: F401
         except ImportError:
@@ -68,10 +60,38 @@ class RLPolicyAgent(InstrumentedPlayer):
             **kwargs,
         )
 
-        self.model = MaskablePPO.load(
-            str(self.model_path),
-            device="auto",
-        )
+        if self.model_metadata.algorithm == "MaskablePPO":
+            try:
+                from sb3_contrib import MaskablePPO
+            except ImportError as exc:
+                raise ImportError(
+                    "MaskablePPO inference requires sb3-contrib. "
+                    "Run: python -m pip install -r requirements.txt"
+                ) from exc
+
+            self.model = MaskablePPO.load(
+                str(self.model_path),
+                device="auto",
+            )
+            self._value_based = False
+
+        elif self.model_metadata.algorithm in {
+            "MaskedDQN",
+            "MaskedDoubleDQN",
+        }:
+            from .masked_dqn import MaskedQPolicy
+
+            self.model = MaskedQPolicy.load(
+                self.model_path,
+                device="auto",
+            )
+            self._value_based = True
+
+        else:
+            raise ValueError(
+                f"Unsupported RL algorithm in metadata: "
+                f"{self.model_metadata.algorithm!r}"
+            )
 
     @staticmethod
     def _generation_from_battle(battle: AbstractBattle) -> int:
@@ -142,12 +162,20 @@ class RLPolicyAgent(InstrumentedPlayer):
             )
 
         model_obs = self._model_observation(battle, encoded.vector)
-        action, _ = self.model.predict(
-            model_obs,
-            action_masks=mask,
-            deterministic=self.deterministic,
-        )
-        action_index = int(np.asarray(action).item())
+        if self._value_based:
+            action_index = int(
+                self.model.predict(
+                    model_obs,
+                    action_mask=mask,
+                )
+            )
+        else:
+            action, _ = self.model.predict(
+                model_obs,
+                action_masks=mask,
+                deterministic=self.deterministic,
+            )
+            action_index = int(np.asarray(action).item())
 
         try:
             selected = self.state_encoder.action_space.object_for_action(
@@ -170,7 +198,13 @@ class RLPolicyAgent(InstrumentedPlayer):
             )
             reason = "rl_illegal_action_first_legal_fallback"
         else:
-            reason = f"maskable_ppo_policy:{self.policy_spec.name}"
+            if self._value_based:
+                reason = (
+                    f"{self.model_metadata.algorithm.lower()}_policy:"
+                    f"{self.policy_spec.name}"
+                )
+            else:
+                reason = f"maskable_ppo_policy:{self.policy_spec.name}"
 
         order = self.create_order(selected)
 

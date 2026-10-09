@@ -1,155 +1,89 @@
-# PokéBench30 v0.5.5 — Policy Architecture Study
+# PokéBench30 v0.5.6 — RL Algorithm Study
 
-A v0.5.5 investiga se o gargalo observado nas versões anteriores está na
-**arquitetura da policy**.
+A v0.5.6 testa a próxima hipótese do projeto:
 
-O resultado da v0.5.4 mostrou que `Random -> TypeAware` foi o curriculum com a
-maior média final contra TypeAware:
+> O gargalo atual está no algoritmo de aprendizado, e não na arquitetura da
+> policy?
+
+A v0.5.5 mostrou que a MLP original `[256,128]` continuou sendo a melhor das
+arquiteturas testadas contra TypeAware:
 
 ```text
-Direct TypeAware        0.110
-Random -> TypeAware     0.137
-Progressive             0.057
-Random only             0.077
+MLP baseline       13.67%
+History LSTM        7.00%
+MLP large           6.00%
+History MLP         3.67%
 ```
 
-Por isso, a v0.5.5 congela esse curriculum e muda apenas a policy.
+Por isso a v0.5.6 congela a arquitetura original e compara três algoritmos.
 
-## Condições fixas
+## Algoritmos
 
 ```text
-Generation       = IX
-UBR              = 1.2
-UBR obs          = 518
-Action space     = 10
-Algorithm        = MaskablePPO
-Reward           = igual à v0.5-v0.5.4
-Learning rate    = 3e-4 constante
-Seeds            = 42, 123, 456, 789, 2026
-Budget           = 300k nominal / trajetória
+MaskablePPO
+Masked DQN
+Masked Double DQN
+```
+
+Todos usam:
+
+```text
+Generation        IX
+UBR               1.2
+Observation       518
+Action space      10
+Policy/Q network  [256, 128]
+Reward            igual à v0.5-v0.5.5
+Seeds             42, 123, 456, 789, 2026
 
 Curriculum:
-0-100k           Random
-100-300k         TypeAware
+0-100k            Random
+100-300k          TypeAware
 ```
 
-## Policies comparadas
+## Action masking no DQN/DDQN
+
+O DQN não pode simplesmente usar `argmax Q(s,a)` sobre as 10 ações, porque
+algumas são ilegais em cada turno.
+
+A v0.5.6 mascara ações ilegais em dois pontos:
 
 ```text
-mlp_baseline
-518 -> [256, 128]
-
-mlp_large
-518 -> [512, 256, 128]
-
-history_mlp
-4 × 518 -> [512, 256, 128]
-
-history_lstm
-4 × 518 -> LSTM(256) -> [128]
+1. escolha epsilon-greedy da ação
+2. bootstrap do próximo estado
 ```
 
-`history_mlp` é importante porque separa o efeito de **ter histórico** do efeito
-de **usar LSTM**.
-
-A janela temporal tem quatro decisões e usa zero-padding no início da batalha.
-
-## Por que não usar RecurrentPPO puro?
-
-O benchmark depende de action masking estrito. A versão atual do
-`MaskablePPO` usada pelo projeto não oferece policy recorrente nativa.
-
-Trocar `MaskablePPO` por `RecurrentPPO` mudaria também o tratamento de ações
-ilegais e tornaria a comparação injusta.
-
-Por isso, `history_lstm` usa uma LSTM como **feature extractor temporal de
-janela fixa**, mantendo exatamente o mesmo MaskablePPO e as mesmas máscaras.
-
-## Instalação
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-Se necessário, prepare novamente o pool:
-
-```powershell
-python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
-```
-
-## Reutilizar sua v0.5.4
-
-Pelos seus logs, o estudo completo anterior foi:
+No Double DQN:
 
 ```text
-PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136
+online network
+    escolhe a melhor ação legal
+
+target network
+    avalia essa ação
 ```
 
-Na nova pasta, valide primeiro:
+Assim uma ação ilegal nunca entra no `max`/`argmax` do target.
 
-```powershell
-python scripts\check_policy_study_setup.py --baseline-curriculum-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136"
-```
+## Mesmo orçamento efetivo de experiência
 
-Se aparecer tudo `[OK]`, o baseline pode ser importado.
-
-## Smoke test
-
-O smoke é independente e treina todas as quatro policies em escala pequena:
-
-```powershell
-$env:MPLBACKEND="Agg"
-python run_policy_study.py --smoke
-```
-
-Configuração do smoke:
+Nos estudos anteriores, cada bloco nominal de 50k do PPO contém na prática:
 
 ```text
-1 seed
-4 architectures
-6144 nominal timesteps
-checkpoints em 2048 / 4096 / 6144
-Random 2048 -> TypeAware 4096
-1 repeat por mirror leg
+ceil(50000 / 2048) × 2048
+= 51200 environment steps
 ```
 
-Os resultados do smoke não são científicos; ele serve para validar:
-
-- temporal stack;
-- LSTM extractor;
-- model save/load;
-- architecture-aware inference;
-- action masking;
-- checkpoints;
-- controlled evaluation.
-
-## Experimento completo recomendado
-
-Depois do smoke:
-
-```powershell
-$env:MPLBACKEND="Agg"
-
-python run_policy_study.py --baseline-curriculum-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136"
-```
-
-Como o `mlp_baseline` é importado da v0.5.4, serão treinadas apenas:
+Por isso o modelo final do PPO recebe:
 
 ```text
-mlp_large
-history_mlp
-history_lstm
-
-3 architectures
-× 5 seeds
-× 300k
-=
-4.5M novos timesteps nominais
+6 × 51200
+= 307200 environment interactions
 ```
 
-## Avaliação
+A v0.5.6 dá exatamente **307200 interações** também ao DQN e ao Double DQN.
 
-Cada trajectory é observada em:
+Os gráficos continuam usando os rótulos nominais:
 
 ```text
 50k
@@ -160,61 +94,202 @@ Cada trajectory é observada em:
 300k
 ```
 
-contra:
+## Configuração DQN/DDQN
 
 ```text
-Random
-MaxDamage
-TypeAware
+learning rate           2.5e-4
+gamma                   0.99
+batch size              128
+replay buffer           50,000
+learning starts         5,000
+train frequency         4
+gradient steps          1
+target update           2,000
+epsilon                 1.00 -> 0.05
+epsilon decay           primeiros 50% do treino
+loss                    Huber
+network                 [256, 128]
 ```
 
-Os checkpoints intermediários são diagnósticos.
-O checkpoint final usa 60 batalhas por seed/adversário.
+DQN e Double DQN usam exatamente os mesmos valores; a única diferença entre
+eles é a regra do bootstrap target.
+
+## Hotfixes incorporados
+
+A v0.5.6 já inclui as duas correções encontradas durante a v0.5.5:
+
+```text
+valid_orders suplementa available_moves
+```
+
+para evitar o erro de movimentos legais como Earthquake não serem mapeados, e
+
+```text
+canonicalização do study_manifest
+```
+
+para permitir resume correto depois da serialização JSON.
+
+## 1. Copie o fixed-team pool
+
+A nova versão não distribui novamente os times gerados.
+
+Dentro da pasta v0.5.6:
+
+```powershell
+Remove-Item ".\teams\fixed" -Recurse -Force -ErrorAction SilentlyContinue
+
+Copy-Item `
+  "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\teams\fixed" `
+  ".\teams\fixed" `
+  -Recurse
+```
+
+Confira:
+
+```powershell
+Test-Path ".\teams\fixed\manifest.json"
+```
+
+Deve retornar `True`.
+
+## 2. Valide o setup e a baseline PPO
+
+O seu estudo completo da v0.5.5 foi:
+
+```text
+PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318
+```
+
+Rode:
+
+```powershell
+python scripts\check_algorithm_study_setup.py `
+  --ppo-baseline-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318"
+```
+
+O checker valida:
+
+- UBR e SHA;
+- fixed-team pool;
+- seeds;
+- curriculum;
+- checkpoints;
+- adversários;
+- protocolo final;
+- compatibilidade da baseline PPO.
+
+## 3. Smoke test
+
+Antes do experimento real:
+
+```powershell
+$env:MPLBACKEND="Agg"
+
+python run_algorithm_study.py --smoke
+```
+
+O smoke treina:
+
+```text
+1 seed
+3 algorithms
+6144 nominal/effective steps
+Random 2048 -> TypeAware 4096
+```
+
+com avaliações em:
+
+```text
+2048
+4096
+6144
+```
+
+Os resultados do smoke não devem ser interpretados cientificamente.
+
+## 4. Experimento completo recomendado
+
+Depois do smoke:
+
+```powershell
+$env:MPLBACKEND="Agg"
+
+python run_algorithm_study.py `
+  --ppo-baseline-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318"
+```
+
+Como o PPO será importado, apenas dois novos algoritmos serão treinados:
+
+```text
+Masked DQN
+Masked Double DQN
+```
+
+Carga nova:
+
+```text
+2 algorithms
+× 5 seeds
+× 307200 effective environment steps
+
+= 10 novas trajetórias
+= 3,072,000 novas interações
+```
+
+## Resume
+
+Guarde o diretório impresso no início:
+
+```text
+algorithm_results\algorithm_gen9_YYYYMMDD_HHMMSS
+```
+
+Se parar:
+
+```powershell
+python run_algorithm_study.py `
+  --study-dir ".\algorithm_results\algorithm_gen9_YYYYMMDD_HHMMSS" `
+  --ppo-baseline-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318"
+```
+
+Para DQN/DDQN, o projeto guarda também o replay buffer do checkpoint mais
+recente. O runner se recusa a continuar uma trajetória incompleta caso esse
+replay não esteja disponível, em vez de resetá-lo silenciosamente.
 
 ## Resultados
 
 ```text
-policy_results/
-└── policy_gen9_.../
+algorithm_results/
+└── algorithm_gen9_.../
     ├── study_manifest.json
-    ├── imported_mlp_baseline/
+    ├── imported_maskable_ppo/
     ├── runs/
-    │   ├── mlp_large/
-    │   ├── history_mlp/
-    │   └── history_lstm/
+    │   ├── masked_dqn/
+    │   └── masked_double_dqn/
     └── aggregate/
         ├── learning_curve.csv
         ├── aggregate_learning_curve.csv
         ├── training_progress.csv
         ├── final_summary.csv
-        ├── paired_architecture_differences.csv
-        ├── architecture_comparison.csv
+        ├── paired_algorithm_differences.csv
+        ├── algorithm_comparison.csv
         └── figures/
 ```
 
-O arquivo principal é:
+O arquivo principal será:
 
 ```text
-architecture_comparison.csv
+algorithm_comparison.csv
 ```
 
-Ele compara cada arquitetura com `mlp_baseline` por seed.
-
-## Resume
-
-Ao iniciar, guarde o diretório impresso:
+A comparação mais importante continuará sendo:
 
 ```text
-policy_results\policy_gen9_YYYYMMDD_HHMMSS
+vs TypeAware @ 300k
 ```
 
-Se o processo parar:
-
-```powershell
-python run_policy_study.py --study-dir "policy_results\policy_gen9_YYYYMMDD_HHMMSS" --baseline-curriculum-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136"
-```
-
-Use os mesmos parâmetros.
+pareada pelas mesmas cinco seeds.
 
 ## Sequência experimental
 
@@ -223,7 +298,8 @@ v0.5.2  representação
 v0.5.3  training budget
 v0.5.4  curriculum
 v0.5.5  policy architecture
-v0.6    cross-generation transfer
+v0.5.6  RL algorithm
 ```
 
-Mais detalhes: `docs/POLICY_ARCHITECTURE_v0.5.5.md`.
+Detalhes metodológicos:
+`docs/RL_ALGORITHM_v0.5.6.md`.

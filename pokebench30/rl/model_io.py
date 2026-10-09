@@ -27,6 +27,7 @@ class ModelMetadata:
     policy_architecture: str = "mlp_baseline"
     policy_config: dict[str, Any] = field(default_factory=dict)
     model_input_dim: int | None = None
+    algorithm_config: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -36,21 +37,42 @@ def resolve_model_file(model_path: str | Path) -> Path:
     path = Path(model_path).resolve()
 
     if path.is_dir():
-        candidate = path / "maskable_ppo.zip"
-        if not candidate.exists():
-            raise FileNotFoundError(
-                f"Could not find {candidate}. Expected a v0.5 model directory "
-                "containing maskable_ppo.zip."
-            )
-        return candidate
+        metadata = path / "metadata.json"
+        if metadata.exists():
+            try:
+                raw = json.loads(metadata.read_text(encoding="utf-8"))
+                algorithm = str(raw.get("algorithm", ""))
+            except Exception:
+                algorithm = ""
+
+            if algorithm == "MaskablePPO":
+                candidate = path / "maskable_ppo.zip"
+            elif algorithm in {"MaskedDQN", "MaskedDoubleDQN"}:
+                candidate = path / "masked_dqn.pt"
+            else:
+                candidate = None
+
+            if candidate is not None and candidate.exists():
+                return candidate
+
+        for candidate_name in ("maskable_ppo.zip", "masked_dqn.pt"):
+            candidate = path / candidate_name
+            if candidate.exists():
+                return candidate
+
+        raise FileNotFoundError(
+            f"Could not find a supported RL model in {path}. Expected "
+            "maskable_ppo.zip or masked_dqn.pt with metadata.json."
+        )
 
     if path.exists():
         return path
 
-    if path.suffix != ".zip":
-        candidate = path.with_suffix(".zip")
-        if candidate.exists():
-            return candidate
+    if path.suffix == "":
+        for suffix in (".zip", ".pt"):
+            candidate = path.with_suffix(suffix)
+            if candidate.exists():
+                return candidate
 
     raise FileNotFoundError(f"RL model not found: {path}")
 

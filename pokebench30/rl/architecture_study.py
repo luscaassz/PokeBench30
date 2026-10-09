@@ -920,31 +920,16 @@ def _study_manifest(
 
 def _same_manifest(a: dict[str, Any], b: dict[str, Any]) -> bool:
     keys = [
-        "generation",
-        "representation",
-        "architectures",
-        "architecture_specs",
-        "seeds",
-        "total_timesteps",
-        "checkpoint_interval",
-        "checkpoint_repeats_per_leg",
-        "final_repeats_per_leg",
-        "evaluation_opponents",
-        "curriculum",
-        "ppo",
-        "baseline_curriculum_dir",
-        "fixed_team_pool",
+        "generation", "representation", "architectures", "architecture_specs",
+        "seeds", "total_timesteps", "checkpoint_interval",
+        "checkpoint_repeats_per_leg", "final_repeats_per_leg",
+        "evaluation_opponents", "curriculum", "ppo",
+        "baseline_curriculum_dir", "fixed_team_pool",
     ]
 
     def canonical(value: Any) -> Any:
-        # Normaliza tuple/list e demais estruturas para a mesma
-        # representação usada pelo JSON do study_manifest.
         return json.loads(
-            json.dumps(
-                value,
-                sort_keys=True,
-                ensure_ascii=False,
-            )
+            json.dumps(value, sort_keys=True, ensure_ascii=False)
         )
 
     return all(

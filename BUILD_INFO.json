@@ -1,16 +1,24 @@
 {
   "project": "PokeBench30",
-  "version": "0.5.5",
-  "milestone": "Policy Architecture Study",
-  "base": "PokéBench30 v0.5.4",
-  "fixed_experimental_conditions": {
+  "version": "0.5.6",
+  "milestone": "RL Algorithm Study",
+  "base": "PokéBench30 v0.5.5",
+  "research_question": "With UBR, reward, MLP architecture, curriculum, seeds, effective environment-interaction budget and evaluation fixed, how does the RL algorithm affect performance?",
+  "algorithms": [
+    "MaskablePPO",
+    "MaskedDQN",
+    "MaskedDoubleDQN"
+  ],
+  "fixed_conditions": {
     "generation": 9,
     "representation": "ubr-1.2",
-    "ubr_observation_dim": 518,
+    "observation_dim": 518,
     "action_dim": 10,
-    "algorithm": "MaskablePPO",
+    "network": [
+      256,
+      128
+    ],
     "reward": "unchanged v0.5 dense reward",
-    "learning_rate": 0.0003,
     "seeds": [
       42,
       123,
@@ -18,7 +26,8 @@
       789,
       2026
     ],
-    "nominal_timesteps_per_trajectory": 300000,
+    "nominal_timesteps": 300000,
+    "effective_environment_steps": 307200,
     "curriculum": [
       {
         "opponent": "random",
@@ -30,58 +39,47 @@
       }
     ]
   },
-  "architectures": {
-    "mlp_baseline": {
-      "history_len": 1,
-      "model_input_dim": 518,
-      "net_arch": [
-        256,
-        128
-      ]
-    },
-    "mlp_large": {
-      "history_len": 1,
-      "model_input_dim": 518,
-      "net_arch": [
-        512,
-        256,
-        128
-      ]
-    },
-    "history_mlp": {
-      "history_len": 4,
-      "model_input_dim": 2072,
-      "net_arch": [
-        512,
-        256,
-        128
-      ]
-    },
-    "history_lstm": {
-      "history_len": 4,
-      "model_input_dim": 2072,
-      "lstm_hidden_size": 256,
-      "lstm_layers": 1,
-      "head_net_arch": [
-        128
-      ]
-    }
+  "dqn_shared": {
+    "learning_rate": 0.00025,
+    "gamma": 0.99,
+    "batch_size": 128,
+    "replay_capacity": 50000,
+    "learning_starts": 5000,
+    "train_frequency": 4,
+    "gradient_steps": 1,
+    "target_update_interval": 2000,
+    "epsilon_start": 1.0,
+    "epsilon_final": 0.05,
+    "epsilon_fraction": 0.5,
+    "loss": "Huber",
+    "max_grad_norm": 10.0
   },
-  "recurrent_design_note": "history_lstm is a fixed-window LSTM feature extractor inside MaskablePPO. Fully stateful RecurrentPPO was not used because native MaskablePPO in the current sb3-contrib stack does not support recurrent policies while preserving action masking.",
-  "baseline_reuse": "A compatible v0.5.4 random_to_type_aware experiment can be imported as mlp_baseline, reducing new training from 6.0M to 4.5M nominal steps.",
+  "important_design": [
+    "DQN/DDQN mask illegal actions in epsilon-greedy behavior selection.",
+    "DQN/DDQN mask illegal next-state actions before bootstrap max/argmax.",
+    "Double DQN uses online masked argmax and target-network evaluation.",
+    "Replay buffer is retained across Random -> TypeAware transition.",
+    "DQN/DDQN receive the same 307,200 effective environment interactions as the PPO baseline.",
+    "Crash-safe DQN resume includes online/target networks, optimizer, RNG and replay buffer."
+  ],
+  "incorporated_hotfixes": [
+    "valid_orders supplements available_moves for legal core move mapping",
+    "JSON manifest tuple/list canonicalization for resume"
+  ],
   "validation": {
-    "python_files_checked": 72,
-    "syntax_errors": 0,
-    "dependency_light_tests": [
-      "test_policy_specs.py PASS",
-      "test_architecture_study.py PASS",
-      "test_rl_model_io.py PASS",
-      "test_rl_config.py PASS",
-      "test_representation_schema.py PASS",
-      "test_mirrored_metrics.py PASS",
-      "test_metrics.py PASS"
-    ],
-    "actual_v0.5.4_csv_import_format": "PASS: 90 eval rows, 30 training rows",
-    "full_live_poke_env_showdown_smoke": "Pending user-side execution with python run_policy_study.py --smoke"
+    "python_test_suite": "71 tests PASS",
+    "syntax_compileall": "PASS",
+    "masked_dqn_unit_tests": "PASS",
+    "double_dqn_target_test": "PASS",
+    "replay_save_load_test": "PASS",
+    "valid_orders_regression_test": "PASS",
+    "actual_v0.5.5_csv_baseline_import": {
+      "evaluation_rows": 90,
+      "training_rows": 30,
+      "final_typeaware_mean": 0.1366666,
+      "status": "PASS"
+    },
+    "synthetic_dqn_training_loop": "PASS",
+    "live_poke_env_showdown_smoke": "Pending user-side execution with python run_algorithm_study.py --smoke"
   }
 }

@@ -37,7 +37,9 @@ def _move_id(move: Any) -> str:
         or move
     ).lower()
 
+
 def _order_has_special_flags(order: Any) -> bool:
+    """Return True for generation-specific special-action orders."""
     return any(
         bool(_safe_attr(order, attr, False))
         for attr in (
@@ -50,26 +52,22 @@ def _order_has_special_flags(order: Any) -> bool:
     )
 
 
-def _regular_moves_from_valid_orders(
-    battle: Any,
-) -> list[Any]:
-    """Return ordinary legal moves exposed by battle.valid_orders.
+def _regular_moves_from_valid_orders(battle: Any) -> list[Any]:
+    """Return ordinary legal moves exposed by ``battle.valid_orders``.
 
-    This is a defensive supplement to battle.available_moves.  It is
-    especially useful when poke-env's battle trackers momentarily disagree
-    about available_moves while valid_orders already contains the legal
-    Showdown command.
+    ``poke-env`` can occasionally expose a legal Showdown order in
+    ``valid_orders`` before/without the same move appearing in
+    ``available_moves``.  UBR treats ordinary ``valid_orders`` as an
+    authoritative supplementary source so every simulator-legal core move is
+    representable.
 
-    Generation-specific gimmick orders remain outside the UBR core action
-    space.
+    Generation-specific gimmick orders remain outside the universal core
+    action space.
     """
     moves: list[Any] = []
     seen: set[str] = set()
 
-    valid_orders = list(
-        _safe_attr(battle, "valid_orders", []) or []
-    )
-
+    valid_orders = list(_safe_attr(battle, "valid_orders", []) or [])
     for order in valid_orders:
         if _order_has_special_flags(order):
             continue
@@ -78,7 +76,7 @@ def _regular_moves_from_valid_orders(
         if selected is None:
             continue
 
-        # Switch orders are handled by the team portion of the UBR.
+        # Pokémon objects are switch orders and are represented separately.
         if _safe_attr(selected, "species", None) is not None:
             continue
 
@@ -92,30 +90,21 @@ def _regular_moves_from_valid_orders(
     return moves
 
 
-def _legal_regular_moves(
-    battle: Any,
-) -> list[Any]:
-    """Union of available_moves and ordinary move valid_orders."""
-    candidates = list(
-        _safe_attr(battle, "available_moves", []) or []
-    )
-
-    candidates.extend(
-        _regular_moves_from_valid_orders(battle)
-    )
+def _legal_regular_moves(battle: Any) -> list[Any]:
+    """Union ``available_moves`` with ordinary moves from ``valid_orders``."""
+    candidates = list(_safe_attr(battle, "available_moves", []) or [])
+    candidates.extend(_regular_moves_from_valid_orders(battle))
 
     moves: list[Any] = []
     seen: set[str] = set()
-
     for move in candidates:
         move_id = _move_id(move)
         if not move_id or move_id in seen:
             continue
-
         moves.append(move)
         seen.add(move_id)
 
-    return moves    
+    return moves
 
 
 def _pokemon_ident(pokemon: Any) -> str:
