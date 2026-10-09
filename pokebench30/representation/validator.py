@@ -6,7 +6,11 @@ from typing import Any
 import numpy as np
 
 from .encoder import EncodedObservation
-from .schema import MAX_TEAM_SIZE, build_feature_schema
+from .schema import (
+    MAX_TEAM_SIZE,
+    SIDE_CONDITION_FEATURES,
+    build_feature_schema,
+)
 
 
 @dataclass
@@ -98,6 +102,32 @@ class ObservationValidator:
                         f"Unknown opponent slot {slot} is not "
                         "zero-padded."
                     )
+
+        # UBR 1.2 battle context is binary except normalized hazard layers.
+        continuous_context_suffixes = {
+            ".spikes",
+            ".toxic_spikes",
+        }
+        for name, index in self._indices.items():
+            if not name.startswith("battle_context."):
+                continue
+            if index >= vector.size:
+                continue
+            if any(
+                name.endswith(suffix)
+                for suffix in continuous_context_suffixes
+            ):
+                continue
+
+            value = float(vector[index])
+            if not (
+                abs(value - 0.0) <= 1e-8
+                or abs(value - 1.0) <= 1e-8
+            ):
+                report.errors.append(
+                    f"Battle-context feature {name} is not binary: "
+                    f"{value}."
+                )
 
         if battle is not None:
             force_switch = getattr(

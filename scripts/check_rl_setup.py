@@ -26,6 +26,7 @@ def main() -> None:
         ("stable_baselines3", "stable-baselines3"),
         ("sb3_contrib", "sb3-contrib"),
         ("torch", "torch"),
+        ("tensorboard", "tensorboard"),
         ("numpy", "numpy"),
         ("yaml", "PyYAML"),
     ]
@@ -51,22 +52,22 @@ def main() -> None:
         ok(f"Observation dimension: {schema.observation_dim}")
         ok(f"Action dimension: {schema.action_dim}")
 
-        if schema.version != "ubr-1.1":
+        if schema.version != "ubr-1.2":
             fail(
-                f"v0.5 expects UBR 1.1, found {schema.version}"
+                f"v0.5.1 expects UBR 1.2, found {schema.version}"
             )
             status = 1
 
-        if schema.observation_dim != 472:
+        if schema.observation_dim != 518:
             fail(
-                f"v0.5 expects 472 observations, found "
+                f"v0.5.1 expects 518 observations, found "
                 f"{schema.observation_dim}"
             )
             status = 1
 
         if schema.action_dim != 10:
             fail(
-                f"v0.5 expects 10 actions, found {schema.action_dim}"
+                f"v0.5.1 expects 10 actions, found {schema.action_dim}"
             )
             status = 1
 
@@ -78,7 +79,7 @@ def main() -> None:
         print("\nFix the [FAIL] items before RL training.")
         raise SystemExit(status)
 
-    print("\n[OK] PokéBench30 v0.5 RL setup is ready.")
+    print("\n[OK] PokéBench30 v0.5.1 RL setup is ready.")
 
 
 if __name__ == "__main__":

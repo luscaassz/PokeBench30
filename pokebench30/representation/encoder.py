@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import math
 from typing import Any
 
 import numpy as np
@@ -9,24 +8,22 @@ import numpy as np
 from .action_space import UniversalActionSpace, _same_pokemon
 from .schema import (
     BOOST_NAMES,
+    FIELD_FEATURES,
     MAX_MOVES,
     MAX_TEAM_SIZE,
     MOVE_CATEGORY_NAMES,
+    SIDE_CONDITION_FEATURES,
     STATUS_NAMES,
     TYPE_NAMES,
+    VOLATILE_EFFECT_FEATURES,
+    WEATHER_FEATURES,
     FeatureSchema,
     build_feature_schema,
 )
 
 
 def _safe_attr(obj: Any, name: str, default: Any = None) -> Any:
-    """Read a poke-env property that may be absent from transient commands.
-
-    Gen I pseudo-moves such as ``recharge`` / ``fight`` can be represented by
-    Move objects whose data entry omits ordinary keys such as ``priority``.
-    Some poke-env properties raise KeyError instead of AttributeError in that
-    situation, so plain getattr(..., default) is not sufficient.
-    """
+    """Read a property that may be absent or backed by incomplete data."""
     try:
         return getattr(obj, name)
     except (AttributeError, KeyError, TypeError, ValueError):
@@ -36,8 +33,17 @@ def _safe_attr(obj: Any, name: str, default: Any = None) -> Any:
 def _enum_name(value: Any) -> str:
     if value is None:
         return ""
-    name = getattr(value, "name", None)
+    name = _safe_attr(value, "name", None)
     return str(name if name is not None else value).upper()
+
+
+def _enum_token(value: Any) -> str:
+    """Normalize enum/string names across poke-env / Showdown naming styles."""
+    return "".join(
+        char
+        for char in _enum_name(value)
+        if char.isalnum()
+    )
 
 
 def _clip(value: float, low: float, high: float) -> float:
@@ -79,7 +85,7 @@ def _remaining_fraction(team: Any) -> float:
     if not values:
         return 0.0
     remaining = sum(
-        not bool(getattr(pokemon, "fainted", False))
+        not bool(_safe_attr(pokemon, "fainted", False))
         for pokemon in values
     )
     return _clip(remaining / MAX_TEAM_SIZE, 0.0, 1.0)
@@ -96,12 +102,147 @@ def _known_fraction(team: Any) -> float:
 def _boost_value(pokemon: Any, key: str) -> float:
     if pokemon is None:
         return 0.0
-    boosts = getattr(pokemon, "boosts", {}) or {}
+    boosts = _safe_attr(pokemon, "boosts", {}) or {}
     try:
         value = float(boosts.get(key, 0.0))
     except (AttributeError, TypeError, ValueError):
         value = 0.0
     return _clip(value / 6.0, -1.0, 1.0)
+
+
+def _mapping_items(mapping: Any) -> list[tuple[Any, Any]]:
+    if not mapping:
+        return []
+    if hasattr(mapping, "items"):
+        try:
+            return list(mapping.items())
+        except (AttributeError, TypeError, ValueError):
+            return []
+    try:
+        return [(value, 1) for value in mapping]
+    except TypeError:
+        return []
+
+
+def _mapping_tokens(mapping: Any) -> set[str]:
+    return {
+        _enum_token(key)
+        for key, _ in _mapping_items(mapping)
+        if _enum_token(key)
+    }
+
+
+def _mapping_value_for_tokens(
+    mapping: Any,
+    accepted_tokens: set[str],
+) -> Any | None:
+    for key, value in _mapping_items(mapping):
+        if _enum_token(key) in accepted_tokens:
+            return value
+    return None
+
+
+SIDE_CONDITION_ALIASES: dict[str, set[str]] = {
+    "stealth_rock": {"STEALTHROCK"},
+    "spikes": {"SPIKES"},
+    "toxic_spikes": {"TOXICSPIKES"},
+    "sticky_web": {"STICKYWEB"},
+    "reflect": {"REFLECT"},
+    "light_screen": {"LIGHTSCREEN"},
+    "aurora_veil": {"AURORAVEIL"},
+    "tailwind": {"TAILWIND"},
+}
+
+SIDE_CONDITION_MAX_LAYERS = {
+    "spikes": 3,
+    "toxic_spikes": 2,
+}
+
+WEATHER_ALIASES: dict[str, set[str]] = {
+    "rain": {"RAINDANCE", "RAIN"},
+    "sun": {"SUNNYDAY", "SUN"},
+    "sandstorm": {"SANDSTORM"},
+    "hail": {"HAIL"},
+    "snow": {"SNOW"},
+    "primordial_sea": {"PRIMORDIALSEA"},
+    "desolate_land": {"DESOLATELAND"},
+    "delta_stream": {"DELTASTREAM"},
+}
+
+FIELD_ALIASES: dict[str, set[str]] = {
+    "electric_terrain": {"ELECTRICTERRAIN"},
+    "grassy_terrain": {"GRASSYTERRAIN"},
+    "misty_terrain": {"MISTYTERRAIN"},
+    "psychic_terrain": {"PSYCHICTERRAIN"},
+    "trick_room": {"TRICKROOM"},
+    "gravity": {"GRAVITY"},
+}
+
+VOLATILE_EFFECT_ALIASES: dict[str, set[str]] = {
+    "taunt": {"TAUNT"},
+    "encore": {"ENCORE"},
+    "substitute": {"SUBSTITUTE"},
+    "confusion": {"CONFUSION"},
+    "leech_seed": {"LEECHSEED"},
+    "disable": {"DISABLE"},
+    "yawn": {"YAWN"},
+    "protect": {"PROTECT"},
+}
+
+
+def _side_condition_features(mapping: Any) -> list[float]:
+    """Encode selected side conditions.
+
+    Stackable hazards use normalized layer counts. Other tracked conditions
+    use binary presence. poke-env documents stackable side-condition values as
+    layer counts and non-stackable values as setup-turn identifiers.
+    """
+    values: list[float] = []
+
+    for feature in SIDE_CONDITION_FEATURES:
+        aliases = SIDE_CONDITION_ALIASES[feature]
+        raw = _mapping_value_for_tokens(mapping, aliases)
+
+        if raw is None:
+            values.append(0.0)
+            continue
+
+        max_layers = SIDE_CONDITION_MAX_LAYERS.get(feature)
+        if max_layers is None:
+            values.append(1.0)
+            continue
+
+        try:
+            layers = float(raw)
+        except (TypeError, ValueError):
+            layers = 1.0
+
+        values.append(
+            _clip(layers / float(max_layers), 0.0, 1.0)
+        )
+
+    return values
+
+
+def _categorical_context_features(
+    mapping: Any,
+    names: tuple[str, ...],
+    aliases: dict[str, set[str]],
+) -> list[float]:
+    tokens = _mapping_tokens(mapping)
+    return [
+        1.0 if bool(tokens.intersection(aliases[name])) else 0.0
+        for name in names
+    ]
+
+
+def _volatile_features(pokemon: Any) -> list[float]:
+    effects = _safe_attr(pokemon, "effects", {}) if pokemon is not None else {}
+    return _categorical_context_features(
+        effects,
+        VOLATILE_EFFECT_FEATURES,
+        VOLATILE_EFFECT_ALIASES,
+    )
 
 
 @dataclass(frozen=True)
@@ -123,19 +264,24 @@ class EncodedObservation:
 
 
 class UniversalStateEncoder:
-    """Core universal battle representation for Gen I / IV / IX.
+    """Universal battle representation for Gen I / IV / IX.
+
+    UBR 1.2 preserves the full UBR 1.1 core prefix and appends public
+    battle-context information that is important for learned policies:
+    selected side conditions, weather, terrain/field effects, and selected
+    volatile effects on the currently active Pokémon.
 
     Design goals:
     - fixed dimensionality across generations;
-    - species-agnostic features to support cross-generation transfer;
+    - species-agnostic features to support later transfer experiments;
     - no hidden-opponent reconstruction;
-    - normalized numeric features;
-    - legal-action mask paired with every observation.
+    - normalized numeric features in [-1, 1];
+    - legal-action mask paired with every observation;
+    - only agent-visible public battle state.
 
-    Deliberately omitted from UBR 1.1:
-    weather, terrain, hazards, volatile effects, abilities/items and
-    generation-specific gimmicks. Those can be layered onto future schema
-    versions without silently changing UBR 1.1.
+    Still deliberately omitted from UBR 1.2 include species identity,
+    items/abilities, PP, known opponent move history, many rare side/effect
+    states, and generation-specific gimmick actions.
     """
 
     def __init__(
@@ -149,14 +295,14 @@ class UniversalStateEncoder:
     @staticmethod
     def _generation(battle: Any) -> int:
         for attr in ("gen", "generation"):
-            value = getattr(battle, attr, None)
+            value = _safe_attr(battle, attr, None)
             if value is not None:
                 try:
                     return int(value)
                 except (TypeError, ValueError):
                     pass
 
-        battle_format = str(getattr(battle, "format", "") or "")
+        battle_format = str(_safe_attr(battle, "format", "") or "")
         if battle_format.startswith("gen"):
             digits = ""
             for char in battle_format[3:]:
@@ -186,19 +332,19 @@ class UniversalStateEncoder:
         values: list[float] = [
             1.0,  # known
             1.0 if _same_pokemon(pokemon, active) else 0.0,
-            1.0 if bool(getattr(pokemon, "fainted", False)) else 0.0,
+            1.0 if bool(_safe_attr(pokemon, "fainted", False)) else 0.0,
             _hp_fraction(pokemon),
         ]
 
         try:
-            level = float(getattr(pokemon, "level", 100) or 100)
+            level = float(_safe_attr(pokemon, "level", 100) or 100)
         except (TypeError, ValueError):
             level = 100.0
         values.append(_clip(level / 100.0, 0.0, 1.0))
 
         pokemon_types = {
-            _enum_name(getattr(pokemon, "type_1", None)),
-            _enum_name(getattr(pokemon, "type_2", None)),
+            _enum_name(_safe_attr(pokemon, "type_1", None)),
+            _enum_name(_safe_attr(pokemon, "type_2", None)),
         }
 
         values.extend(
@@ -206,7 +352,7 @@ class UniversalStateEncoder:
             for type_name in TYPE_NAMES
         )
 
-        status = _enum_name(getattr(pokemon, "status", None))
+        status = _enum_name(_safe_attr(pokemon, "status", None))
         values.extend(
             1.0 if status == status_name else 0.0
             for status_name in STATUS_NAMES
@@ -261,14 +407,14 @@ class UniversalStateEncoder:
 
     def encode(self, battle: Any) -> EncodedObservation:
         generation = self._generation(battle)
-        force_switch = getattr(battle, "force_switch", False)
+        force_switch = _safe_attr(battle, "force_switch", False)
         if isinstance(force_switch, (list, tuple)):
             force_switch = any(bool(value) for value in force_switch)
         else:
             force_switch = bool(force_switch)
 
-        own_team = getattr(battle, "team", {}) or {}
-        opponent_team = getattr(battle, "opponent_team", {}) or {}
+        own_team = _safe_attr(battle, "team", {}) or {}
+        opponent_team = _safe_attr(battle, "opponent_team", {}) or {}
 
         own_slots = self.action_space.own_team_slots(battle)
         opponent_slots = self.action_space.opponent_team_slots(battle)
@@ -276,10 +422,11 @@ class UniversalStateEncoder:
         legal_mask = self.action_space.legal_mask(battle)
 
         try:
-            turn = float(getattr(battle, "turn", 0.0) or 0.0)
+            turn = float(_safe_attr(battle, "turn", 0.0) or 0.0)
         except (TypeError, ValueError):
             turn = 0.0
 
+        # ---- UBR 1.1-compatible prefix ----
         vector: list[float] = [
             _clip(generation / 9.0, 0.0, 1.0),
             _clip(turn / 100.0, 0.0, 1.0),
@@ -289,8 +436,8 @@ class UniversalStateEncoder:
             _remaining_fraction(opponent_team),
         ]
 
-        active = getattr(battle, "active_pokemon", None)
-        opponent_active = getattr(
+        active = _safe_attr(battle, "active_pokemon", None)
+        opponent_active = _safe_attr(
             battle,
             "opponent_active_pokemon",
             None,
@@ -326,6 +473,43 @@ class UniversalStateEncoder:
                 )
             )
 
+        # ---- UBR 1.2 battle-context extension ----
+        own_side_conditions = _safe_attr(
+            battle,
+            "side_conditions",
+            {},
+        ) or {}
+        opponent_side_conditions = _safe_attr(
+            battle,
+            "opponent_side_conditions",
+            {},
+        ) or {}
+        weather = _safe_attr(battle, "weather", {}) or {}
+        fields = _safe_attr(battle, "fields", {}) or {}
+
+        vector.extend(
+            _side_condition_features(own_side_conditions)
+        )
+        vector.extend(
+            _side_condition_features(opponent_side_conditions)
+        )
+        vector.extend(
+            _categorical_context_features(
+                weather,
+                WEATHER_FEATURES,
+                WEATHER_ALIASES,
+            )
+        )
+        vector.extend(
+            _categorical_context_features(
+                fields,
+                FIELD_FEATURES,
+                FIELD_ALIASES,
+            )
+        )
+        vector.extend(_volatile_features(active))
+        vector.extend(_volatile_features(opponent_active))
+
         array = np.asarray(vector, dtype=np.float32)
 
         if array.shape != (self.schema.observation_dim,):
@@ -339,7 +523,7 @@ class UniversalStateEncoder:
             "generation": generation,
             "turn": int(turn),
             "battle_tag": str(
-                getattr(battle, "battle_tag", "")
+                _safe_attr(battle, "battle_tag", "")
                 or ""
             ),
             "own_team_known": len(
@@ -353,6 +537,38 @@ class UniversalStateEncoder:
                 ]
             ),
             "force_switch": force_switch,
+            "battle_context": {
+                "own_side_conditions_tracked": int(
+                    sum(value > 0.0 for value in _side_condition_features(own_side_conditions))
+                ),
+                "opponent_side_conditions_tracked": int(
+                    sum(value > 0.0 for value in _side_condition_features(opponent_side_conditions))
+                ),
+                "weather_tracked": int(
+                    sum(
+                        _categorical_context_features(
+                            weather,
+                            WEATHER_FEATURES,
+                            WEATHER_ALIASES,
+                        )
+                    )
+                ),
+                "fields_tracked": int(
+                    sum(
+                        _categorical_context_features(
+                            fields,
+                            FIELD_FEATURES,
+                            FIELD_ALIASES,
+                        )
+                    )
+                ),
+                "active_self_effects_tracked": int(
+                    sum(_volatile_features(active))
+                ),
+                "active_opponent_effects_tracked": int(
+                    sum(_volatile_features(opponent_active))
+                ),
+            },
         }
 
         return EncodedObservation(

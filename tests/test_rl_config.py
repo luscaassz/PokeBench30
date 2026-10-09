@@ -21,11 +21,11 @@ class RLConfigTests(unittest.TestCase):
         )
         self.assertEqual(
             config["research_policy"]["universal_representation"],
-            "ubr-1.1",
+            "ubr-1.2",
         )
         self.assertEqual(
             config["research_policy"]["observation_dim"],
-            472,
+            518,
         )
         self.assertEqual(
             config["research_policy"]["action_dim"],

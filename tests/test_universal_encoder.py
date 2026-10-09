@@ -81,6 +81,7 @@ class DummyPokemon:
         self.moves = {
             move.id: move for move in (moves or [])
         }
+        self.effects = {}
 
 
 class HiddenTrap:
@@ -134,6 +135,11 @@ class DummyBattle:
         self.available_moves = [move]
         self.available_switches = [self.own_b]
 
+        self.side_conditions = {}
+        self.opponent_side_conditions = {}
+        self.weather = {}
+        self.fields = {}
+
 
 class UniversalEncoderTests(unittest.TestCase):
     def test_same_shape_across_generations(self):
@@ -144,7 +150,7 @@ class UniversalEncoderTests(unittest.TestCase):
             for gen in (1, 4, 9)
         }
 
-        self.assertEqual(shapes, {(472,)})
+        self.assertEqual(shapes, {(518,)})
 
     def test_encoding_is_deterministic(self):
         encoder = UniversalStateEncoder()
@@ -195,6 +201,127 @@ class UniversalEncoderTests(unittest.TestCase):
             (10,),
         )
 
+    def test_ubr12_battle_context_is_encoded(self):
+        battle = DummyBattle(9)
+
+        battle.side_conditions = {
+            EnumLike("STEALTH_ROCK"): 7,
+            EnumLike("SPIKES"): 2,
+            EnumLike("REFLECT"): 8,
+        }
+        battle.opponent_side_conditions = {
+            EnumLike("TOXIC_SPIKES"): 1,
+            EnumLike("STICKY_WEB"): 11,
+        }
+        battle.weather = {
+            EnumLike("RAINDANCE"): 3,
+        }
+        battle.fields = {
+            EnumLike("ELECTRIC_TERRAIN"): 4,
+            EnumLike("TRICK_ROOM"): 4,
+        }
+        battle.active_pokemon.effects = {
+            EnumLike("TAUNT"): 1,
+            EnumLike("SUBSTITUTE"): 0,
+        }
+        battle.opponent_active_pokemon.effects = {
+            EnumLike("LEECH_SEED"): 0,
+        }
+
+        encoder = UniversalStateEncoder()
+        observation = encoder.encode(battle)
+        indices = {
+            name: index
+            for index, name in enumerate(encoder.schema.feature_names)
+        }
+
+        self.assertEqual(observation.vector.shape, (518,))
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.own_side.stealth_rock"]
+            ],
+            1.0,
+        )
+        self.assertAlmostEqual(
+            float(
+                observation.vector[
+                    indices["battle_context.own_side.spikes"]
+                ]
+            ),
+            2.0 / 3.0,
+            places=6,
+        )
+        self.assertAlmostEqual(
+            float(
+                observation.vector[
+                    indices["battle_context.opponent_side.toxic_spikes"]
+                ]
+            ),
+            0.5,
+            places=6,
+        )
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.opponent_side.sticky_web"]
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.weather.rain"]
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.field.electric_terrain"]
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.field.trick_room"]
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.active_self.effect.taunt"]
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.active_self.effect.substitute"]
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            observation.vector[
+                indices["battle_context.active_opponent.effect.leech_seed"]
+            ],
+            1.0,
+        )
+
+        report = ObservationValidator().validate(
+            observation,
+            battle=battle,
+        )
+        self.assertTrue(report.ok, report.errors)
+
+    def test_ubr11_core_prefix_is_preserved(self):
+        encoder = UniversalStateEncoder()
+        schema = encoder.schema
+
+        self.assertEqual(
+            schema.feature_names[472],
+            "battle_context.own_side.stealth_rock",
+        )
+        self.assertEqual(
+            len(schema.feature_names[:472]),
+            472,
+        )
+
     def test_transient_move_with_missing_metadata_is_encoded(self):
         battle = DummyBattle(1)
         transient = FragileTransientMove()
@@ -215,7 +342,7 @@ class UniversalEncoderTests(unittest.TestCase):
         encoder = UniversalStateEncoder()
         observation = encoder.encode(battle)
 
-        self.assertEqual(observation.vector.shape, (472,))
+        self.assertEqual(observation.vector.shape, (518,))
         self.assertEqual(int(observation.legal_action_mask.sum()), 2)
 
         index = encoder.action_space.index_for_selected(

@@ -34,8 +34,8 @@ evaluation:
   require_same_generation: true
 
 research_policy:
-  universal_representation: "ubr-1.1"
-  observation_dim: 472
+  universal_representation: "ubr-1.2"
+  observation_dim: 518
   action_dim: 10
   generation_specific_gimmicks: false
   cross_generation_evaluation: "reserved for v0.6"

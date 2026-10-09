@@ -1,175 +1,206 @@
-# PokéBench30 v0.5 — MaskablePPO RL Baseline
+# PokéBench30 v0.5.1 — UBR 1.2 Battle Context
 
-A v0.5 adiciona o primeiro agente de Reinforcement Learning ao PokéBench30,
-mantendo congelada a representação validada na v0.4.1:
+A v0.5.1 é uma atualização **controlada de representação** sobre a v0.5.
+
+O algoritmo de RL continua o mesmo:
 
 ```text
-UBR 1.1
-observation = 472
-action space = 10
+MaskablePPO
 ```
 
-O objetivo desta versão não é ainda estudar transferência entre gerações.
-Primeiro queremos provar que uma política aprendida consegue:
+A principal mudança é:
 
 ```text
-UBR 1.1
-   ↓
-MaskablePPO
-   ↓
-ação entre 10 possibilidades
-   ↓
-legal-action mask
-   ↓
+UBR 1.1: 472 observações
+        ↓
+UBR 1.2: 518 observações
+```
+
+O espaço de ações continua:
+
+```text
+10 ações
+```
+
+---
+
+## Por que esta versão existe?
+
+A v0.5 validou o pipeline completo:
+
+```text
 Pokémon Showdown
+→ poke-env
+→ UBR
+→ action mask
+→ MaskablePPO
+→ modelo salvo
+→ RLPolicyAgent
+→ fixed + mirrored evaluation
 ```
 
-e depois participar do mesmo benchmark controlado de fixed teams + mirrored
-matches criado na v0.3.
+O modelo Gen IX de 10k timesteps obteve:
+
+```text
+vs RandomAgent:    45-15   mirror score = 0.750
+vs TypeAwareAgent:  5-55   mirror score = 0.083
+```
+
+Ao analisar os logs apareceram repetições de ações como:
+
+```text
+Sticky Web
+Sticky Web
+Sticky Web
+
+Stealth Rock
+Stealth Rock
+Stealth Rock
+
+Taunt
+Taunt
+Taunt
+```
+
+A UBR 1.1 não informava à MLP se esses efeitos persistentes já estavam ativos.
+
+A v0.5.1 testa exatamente essa hipótese.
 
 ---
 
-## O que há de novo
+# UBR 1.2
 
 ```text
-pokebench30/
-└── rl/
-    ├── env.py
-    ├── mask_adapter.py
-    ├── model_io.py
-    ├── policy_agent.py
-    ├── reward.py
-    ├── training.py
-    └── analysis.py
+schema_version  = ubr-1.2
+observation_dim = 518
+action_dim      = 10
+
+SHA-256:
+d4b3858aab3a1c3bb1e17d9f34becf93814be05bfc949d52023651035f20e4c3
 ```
 
-Novos comandos:
+Os primeiros **472 valores** preservam exatamente o layout da UBR 1.1.
+
+Depois são adicionadas **46 features de contexto**:
 
 ```text
-train_rl.py
-run_rl_controlled.py
-analyze_rl_training.py
-scripts/check_rl_setup.py
+16 side conditions
+ 8 weather
+ 6 field / terrain
+16 active volatile effects
+--------------------------
+46 novas features
 ```
 
-Documentação técnica:
+Logo:
 
 ```text
-docs/RL_BASELINE_v0.5.md
-```
-
----
-
-# 1. Algoritmo
-
-A baseline é:
-
-```text
-MaskablePPO
-```
-
-via `sb3-contrib`.
-
-Por que usar action masking?
-
-Em um turno, várias ações da UBR não são legais. Exemplos:
-
-```text
-move desabilitado
-Pokémon desmaiado
-slot do Pokémon atualmente ativo
-forced switch
-```
-
-A máscara garante que a política escolha apenas entre ações válidas.
-
----
-
-# 2. Representação congelada
-
-A v0.5 não altera a UBR.
-
-```text
-UBR 1.1
-472 features
-10 actions
-```
-
-O modelo salva no `metadata.json`:
-
-```text
-schema version
-schema SHA-256
-observation dimension
-action dimension
-```
-
-Se o código atual não corresponder ao schema usado no treinamento, o modelo é
-recusado.
-
----
-
-# 3. Treino e avaliação usam distribuições diferentes
-
-## Treinamento
-
-A política aprende em:
-
-```text
-gen1randombattle
-gen4randombattle
-ou
-gen9randombattle
-```
-
-Isso fornece diversidade de times.
-
-## Avaliação
-
-A avaliação usa:
-
-```text
-fixed teams
-+
-mirrored assignments
-```
-
-da v0.3.
-
-Assim:
-
-```text
-Random Battle = distribuição de treino
-
-Fixed/Mirrored = benchmark controlado
+472 + 46 = 518
 ```
 
 ---
 
-# 4. Reward da baseline
+# Contexto incluído
 
-O reward inicial é deliberadamente simples:
+## Para os dois lados
 
 ```text
-vitória               30.0
-Pokémon desmaiado      2.0
-HP                      1.0
-status                  0.5
+Stealth Rock
+Spikes
+Toxic Spikes
+Sticky Web
+Reflect
+Light Screen
+Aurora Veil
+Tailwind
 ```
 
-Ele utiliza o `reward_computing_helper` do `poke-env`, que retorna a diferença
-de valor entre estados consecutivos.
+Spikes:
 
-O objetivo da v0.5 é validar o pipeline, não fazer reward engineering.
+```text
+0 layers → 0.0
+1 layer  → 0.333
+2 layers → 0.667
+3 layers → 1.0
+```
+
+Toxic Spikes:
+
+```text
+0 layers → 0.0
+1 layer  → 0.5
+2 layers → 1.0
+```
+
+Os demais são presença binária.
+
+## Weather
+
+```text
+Rain
+Sun
+Sandstorm
+Hail
+Snow
+Primordial Sea
+Desolate Land
+Delta Stream
+```
+
+## Field
+
+```text
+Electric Terrain
+Grassy Terrain
+Misty Terrain
+Psychic Terrain
+Trick Room
+Gravity
+```
+
+## Efeitos nos Pokémon ativos
+
+Para o próprio Pokémon ativo e para o adversário ativo:
+
+```text
+Taunt
+Encore
+Substitute
+Confusion
+Leech Seed
+Disable
+Yawn
+Protect
+```
 
 ---
 
-# 5. Instalação
+# O que continua de fora
 
-No VS Code / PowerShell:
+UBR 1.2 ainda é uma baseline compacta.
+
+Não codificamos:
+
+```text
+species identity
+items
+abilities
+PP
+memória de moves revelados do adversário
+todos os efeitos raros do Showdown
+Mega / Z-Move / Dynamax / Tera no action space
+```
+
+Qualquer expansão futura deve gerar uma nova versão da UBR.
+
+---
+
+# Instalação
+
+Entre na pasta:
 
 ```powershell
-cd C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5
+cd C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.1
 ```
 
 Instale:
@@ -178,21 +209,23 @@ Instale:
 python -m pip install -r requirements.txt
 ```
 
-As dependências novas principais são:
+A v0.5.1 agora inclui também:
 
 ```text
-gymnasium
-stable-baselines3
-sb3-contrib
+tensorboard>=2.17
 ```
 
-Depois:
+porque o smoke test real da v0.5 mostrou que essa dependência era necessária.
+
+---
+
+# 1. Verificar ambiente
 
 ```powershell
 python scripts\check_rl_setup.py
 ```
 
-Queremos:
+Esperado:
 
 ```text
 [OK] poke-env imported
@@ -200,129 +233,51 @@ Queremos:
 [OK] stable-baselines3 imported
 [OK] sb3-contrib imported
 [OK] torch imported
-[OK] UBR schema: ubr-1.1
-[OK] Observation dimension: 472
+[OK] tensorboard imported
+[OK] numpy imported
+[OK] PyYAML imported
+[OK] PokéBench30 version: 0.5.1
+[OK] UBR schema: ubr-1.2
+[OK] Observation dimension: 518
 [OK] Action dimension: 10
-
-[OK] PokéBench30 v0.5 RL setup is ready.
 ```
 
 ---
 
-# 6. Pokémon Showdown
-
-Deixe seu servidor local rodando como nas versões anteriores.
-
-O treinamento usa o servidor porque cada episódio é uma batalha real simulada
-pelo Pokémon Showdown.
-
-Os fixed teams não são necessários para TREINAR.
-
-Eles só serão necessários para a avaliação controlada posterior.
-
----
-
-# 7. Primeiro smoke training
-
-Comece pequeno.
+# 2. Teste offline da representação
 
 ```powershell
-python train_rl.py --generation 9 --opponent type_aware --timesteps 1024 --n-steps 256 --batch-size 64
+python scripts\check_representation.py
 ```
 
-Esse comando serve apenas para verificar:
+Esperado:
 
 ```text
-ambiente abre
-batalhas acontecem
-MaskablePPO coleta experiências
-gradientes são calculados
-modelo é salvo
+[OK] UBR schema: ubr-1.2
+[OK] Observation dimension: 518
+[OK] Action dimension: 10
+...
+[OK] Universal representation offline checks passed.
 ```
 
-Não interprete o desempenho científico desse treinamento curto.
-
-A saída será algo como:
+No sample offline da Gen IX o script também ativa artificialmente:
 
 ```text
-models/
-└── maskable_ppo_gen9_YYYYMMDD_HHMMSS/
-    ├── maskable_ppo.zip
-    ├── metadata.json
-    ├── training_config.json
-    ├── monitor.csv.monitor.csv
-    ├── checkpoints/
-    └── tensorboard/
+Stealth Rock
+Spikes
+Sticky Web
+Rain
+Electric Terrain
+Taunt
 ```
+
+para verificar o novo bloco de contexto.
 
 ---
 
-# 8. Primeiro treinamento real
+# 3. Preparar os fixed teams
 
-Depois que o smoke training funcionar:
-
-```powershell
-python train_rl.py --generation 9 --opponent type_aware --timesteps 10000
-```
-
-Depois podemos aumentar progressivamente:
-
-```text
-10k
-50k
-100k
-```
-
-mas não recomendo começar com 100k antes de validar o aprendizado.
-
----
-
-# 9. O que é um timestep aqui?
-
-Um timestep de PPO não significa uma batalha.
-
-Ele corresponde a uma decisão do agente:
-
-```text
-estado
-→ ação
-→ novo estado
-```
-
-Logo:
-
-```text
-10.000 timesteps
-```
-
-representam milhares de decisões distribuídas entre várias batalhas.
-
----
-
-# 10. Analisar o treinamento
-
-Depois:
-
-```powershell
-python analyze_rl_training.py "models\maskable_ppo_gen9_YYYYMMDD_HHMMSS"
-```
-
-Isso cria:
-
-```text
-figures/
-├── training_reward.png
-└── training_episode_length.png
-```
-
-Não use apenas a curva de reward para afirmar que o agente ficou melhor.
-A avaliação contra agentes externos continua sendo necessária.
-
----
-
-# 11. Preparar o benchmark fixo
-
-Se `teams/fixed/manifest.json` não existir na v0.5:
+Como nas versões anteriores:
 
 ```powershell
 python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
@@ -336,264 +291,225 @@ python scripts\check_fixed_pool.py
 
 ---
 
-# 12. Primeiro teste controlado do RL
+# 4. Smoke test REAL da UBR 1.2
 
-Suponha que seu modelo esteja em:
-
-```text
-models\maskable_ppo_gen9_20260928_120000\maskable_ppo.zip
-```
-
-Rode:
+Antes de treinar, rode os agentes heurísticos com logging universal:
 
 ```powershell
-python run_rl_controlled.py ^
-  --model "models\maskable_ppo_gen9_20260928_120000\maskable_ppo.zip" ^
-  --generation 9 ^
-  --opponent type_aware ^
-  --pairs pair01 ^
-  --repeats 1
+python run_controlled.py --generations 1 4 9 --matchup type_aware switch_aware --pairs pair01 --repeats 1 --log-universal-state
 ```
 
-No PowerShell você também pode colocar tudo em uma linha:
-
-```powershell
-python run_rl_controlled.py --model "models\maskable_ppo_gen9_20260928_120000\maskable_ppo.zip" --generation 9 --opponent type_aware --pairs pair01 --repeats 1
-```
-
-Isso gera exatamente:
+Isso gera 6 batalhas:
 
 ```text
-LEG AB
-RL + Team A
-vs
-TypeAware + Team B
-
-LEG BA
-RL + Team B
-vs
-TypeAware + Team A
+Gen I  → AB + BA
+Gen IV → AB + BA
+Gen IX → AB + BA
 ```
-
----
-
-# 13. Avaliação maior
 
 Depois:
 
 ```powershell
-python run_rl_controlled.py --model "CAMINHO_DO_MODELO" --generation 9 --opponent type_aware --repeats 10
+python scripts\validate_universal_states.py "results\controlled_XXXXXXXX_XXXXXX"
 ```
 
-Sem `--pairs`, usa:
+Queremos:
 
 ```text
-pair01
-pair02
-pair03
+Chosen actions mapped into UBR: X/X
+
+schema mismatches: 0
+dimension errors: 0
+mask errors: 0
+non-finite vectors: 0
+battle-context value errors: 0
+empty legal-action masks: 0
+unmapped chosen actions: 0
+chosen actions marked illegal: 0
 ```
 
-Total:
-
-```text
-3 pares
-×
-2 mirror legs
-×
-10 repetições
-=
-60 batalhas
-```
-
-A principal métrica continua sendo:
-
-```text
-normalized_mirror_score_agent_1
-```
-
-Na avaliação v0.5:
-
-```text
-Agent 1 = RLPolicyAgent
-```
-
-portanto:
-
-```text
-> 0.5 → RL obteve mais pontos
-≈ 0.5 → equilíbrio
-< 0.5 → baseline obteve mais pontos
-```
-
-sempre considerando tamanho de amostra e variação entre pares.
+Esse é o primeiro gate da v0.5.1.
 
 ---
 
-# 14. Opponents disponíveis
+# 5. Modelos da v0.5 NÃO são compatíveis
 
-Treino e avaliação aceitam:
+Isso é proposital.
 
-```text
-random
-max_damage
-type_aware
-switch_aware
-```
-
-O default de treino é:
+Um modelo salvo com:
 
 ```text
-type_aware
+UBR 1.1
+472 features
 ```
 
-Uma progressão razoável para experimentos futuros seria:
+não pode ser carregado como:
 
 ```text
-Random
-  ↓
-TypeAware
-  ↓
-SwitchAware
+UBR 1.2
+518 features
 ```
 
-Mas a v0.5 usa um oponente fixo por treinamento.
+O metadata checker deve recusar o modelo antigo.
+
+Não copie `maskable_ppo_gen9_20260928_115136` para usar como modelo v0.5.1.
+
+Ele permanece como **baseline UBR 1.1**.
 
 ---
 
-# 15. Gen I e Gen IV
+# 6. Primeiro smoke training
 
-A arquitetura funciona para:
+Depois que a UBR 1.2 passar no teste real:
 
 ```powershell
-python train_rl.py --generation 1 --opponent type_aware --timesteps 10000
+python train_rl.py --generation 9 --opponent type_aware --timesteps 1024 --n-steps 256 --batch-size 64 --seed 42
 ```
 
-e:
+O objetivo é apenas validar:
+
+```text
+518 features
+→ PPO
+→ mask
+→ treino
+→ save
+→ reload
+```
+
+---
+
+# 7. Experimento comparável à v0.5
+
+Quando o smoke funcionar, use a mesma configuração principal da baseline:
 
 ```powershell
-python train_rl.py --generation 4 --opponent type_aware --timesteps 10000
+python train_rl.py --generation 9 --opponent type_aware --timesteps 10000 --seed 42
 ```
 
-Cada modelo, porém, deve ser avaliado na mesma geração em que foi treinado.
-
-Exemplo aceito:
+Mantemos:
 
 ```text
-train Gen IV
-test Gen IV
+MaskablePPO
+learning_rate = 0.0003
+n_steps = 2048
+batch_size = 128
+network = [256, 128]
+reward igual
+opponent igual
+seed igual
+budget igual
 ```
 
-Exemplo rejeitado na v0.5:
+Mudança principal:
 
 ```text
-train Gen I
-test Gen IX
-```
-
-Esse experimento é propositalmente reservado para:
-
-```text
-PokéBench30 v0.6
-Cross-Generation Transfer
+UBR 1.1 → UBR 1.2
 ```
 
 ---
 
-# 16. Por que bloquear transferência agora?
+# 8. Analisar treinamento
 
-Porque queremos separar:
-
-```text
-v0.5
-o RL funciona?
-```
-
-de:
-
-```text
-v0.6
-o conhecimento aprendido transfere entre gerações?
-```
-
-Se misturarmos as duas perguntas agora, fica difícil saber se uma falha veio do
-pipeline de RL ou da transferência.
-
----
-
-# 17. Arquitetura
-
-```text
-              TRAINING
-                 │
-                 ▼
-        Random Battle Gen IX
-                 │
-                 ▼
-              UBR 1.1
-        observation[472]
-        legal mask[10]
-                 │
-                 ▼
-            MaskablePPO
-                 │
-                 ▼
-         maskable_ppo.zip
-
-
-              EVALUATION
-                 │
-                 ▼
-         maskable_ppo.zip
-                 │
-                 ▼
-           RLPolicyAgent
-                 │
-                 ▼
-       Fixed + Mirrored Teams
-                 │
-                 ▼
-    RL vs TypeAware / SwitchAware
+```powershell
+python analyze_rl_training.py "models\maskable_ppo_gen9_XXXXXXXX_XXXXXX"
 ```
 
 ---
 
-# 18. Critério para considerar a v0.5 validada
+# 9. Avaliação contra RandomAgent
 
-A v0.5 não exige que o RL já seja campeão.
-
-Ela está validada quando:
-
-```text
-[ ] check_rl_setup passa
-[ ] smoke training termina
-[ ] model.zip é salvo
-[ ] metadata.json é salvo
-[ ] schema UBR 1.1 é validado ao carregar
-[ ] policy nunca seleciona ação mascarada
-[ ] modelo pode ser recarregado
-[ ] RLPolicyAgent completa batalhas
-[ ] avaliação mirrored funciona
-[ ] training curves são geradas
+```powershell
+python run_rl_controlled.py --model "models\maskable_ppo_gen9_XXXXXXXX_XXXXXX\maskable_ppo.zip" --generation 9 --opponent random --repeats 10
 ```
 
-Depois disso, fazemos múltiplas seeds e um experimento de baseline mais sério.
+60 batalhas.
 
-Só então passamos para:
+Baseline UBR 1.1:
 
 ```text
-v0.6 — Cross-Generation Transfer
+45-15
+mirror score = 0.750
 ```
 
 ---
 
-## Organização científica até aqui
+# 10. Avaliação contra TypeAwareAgent
+
+```powershell
+python run_rl_controlled.py --model "models\maskable_ppo_gen9_XXXXXXXX_XXXXXX\maskable_ppo.zip" --generation 9 --opponent type_aware --repeats 10
+```
+
+60 batalhas.
+
+Baseline UBR 1.1:
 
 ```text
-v0.1   infraestrutura
-v0.2   scripted baselines + logging
-v0.2.2 strategic switching estável
-v0.3   fixed teams + mirrored matches
-v0.4.1 UBR 1.1 validada
-v0.5   MaskablePPO baseline
-v0.6   cross-generation transfer
+5-55
+mirror score = 0.083
+```
+
+---
+
+# Comparação principal
+
+Depois teremos:
+
+```text
+                 Random        TypeAware
+UBR 1.1           0.750          0.083
+UBR 1.2              ?              ?
+```
+
+Esse primeiro experimento ainda usa uma única seed.
+
+Se houver sinal de melhoria, o próximo passo correto é repetir várias seeds,
+não declarar conclusão a partir de apenas seed 42.
+
+---
+
+# Arquitetura
+
+```text
+                    UBR 1.2
+        ┌─────────────────────────────┐
+        │ UBR 1.1 core       472     │
+        │                             │
+        │ side conditions     16     │
+        │ weather              8     │
+        │ field                6     │
+        │ volatile effects    16     │
+        └─────────────────────────────┘
+                    │
+                    ▼
+              observation[518]
+                    │
+              legal mask[10]
+                    │
+                    ▼
+                MaskablePPO
+```
+
+---
+
+# Organização científica
+
+```text
+v0.1     infraestrutura
+v0.2     scripted agents + logging
+v0.2.2   switching estável
+v0.3     fixed teams + mirrored evaluation
+v0.4.1   UBR 1.1 estruturalmente validada
+v0.5     primeiro MaskablePPO + baseline UBR 1.1
+v0.5.1   UBR 1.2 battle-context ablation
+v0.6     cross-generation transfer
+```
+
+Mais detalhes:
+
+```text
+docs/UBR_1_2.md
+docs/RL_BASELINE_v0.5.1.md
+docs/V0_5_BASELINE.md
+CHANGELOG_v0.5.1.md
 ```

@@ -5,3 +5,4 @@ numpy>=1.26
 gymnasium>=1.0,<2
 stable-baselines3>=2.5,<3
 sb3-contrib>=2.5,<3
+tensorboard>=2.17

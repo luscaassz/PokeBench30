@@ -35,7 +35,7 @@ def _read_action_lookup(run_dir: Path) -> dict[tuple[str, int, str], dict[str, s
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Validate a PokéBench30 v0.4.1 universal_states.jsonl dataset."
+            "Validate a PokéBench30 v0.5.1 UBR 1.2 universal_states.jsonl dataset."
         )
     )
     parser.add_argument(
@@ -67,6 +67,9 @@ def main():
     mask_errors = 0
     empty_legal_masks = 0
     non_finite = 0
+    context_value_errors = 0
+    context_nonzero_records = 0
+    context_activation_counts: dict[str, int] = {}
 
     generations = set()
     by_generation: dict[int, dict[str, int]] = {}
@@ -98,6 +101,31 @@ def main():
 
             if any(not math.isfinite(float(value)) for value in vector):
                 non_finite += 1
+
+            # UBR 1.2 battle-context features are binary except normalized
+            # Spikes / Toxic Spikes layer counts.
+            feature_names = schema.get("feature_names", [])
+            if len(vector) == len(feature_names):
+                row_has_context = False
+                for index, name in enumerate(feature_names):
+                    if not name.startswith("battle_context."):
+                        continue
+                    value = float(vector[index])
+                    if value > 1e-8:
+                        row_has_context = True
+                        context_activation_counts[name] = (
+                            context_activation_counts.get(name, 0) + 1
+                        )
+                    if name.endswith(".spikes") or name.endswith(".toxic_spikes"):
+                        if value < -1e-8 or value > 1.0 + 1e-8:
+                            context_value_errors += 1
+                    elif not (
+                        abs(value) <= 1e-8
+                        or abs(value - 1.0) <= 1e-8
+                    ):
+                        context_value_errors += 1
+                if row_has_context:
+                    context_nonzero_records += 1
 
             if len(mask) == expected_action_dim and sum(int(v) for v in mask) == 0:
                 empty_legal_masks += 1
@@ -138,11 +166,25 @@ def main():
             f"{stats['mapped']}/{stats['records']} actions mapped"
         )
 
+    print(
+        f"[INFO] Records with non-zero UBR 1.2 battle context: "
+        f"{context_nonzero_records}/{records}"
+    )
+    if context_activation_counts:
+        top_context = sorted(
+            context_activation_counts.items(),
+            key=lambda item: (-item[1], item[0]),
+        )[:12]
+        print("[INFO] Most-observed battle-context features:")
+        for name, count in top_context:
+            print(f"  {name}: {count}")
+
     checks = {
         "schema mismatches": schema_mismatches,
         "dimension errors": dimension_errors,
         "mask errors": mask_errors,
         "non-finite vectors": non_finite,
+        "battle-context value errors": context_value_errors,
         "empty legal-action masks": empty_legal_masks,
         "unmapped chosen actions": unmapped_actions,
         "chosen actions marked illegal": illegal_chosen_actions,

@@ -32,10 +32,10 @@ from .reward import RewardConfig
 
 
 class UniversalRLSinglesEnv(SinglesEnv):
-    """poke-env SinglesEnv using PokéBench30 UBR 1.1.
+    """poke-env SinglesEnv using PokéBench30 UBR 1.2.
 
     Core interface:
-        observation: float32[472]
+        observation: float32[518]
         action: Discrete(10)
 
     The actual PettingZoo/PokeEnv observation returned internally includes the
@@ -157,7 +157,7 @@ class UniversalRLSinglesEnv(SinglesEnv):
 
             if isinstance(order, ForfeitBattleOrder):
                 raise ValueError(
-                    "Forfeit is intentionally outside UBR 1.1."
+                    "Forfeit is intentionally outside UBR 1.2."
                 )
 
             if not isinstance(order, SingleBattleOrder):
@@ -180,7 +180,7 @@ class UniversalRLSinglesEnv(SinglesEnv):
             )
             if action is None:
                 raise ValueError(
-                    f"Order {order} cannot be represented by UBR 1.1."
+                    f"Order {order} cannot be represented by UBR 1.2."
                 )
 
             return np.int64(action)

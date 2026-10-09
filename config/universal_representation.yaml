@@ -1,14 +1,18 @@
-schema_version: "ubr-1.1"
+schema_version: "ubr-1.2"
 
 purpose:
   - fixed-dimensional battle observation across Gen I, IV and IX
   - partial observability without opponent-team leakage
-  - stable interface for future reinforcement-learning agents
+  - stable interface for reinforcement-learning agents
   - generation-independent core action mask
+  - explicit public battle context for persistent strategic effects
 
 observation:
-  dimension: 472
+  dimension: 518
   numeric_range: [-1.0, 1.0]
+  compatibility:
+    ubr_1_1_prefix_dimension: 472
+    rule: "The first 472 features preserve UBR 1.1 ordering exactly; UBR 1.2 appends 46 context features."
 
   global:
     - generation_norm
@@ -33,7 +37,6 @@ observation:
     own: 6
     opponent: 6
     opponent_policy: "revealed only; unknown slots are all-zero padding"
-
     features:
       - known
       - active
@@ -54,6 +57,56 @@ observation:
       - type_one_hot_18
       - category_one_hot_3
 
+  battle_context:
+    side_conditions:
+      own_and_opponent:
+        - stealth_rock
+        - spikes
+        - toxic_spikes
+        - sticky_web
+        - reflect
+        - light_screen
+        - aurora_veil
+        - tailwind
+      encoding:
+        spikes: "layers / 3"
+        toxic_spikes: "layers / 2"
+        all_others: "binary presence"
+
+    weather:
+      encoding: "one-hot/binary presence"
+      features:
+        - rain
+        - sun
+        - sandstorm
+        - hail
+        - snow
+        - primordial_sea
+        - desolate_land
+        - delta_stream
+
+    field:
+      encoding: "binary presence"
+      features:
+        - electric_terrain
+        - grassy_terrain
+        - misty_terrain
+        - psychic_terrain
+        - trick_room
+        - gravity
+
+    active_volatile_effects:
+      own_and_opponent:
+        - taunt
+        - encore
+        - substitute
+        - confusion
+        - leech_seed
+        - disable
+        - yawn
+        - protect
+      encoding: "binary presence"
+
 action_space:
   dimension: 10
   indices:
@@ -69,8 +122,9 @@ action_space:
     9: switch_team_slot_6
 
   note: >
-    Generation-specific gimmicks are intentionally excluded from UBR 1.1
-    because the scripted benchmark currently disables them.
+    Generation-specific gimmicks remain intentionally excluded because the
+    benchmark baselines do not use Mega Evolution, Z-Moves, Dynamax or
+    Terastallization actions.
 
   move_slot_policy: >
     Preserve active.moves ordering in ordinary states. If Showdown exposes a
@@ -78,15 +132,14 @@ action_space:
     or fight), inject it into a currently unavailable move slot so every legal
     move remains representable without changing the 10-action space.
 
-not_encoded_in_ubr_1_1:
+not_encoded_in_ubr_1_2:
   - species identity
   - hidden opponent slots
   - items
   - abilities
-  - weather
-  - terrain
-  - hazards
-  - volatile effects
+  - move PP
+  - opponent move history / revealed move memory
+  - unlisted rare side conditions and volatile effects
   - Mega Evolution actions
   - Z-Move actions
   - Dynamax actions

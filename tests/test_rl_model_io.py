@@ -1,4 +1,5 @@
 import tempfile
+from dataclasses import replace
 import unittest
 from pathlib import Path
 import json
@@ -17,7 +18,7 @@ class RLModelIOTests(unittest.TestCase):
     def make_metadata(self, generation=9):
         schema = build_feature_schema()
         return ModelMetadata(
-            project_version="0.5.0",
+            project_version="0.5.1",
             algorithm="MaskablePPO",
             training_generation=generation,
             training_battle_format=f"gen{generation}randombattle",
@@ -38,6 +39,20 @@ class RLModelIOTests(unittest.TestCase):
             self.make_metadata(9),
             generation=9,
         )
+
+    def test_legacy_ubr11_metadata_is_rejected(self):
+        legacy = replace(
+            self.make_metadata(9),
+            observation_schema_version="ubr-1.1",
+            observation_schema_sha256="legacy",
+            observation_dim=472,
+        )
+        with self.assertRaises(ValueError):
+            validate_model_metadata(
+                legacy,
+                generation=9,
+                require_same_generation=True,
+            )
 
     def test_cross_generation_is_rejected_in_v05(self):
         with self.assertRaises(ValueError):

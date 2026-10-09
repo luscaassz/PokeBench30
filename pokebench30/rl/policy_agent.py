@@ -15,7 +15,7 @@ from .model_io import load_model_metadata, resolve_model_file, validate_model_me
 
 
 class RLPolicyAgent(InstrumentedPlayer):
-    """Inference-only MaskablePPO player using UBR 1.1."""
+    """Inference-only MaskablePPO player using UBR 1.2."""
 
     agent_name = "RLPolicyAgent"
 

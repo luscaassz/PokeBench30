@@ -1,37 +1,96 @@
 {
   "project": "PokeBench30",
-  "version": "0.5.0",
-  "milestone": "MaskablePPO Reinforcement Learning Baseline",
-  "base": "PokéBench30 v0.4.1 + UBR 1.1 transient-move hotfix",
-  "python_files_checked": 54,
-  "syntax_errors": [],
-  "dependency_light_test_returncodes": [
-    0,
-    0
-  ],
-  "dependency_light_test_output": "## test_rl_model_io.py\n\nSpreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n.....\n----------------------------------------------------------------------\nRan 5 tests in 0.002s\n\nOK\n\n## test_rl_config.py\n\nSpreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n.\n----------------------------------------------------------------------\nRan 1 test in 0.002s\n\nOK",
-  "source_contract_checks": {
-    "version_0_5": true,
-    "maskable_ppo_dependency": true,
-    "ubr_1_1_config": true,
-    "training_entrypoint": true,
-    "controlled_eval_entrypoint": true,
-    "mask_adapter": true,
-    "policy_agent": true
+  "version": "0.5.1",
+  "milestone": "UBR 1.2 battle-context ablation",
+  "representation": {
+    "schema_version": "ubr-1.2",
+    "schema_sha256": "d4b3858aab3a1c3bb1e17d9f34becf93814be05bfc949d52023651035f20e4c3",
+    "observation_dim": 518,
+    "action_dim": 10,
+    "ubr_1_1_prefix_dim": 472,
+    "context_extension_dim": 46,
+    "ubr_1_1_prefix_verified_exact": true
   },
-  "live_validation_status": "Not executable in the artifact build runtime because poke-env, gymnasium, stable-baselines3 and sb3-contrib are not installed there. Run scripts/check_rl_setup.py and the documented smoke training on the user's Windows environment.",
-  "v0_5_features": [
-    "UBR 1.1 frozen at 472 observations and 10 actions",
-    "MaskablePPO baseline via sb3-contrib",
-    "single-agent Gymnasium adapter over poke-env",
-    "legal-action mask bridge for MaskablePPO",
-    "random-battle training distribution",
-    "configurable scripted training opponent",
-    "dense interpretable reward",
-    "model/schema metadata compatibility checks",
-    "RLPolicyAgent for saved-model inference",
-    "fixed-team mirrored RL evaluation",
-    "same-generation gate; cross-generation transfer deferred to v0.6",
-    "training monitor and learning-curve plots"
+  "context_extension": {
+    "side_conditions_per_side": [
+      "stealth_rock",
+      "spikes",
+      "toxic_spikes",
+      "sticky_web",
+      "reflect",
+      "light_screen",
+      "aurora_veil",
+      "tailwind"
+    ],
+    "weather": [
+      "rain",
+      "sun",
+      "sandstorm",
+      "hail",
+      "snow",
+      "primordial_sea",
+      "desolate_land",
+      "delta_stream"
+    ],
+    "field": [
+      "electric_terrain",
+      "grassy_terrain",
+      "misty_terrain",
+      "psychic_terrain",
+      "trick_room",
+      "gravity"
+    ],
+    "active_effects_per_side": [
+      "taunt",
+      "encore",
+      "substitute",
+      "confusion",
+      "leech_seed",
+      "disable",
+      "yawn",
+      "protect"
+    ]
+  },
+  "v0_5_reference": {
+    "generation": 9,
+    "algorithm": "MaskablePPO",
+    "requested_timesteps": 10000,
+    "seed": 42,
+    "opponent_training": "type_aware",
+    "ubr": "ubr-1.1",
+    "random_eval": {
+      "wins": 45,
+      "losses": 15,
+      "draws": 0,
+      "mirror_score": 0.75
+    },
+    "type_aware_eval": {
+      "wins": 5,
+      "losses": 55,
+      "draws": 0,
+      "mirror_score": 0.083
+    },
+    "note": "Single-seed reference, retained for the UBR 1.1 vs 1.2 ablation."
+  },
+  "validation": {
+    "python_files_checked": 54,
+    "syntax_errors": 0,
+    "unit_tests": {
+      "passed": 34,
+      "failed": 0
+    },
+    "offline_representation_check": "PASS",
+    "live_showdown_validation": "PENDING_USER_ENVIRONMENT",
+    "reason": "Artifact build runtime does not provide poke-env/Gymnasium/SB3."
+  },
+  "dependency_changes": [
+    "tensorboard>=2.17 added after v0.5 live training exposed the missing dependency"
+  ],
+  "intended_next_gate": [
+    "Run fixed-team six-battle universal-state smoke test on Gen I/IV/IX.",
+    "Require strict UBR validation with zero structural/context errors.",
+    "Train Gen IX MaskablePPO for 10k requested timesteps with seed 42.",
+    "Evaluate 60 battles vs RandomAgent and 60 vs TypeAwareAgent.",
+    "Compare normalized mirrored score against the stored UBR 1.1 reference."
   ]
 }

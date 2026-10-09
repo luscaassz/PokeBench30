@@ -43,6 +43,7 @@ class DummyPokemon:
         self.moves = {
             move.id: move for move in (moves or [])
         }
+        self.effects = {}
 
 
 class DummyBattle:
@@ -86,6 +87,30 @@ class DummyBattle:
 
         self.available_moves = [move]
         self.available_switches = [self.bench]
+
+        self.side_conditions = {}
+        self.opponent_side_conditions = {}
+        self.weather = {}
+        self.fields = {}
+
+        # Exercise the UBR 1.2 context block in the Gen IX offline sample.
+        if gen == 9:
+            self.side_conditions = {
+                EnumLike("STEALTH_ROCK"): 1,
+                EnumLike("SPIKES"): 2,
+            }
+            self.opponent_side_conditions = {
+                EnumLike("STICKY_WEB"): 1,
+            }
+            self.weather = {
+                EnumLike("RAINDANCE"): 1,
+            }
+            self.fields = {
+                EnumLike("ELECTRIC_TERRAIN"): 1,
+            }
+            self.active_pokemon.effects = {
+                EnumLike("TAUNT"): 1,
+            }
 
 
 def main():
@@ -133,7 +158,9 @@ def main():
             f"legal_actions="
             f"{int(observation.legal_action_mask.sum())}, "
             f"opponent_revealed="
-            f"{observation.metadata['opponent_revealed']}"
+            f"{observation.metadata['opponent_revealed']}, "
+            f"context_nonzero="
+            f"{sum(observation.metadata.get('battle_context', {}).values())}"
         )
 
     if len({vector.shape for vector in vectors}) != 1:

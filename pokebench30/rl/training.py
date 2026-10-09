@@ -178,7 +178,7 @@ def train(args: argparse.Namespace) -> Path:
         },
         notes=[
             "Training uses random battles for team diversity.",
-            "The policy receives only UBR 1.1 observation features.",
+            "The policy receives only UBR 1.2 observation features.",
             "Illegal actions are excluded by MaskablePPO action masks.",
             "Generation-specific gimmicks are intentionally outside the v0.5 action space.",
             "Cross-generation evaluation is reserved for PokéBench30 v0.6.",

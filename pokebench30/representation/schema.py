@@ -5,7 +5,7 @@ import hashlib
 import json
 
 
-FEATURE_SCHEMA_VERSION = "ubr-1.1"
+FEATURE_SCHEMA_VERSION = "ubr-1.2"
 
 TYPE_NAMES = (
     "NORMAL", "FIRE", "WATER", "ELECTRIC", "GRASS", "ICE",
@@ -23,6 +23,50 @@ BOOST_NAMES = (
 
 MOVE_CATEGORY_NAMES = (
     "PHYSICAL", "SPECIAL", "STATUS",
+)
+
+# UBR 1.2 appends a compact battle-context block to the 472-dimensional
+# UBR 1.1 core. The prefix remains unchanged for easier ablations.
+SIDE_CONDITION_FEATURES = (
+    "stealth_rock",
+    "spikes",
+    "toxic_spikes",
+    "sticky_web",
+    "reflect",
+    "light_screen",
+    "aurora_veil",
+    "tailwind",
+)
+
+WEATHER_FEATURES = (
+    "rain",
+    "sun",
+    "sandstorm",
+    "hail",
+    "snow",
+    "primordial_sea",
+    "desolate_land",
+    "delta_stream",
+)
+
+FIELD_FEATURES = (
+    "electric_terrain",
+    "grassy_terrain",
+    "misty_terrain",
+    "psychic_terrain",
+    "trick_room",
+    "gravity",
+)
+
+VOLATILE_EFFECT_FEATURES = (
+    "taunt",
+    "encore",
+    "substitute",
+    "confusion",
+    "leech_seed",
+    "disable",
+    "yawn",
+    "protect",
 )
 
 MAX_TEAM_SIZE = 6
@@ -118,6 +162,7 @@ def _move_slot_features(prefix: str) -> list[str]:
 
 
 def build_feature_schema() -> FeatureSchema:
+    # ---- UBR 1.1-compatible 472-dimensional prefix ----
     names: list[str] = [
         "global.generation_norm",
         "global.turn_norm",
@@ -149,6 +194,29 @@ def build_feature_schema() -> FeatureSchema:
     for slot in range(1, MAX_MOVES + 1):
         names.extend(
             _move_slot_features(f"active_moves.slot_{slot}")
+        )
+
+    # ---- UBR 1.2 battle-context extension: 46 features ----
+    for side in ("own_side", "opponent_side"):
+        names.extend(
+            f"battle_context.{side}.{feature}"
+            for feature in SIDE_CONDITION_FEATURES
+        )
+
+    names.extend(
+        f"battle_context.weather.{feature}"
+        for feature in WEATHER_FEATURES
+    )
+
+    names.extend(
+        f"battle_context.field.{feature}"
+        for feature in FIELD_FEATURES
+    )
+
+    for perspective in ("active_self", "active_opponent"):
+        names.extend(
+            f"battle_context.{perspective}.effect.{feature}"
+            for feature in VOLATILE_EFFECT_FEATURES
         )
 
     return FeatureSchema(

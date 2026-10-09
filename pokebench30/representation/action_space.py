@@ -94,7 +94,7 @@ class UniversalActionSpace:
     Generation-specific gimmicks are intentionally outside v0.4.1's core
     action space because the scripted benchmark currently disables them.
 
-    UBR 1.1 guarantees that every simulator-provided legal move is represented
+    UBR 1.2 retains the UBR 1.1 rule that every simulator-provided legal move is represented
     in one of the four move slots. If Showdown exposes a transient command such
     as Gen I ``recharge`` or ``fight`` that is not in ``active.moves``, it
     temporarily replaces an otherwise unavailable known move slot.
@@ -141,7 +141,7 @@ class UniversalActionSpace:
 
         Normal states keep the ordering supplied by ``active.moves``. When
         Showdown exposes a legal move that is not part of that dictionary
-        (e.g. Gen I ``recharge`` or ``fight``), UBR 1.1 inserts the transient
+        (e.g. Gen I ``recharge`` or ``fight``), UBR 1.2 inserts the transient
         move into a slot occupied by a currently unavailable known move.
 
         This keeps ordinary move-slot semantics as stable as possible while
