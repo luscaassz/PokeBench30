@@ -1,35 +1,25 @@
 {
   "project": "PokeBench30",
-  "version": "0.5.4",
-  "milestone": "Curriculum Training Study",
-  "base": "PokéBench30 v0.5.3",
-  "scientific_question": "At equal 300k nominal budget, does training-opponent curriculum improve final policy performance relative to direct TypeAware training?",
-  "representation": "ubr-1.2",
-  "observation_dim": 518,
-  "action_dim": 10,
-  "seeds": [
-    42,
-    123,
-    456,
-    789,
-    2026
-  ],
-  "total_timesteps_per_track_nominal": 300000,
-  "checkpoint_interval_nominal": 50000,
-  "typical_actual_timesteps_per_track_with_default_n_steps": 307200,
-  "evaluation_opponents": [
-    "random",
-    "max_damage",
-    "type_aware"
-  ],
-  "regimes": {
-    "direct_type_aware": [
-      {
-        "opponent": "type_aware",
-        "timesteps": 300000
-      }
+  "version": "0.5.5",
+  "milestone": "Policy Architecture Study",
+  "base": "PokéBench30 v0.5.4",
+  "fixed_experimental_conditions": {
+    "generation": 9,
+    "representation": "ubr-1.2",
+    "ubr_observation_dim": 518,
+    "action_dim": 10,
+    "algorithm": "MaskablePPO",
+    "reward": "unchanged v0.5 dense reward",
+    "learning_rate": 0.0003,
+    "seeds": [
+      42,
+      123,
+      456,
+      789,
+      2026
     ],
-    "random_to_type_aware": [
+    "nominal_timesteps_per_trajectory": 300000,
+    "curriculum": [
       {
         "opponent": "random",
         "timesteps": 100000
@@ -38,48 +28,60 @@
         "opponent": "type_aware",
         "timesteps": 200000
       }
-    ],
-    "progressive": [
-      {
-        "opponent": "random",
-        "timesteps": 100000
-      },
-      {
-        "opponent": "max_damage",
-        "timesteps": 100000
-      },
-      {
-        "opponent": "type_aware",
-        "timesteps": 100000
-      }
-    ],
-    "random_only": [
-      {
-        "opponent": "random",
-        "timesteps": 300000
-      }
     ]
   },
-  "regime_totals": {
-    "direct_type_aware": 300000,
-    "random_to_type_aware": 300000,
-    "progressive": 300000,
-    "random_only": 300000
+  "architectures": {
+    "mlp_baseline": {
+      "history_len": 1,
+      "model_input_dim": 518,
+      "net_arch": [
+        256,
+        128
+      ]
+    },
+    "mlp_large": {
+      "history_len": 1,
+      "model_input_dim": 518,
+      "net_arch": [
+        512,
+        256,
+        128
+      ]
+    },
+    "history_mlp": {
+      "history_len": 4,
+      "model_input_dim": 2072,
+      "net_arch": [
+        512,
+        256,
+        128
+      ]
+    },
+    "history_lstm": {
+      "history_len": 4,
+      "model_input_dim": 2072,
+      "lstm_hidden_size": 256,
+      "lstm_layers": 1,
+      "head_net_arch": [
+        128
+      ]
+    }
   },
-  "checkpoint_repeats_per_leg": 1,
-  "final_repeats_per_leg": 10,
-  "python_files_checked": 65,
-  "syntax_errors": [],
-  "dependency_light_test_returncode": 0,
-  "dependency_light_test_stdout": "",
-  "dependency_light_test_stderr": "..................\n----------------------------------------------------------------------\nRan 18 tests in 0.258s\n\nOK\n",
-  "schema_check_returncode": 0,
-  "schema_check_stdout": "ubr-1.2 518 10 d4b3858aab3a1c3bb1e17d9f34becf93814be05bfc949d52023651035f20e4c3\n",
-  "live_validation_status": "Not run in the artifact build runtime because poke-env/Pokémon Showdown are unavailable here. Run --smoke in the user environment first.",
-  "design_notes": [
-    "UBR 1.2, reward, PPO architecture and constant learning rate are held fixed.",
-    "Only the training-opponent sequence changes across regimes.",
-    "Intermediate checkpoint evaluations are diagnostic; final 300k evaluations are primary.",
-    "Resume preserves saved PPO model/optimizer state but Showdown RNG is not common-random-number controlled."
-  ]
+  "recurrent_design_note": "history_lstm is a fixed-window LSTM feature extractor inside MaskablePPO. Fully stateful RecurrentPPO was not used because native MaskablePPO in the current sb3-contrib stack does not support recurrent policies while preserving action masking.",
+  "baseline_reuse": "A compatible v0.5.4 random_to_type_aware experiment can be imported as mlp_baseline, reducing new training from 6.0M to 4.5M nominal steps.",
+  "validation": {
+    "python_files_checked": 72,
+    "syntax_errors": 0,
+    "dependency_light_tests": [
+      "test_policy_specs.py PASS",
+      "test_architecture_study.py PASS",
+      "test_rl_model_io.py PASS",
+      "test_rl_config.py PASS",
+      "test_representation_schema.py PASS",
+      "test_mirrored_metrics.py PASS",
+      "test_metrics.py PASS"
+    ],
+    "actual_v0.5.4_csv_import_format": "PASS: 90 eval rows, 30 training rows",
+    "full_live_poke_env_showdown_smoke": "Pending user-side execution with python run_policy_study.py --smoke"
+  }
 }

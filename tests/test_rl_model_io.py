@@ -81,5 +81,24 @@ class RLModelIOTests(unittest.TestCase):
         self.assertEqual(reward.status_value, 0.5)
 
 
+    def test_policy_metadata_defaults_are_backward_compatible(self):
+        metadata = self.make_metadata(9, "ubr-1.2")
+        self.assertEqual(metadata.policy_architecture, "mlp_baseline")
+        self.assertEqual(metadata.policy_config, {})
+        self.assertIsNone(metadata.model_input_dim)
+
+    def test_temporal_input_dimension_validation(self):
+        metadata = self.make_metadata(9, "ubr-1.2")
+        metadata = ModelMetadata(
+            **{
+                **metadata.to_dict(),
+                "policy_architecture": "history_lstm",
+                "policy_config": {"history_len": 4},
+                "model_input_dim": 2072,
+            }
+        )
+        validate_model_metadata(metadata, generation=9)
+
+
 if __name__ == "__main__":
     unittest.main()

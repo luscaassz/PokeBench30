@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import json
 from pathlib import Path
 from typing import Any
@@ -24,6 +24,9 @@ class ModelMetadata:
     reward: dict[str, float]
     library_versions: dict[str, str]
     notes: list[str]
+    policy_architecture: str = "mlp_baseline"
+    policy_config: dict[str, Any] = field(default_factory=dict)
+    model_input_dim: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -116,6 +119,27 @@ def validate_model_metadata(
             "action dimension mismatch: "
             f"model={metadata.action_dim}, current={schema.action_dim}"
         )
+
+    try:
+        from pokebench30.rl.policy_specs import get_policy_spec
+
+        spec = get_policy_spec(
+            getattr(metadata, "policy_architecture", "mlp_baseline")
+            or "mlp_baseline"
+        )
+        expected_model_input = spec.model_input_dim(schema.observation_dim)
+        if (
+            metadata.model_input_dim is not None
+            and int(metadata.model_input_dim) != int(expected_model_input)
+        ):
+            errors.append(
+                "model input dimension mismatch: "
+                f"model={metadata.model_input_dim}, "
+                f"expected={expected_model_input} "
+                f"for architecture={spec.name}"
+            )
+    except (ImportError, ValueError) as exc:
+        errors.append(f"policy architecture metadata error: {exc}")
 
     if (
         generation is not None

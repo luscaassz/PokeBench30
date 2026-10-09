@@ -1,69 +1,155 @@
-# PokéBench30 v0.5.4 — Curriculum Training Study
+# PokéBench30 v0.5.5 — Policy Architecture Study
 
-A v0.5.4 parte dos resultados das versões anteriores:
+A v0.5.5 investiga se o gargalo observado nas versões anteriores está na
+**arquitetura da policy**.
 
-```text
-v0.5      PPO baseline
-v0.5.1    UBR 1.2 + battle context
-v0.5.2    5-seed UBR 1.1 × UBR 1.2 at 10k
-v0.5.3    10k × 50k training-budget study
-v0.5.4    curriculum-training study at 300k
-```
-
-Na v0.5.3, aumentar apenas o budget de 10k para 50k melhorou o reward interno, mas não produziu melhora consistente no benchmark externo. Trabalhos anteriores de RL em Pokémon usam escalas maiores e/ou adversários de treinamento mais simples, self-play ou curriculum.
-
-A v0.5.4 testa uma única pergunta:
-
-> **Com o mesmo budget total de 300k, a sequência dos adversários de treinamento muda a qualidade da policy final?**
-
-## O que permanece fixo
+O resultado da v0.5.4 mostrou que `Random -> TypeAware` foi o curriculum com a
+maior média final contra TypeAware:
 
 ```text
-Generation:       IX
-Representation:   UBR 1.2
-Observation dim:  518
-Action dim:       10
-Algorithm:        MaskablePPO
-Reward:           igual à v0.5-v0.5.3
-Learning rate:    3e-4 constante
-PPO architecture: igual à v0.5-v0.5.3
-Seeds:            42, 123, 456, 789, 2026
+Direct TypeAware        0.110
+Random -> TypeAware     0.137
+Progressive             0.057
+Random only             0.077
 ```
 
-Não alteramos reward, UBR ou arquitetura nesta versão para não confundir o efeito do curriculum.
+Por isso, a v0.5.5 congela esse curriculum e muda apenas a policy.
 
-## Regimes padrão
-
-### A — Direct
+## Condições fixas
 
 ```text
-300k TypeAware
+Generation       = IX
+UBR              = 1.2
+UBR obs          = 518
+Action space     = 10
+Algorithm        = MaskablePPO
+Reward           = igual à v0.5-v0.5.4
+Learning rate    = 3e-4 constante
+Seeds            = 42, 123, 456, 789, 2026
+Budget           = 300k nominal / trajetória
+
+Curriculum:
+0-100k           Random
+100-300k         TypeAware
 ```
 
-### B — Simple curriculum
+## Policies comparadas
 
 ```text
-100k Random
-200k TypeAware
+mlp_baseline
+518 -> [256, 128]
+
+mlp_large
+518 -> [512, 256, 128]
+
+history_mlp
+4 × 518 -> [512, 256, 128]
+
+history_lstm
+4 × 518 -> LSTM(256) -> [128]
 ```
 
-### C — Progressive curriculum
+`history_mlp` é importante porque separa o efeito de **ter histórico** do efeito
+de **usar LSTM**.
+
+A janela temporal tem quatro decisões e usa zero-padding no início da batalha.
+
+## Por que não usar RecurrentPPO puro?
+
+O benchmark depende de action masking estrito. A versão atual do
+`MaskablePPO` usada pelo projeto não oferece policy recorrente nativa.
+
+Trocar `MaskablePPO` por `RecurrentPPO` mudaria também o tratamento de ações
+ilegais e tornaria a comparação injusta.
+
+Por isso, `history_lstm` usa uma LSTM como **feature extractor temporal de
+janela fixa**, mantendo exatamente o mesmo MaskablePPO e as mesmas máscaras.
+
+## Instalação
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Se necessário, prepare novamente o pool:
+
+```powershell
+python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
+```
+
+## Reutilizar sua v0.5.4
+
+Pelos seus logs, o estudo completo anterior foi:
 
 ```text
-100k Random
-100k MaxDamage
-100k TypeAware
+PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136
 ```
 
-### D — Random-only control
+Na nova pasta, valide primeiro:
+
+```powershell
+python scripts\check_policy_study_setup.py --baseline-curriculum-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136"
+```
+
+Se aparecer tudo `[OK]`, o baseline pode ser importado.
+
+## Smoke test
+
+O smoke é independente e treina todas as quatro policies em escala pequena:
+
+```powershell
+$env:MPLBACKEND="Agg"
+python run_policy_study.py --smoke
+```
+
+Configuração do smoke:
 
 ```text
-300k Random
+1 seed
+4 architectures
+6144 nominal timesteps
+checkpoints em 2048 / 4096 / 6144
+Random 2048 -> TypeAware 4096
+1 repeat por mirror leg
 ```
 
-## Checkpoints
+Os resultados do smoke não são científicos; ele serve para validar:
 
-Cada trajetória salva modelos em:
+- temporal stack;
+- LSTM extractor;
+- model save/load;
+- architecture-aware inference;
+- action masking;
+- checkpoints;
+- controlled evaluation.
+
+## Experimento completo recomendado
+
+Depois do smoke:
+
+```powershell
+$env:MPLBACKEND="Agg"
+
+python run_policy_study.py --baseline-curriculum-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136"
+```
+
+Como o `mlp_baseline` é importado da v0.5.4, serão treinadas apenas:
+
+```text
+mlp_large
+history_mlp
+history_lstm
+
+3 architectures
+× 5 seeds
+× 300k
+=
+4.5M novos timesteps nominais
+```
+
+## Avaliação
+
+Cada trajectory é observada em:
 
 ```text
 50k
@@ -74,7 +160,7 @@ Cada trajetória salva modelos em:
 300k
 ```
 
-Os checkpoints intermediários são avaliados de forma diagnóstica contra:
+contra:
 
 ```text
 Random
@@ -82,210 +168,62 @@ MaxDamage
 TypeAware
 ```
 
-Por padrão, cada avaliação intermediária usa apenas 1 repetição por leg:
+Os checkpoints intermediários são diagnósticos.
+O checkpoint final usa 60 batalhas por seed/adversário.
+
+## Resultados
 
 ```text
-3 pares × AB/BA × 1 = 6 batalhas/adversário
-```
-
-O checkpoint final de 300k usa o protocolo completo:
-
-```text
-3 pares × AB/BA × 10 = 60 batalhas/adversário
-```
-
-Assim, a curva intermediária serve para visualizar aprendizado; a comparação principal entre regimes deve usar a avaliação final.
-
-## Instalação
-
-```powershell
-cd C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4
-python -m pip install -r requirements.txt
-```
-
-Se o fixed-team pool ainda não existir nessa pasta:
-
-```powershell
-python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
-```
-
-Confira o setup:
-
-```powershell
-python scripts\check_curriculum_setup.py
-```
-
-O esperado inclui:
-
-```text
-[OK] PokéBench30 version: 0.5.4
-[OK] Representation: ubr-1.2 | obs=518 | actions=10
-[OK] Total timesteps/regime: 300000
-[OK] Checkpoint interval: 50000
-[OK] Curriculum-study setup is ready.
-```
-
-## Primeiro: smoke test
-
-Antes das milhões de interações do estudo completo:
-
-```powershell
-python run_curriculum_study.py --smoke
-```
-
-O smoke executa os quatro regimes com:
-
-```text
-1 seed
-6,144 timesteps/regime
-2,048-step checkpoints
-1 repeat/leg
-```
-
-Ele serve apenas para validar treinamento, troca de adversário, salvamento, resume, avaliação e agregação. **Não interprete seus scores cientificamente.**
-
-## Estudo completo
-
-```powershell
-python run_curriculum_study.py
-```
-
-Carga padrão:
-
-```text
-4 regimes
-× 5 seeds
-× 300k nominal timesteps
-=
-20 trajetórias de PPO
-6.0M nominal training steps
-```
-
-Como PPO usa rollouts completos de `n_steps=2048`, cada segmento nominal de 50k normalmente executa 51,200 steps. Portanto cada trajetória tende a terminar perto de 307,200 steps reais.
-
-Avaliação aproximada:
-
-```text
-por modelo:
-5 checkpoints intermediários × 3 adversários × 6 batalhas = 90
-checkpoint final × 3 adversários × 60 batalhas             = 180
-                                                          -------
-                                                            270
-
-20 modelos × 270 = 5,400 batalhas de avaliação
-```
-
-Além disso há as batalhas usadas para gerar experiência durante o treinamento.
-
-## Rodar somente os três regimes principais
-
-Se quiser deixar o `random_only` para depois:
-
-```powershell
-python run_curriculum_study.py --regimes direct_type_aware random_to_type_aware progressive
-```
-
-## Estrutura de resultados
-
-```text
-curriculum_results/
-└── curriculum_gen9_YYYYMMDD_HHMMSS/
+policy_results/
+└── policy_gen9_.../
     ├── study_manifest.json
+    ├── imported_mlp_baseline/
     ├── runs/
-    │   ├── direct_type_aware/
-    │   │   └── seed_42/
-    │   │       ├── checkpoints/
-    │   │       │   ├── step_050000/
-    │   │       │   ├── ...
-    │   │       │   └── step_300000/
-    │   │       ├── evaluations/
-    │   │       ├── training_logs/
-    │   │       └── tensorboard/
-    │   └── ...
+    │   ├── mlp_large/
+    │   ├── history_mlp/
+    │   └── history_lstm/
     └── aggregate/
         ├── learning_curve.csv
         ├── aggregate_learning_curve.csv
         ├── training_progress.csv
         ├── final_summary.csv
-        ├── paired_regime_differences.csv
-        ├── curriculum_comparison.csv
+        ├── paired_architecture_differences.csv
+        ├── architecture_comparison.csv
         └── figures/
 ```
 
-## Arquivos mais importantes
-
-### `final_summary.csv`
-
-Performance final média de cada regime em 300k.
-
-### `paired_regime_differences.csv`
-
-Para cada seed:
+O arquivo principal é:
 
 ```text
-score curriculum - score direct_type_aware
+architecture_comparison.csv
 ```
 
-### `curriculum_comparison.csv`
-
-Principal tabela de comparação:
-
-```text
-regime
-opponent
-paired_seeds
-mean_direct
-mean_regime
-mean_difference_vs_direct
-sample_sd_difference
-```
-
-### `aggregate_learning_curve.csv`
-
-Mostra como Random/MaxDamage/TypeAware evoluem ao longo dos checkpoints.
+Ele compara cada arquitetura com `mlp_baseline` por seed.
 
 ## Resume
 
-Quando o runner iniciar, guarde o caminho mostrado em:
+Ao iniciar, guarde o diretório impresso:
 
 ```text
-curriculum_results\curriculum_gen9_YYYYMMDD_HHMMSS
+policy_results\policy_gen9_YYYYMMDD_HHMMSS
 ```
 
-Se houver interrupção:
+Se o processo parar:
 
 ```powershell
-python run_curriculum_study.py --study-dir "curriculum_results\curriculum_gen9_YYYYMMDD_HHMMSS"
+python run_policy_study.py --study-dir "policy_results\policy_gen9_YYYYMMDD_HHMMSS" --baseline-curriculum-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4\curriculum_results\curriculum_gen9_20260930_000136"
 ```
 
-O programa:
+Use os mesmos parâmetros.
 
-- reutiliza checkpoints completos;
-- recria avaliações ausentes;
-- continua o PPO do último checkpoint completo;
-- rejeita um `study_dir` criado com configuração diferente.
-
-## Observação sobre resume
-
-A policy e o estado do otimizador do PPO são preservados pelo checkpoint. Porém, a aleatoriedade interna das batalhas do Pokémon Showdown não usa common random numbers entre regimes e uma execução retomada não é garantida como bit-a-bit idêntica a uma execução sem interrupção.
-
-## Próximas ablações possíveis
-
-A v0.5.4 **não** mistura estas mudanças no mesmo experimento:
+## Sequência experimental
 
 ```text
-learning-rate annealing
-self-play
-recurrent policy
-reward v2
-state representation v2
-MCTS / search
+v0.5.2  representação
+v0.5.3  training budget
+v0.5.4  curriculum
+v0.5.5  policy architecture
+v0.6    cross-generation transfer
 ```
 
-Se curriculum não resolver o gap contra TypeAware, esses fatores podem ser avaliados separadamente em versões posteriores.
-
-Veja também:
-
-- `docs/CURRICULUM_v0.5.4.md`
-- `docs/LITERATURE_RATIONALE_v0.5.4.md`
-- `CHANGELOG_v0.5.4.md`
+Mais detalhes: `docs/POLICY_ARCHITECTURE_v0.5.5.md`.

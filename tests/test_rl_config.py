@@ -66,5 +66,27 @@ class RLConfigTests(unittest.TestCase):
         )
 
 
+    def test_policy_study_defaults(self):
+        config = yaml.safe_load(
+            (ROOT / "config" / "rl_baseline.yaml").read_text(encoding="utf-8")
+        )
+        block = config["policy_study"]
+        self.assertEqual(block["representation"], "ubr-1.2")
+        self.assertEqual(
+            block["architectures"],
+            ["mlp_baseline", "mlp_large", "history_mlp", "history_lstm"],
+        )
+        self.assertEqual(block["seeds"], [42, 123, 456, 789, 2026])
+        self.assertEqual(block["total_timesteps"], 300000)
+        self.assertEqual(block["checkpoint_interval"], 50000)
+        self.assertEqual(
+            block["curriculum"],
+            [
+                {"opponent": "random", "timesteps": 100000},
+                {"opponent": "type_aware", "timesteps": 200000},
+            ],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

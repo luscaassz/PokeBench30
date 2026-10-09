@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -12,10 +13,11 @@ from pokebench30.agents.base_agent import InstrumentedPlayer
 from pokebench30.representation.action_space import IllegalActionError
 from pokebench30.representation.encoder import UniversalStateEncoder
 from .model_io import load_model_metadata, resolve_model_file, validate_model_metadata
+from .policy_specs import get_policy_spec, padded_history
 
 
 class RLPolicyAgent(InstrumentedPlayer):
-    """Inference-only MaskablePPO player using the model's recorded UBR profile."""
+    """Inference-only MaskablePPO player with policy-architecture metadata."""
 
     agent_name = "RLPolicyAgent"
 
@@ -35,13 +37,30 @@ class RLPolicyAgent(InstrumentedPlayer):
                 "Run: python -m pip install -r requirements.txt"
             ) from exc
 
+        # Import custom extractor before deserializing v0.5.5 temporal models.
+        try:
+            from . import temporal_policy as _temporal_policy  # noqa: F401
+        except ImportError:
+            _temporal_policy = None
+
         self.model_path = resolve_model_file(model_path)
         self.model_metadata = load_model_metadata(self.model_path)
         self.deterministic = bool(deterministic)
         self.require_same_generation = bool(require_same_generation)
+
+        architecture = getattr(
+            self.model_metadata,
+            "policy_architecture",
+            "mlp_baseline",
+        ) or "mlp_baseline"
+        self.policy_spec = get_policy_spec(architecture)
+
         state_encoder = UniversalStateEncoder(
             representation_version=self.model_metadata.observation_schema_version
         )
+        self._base_dim = state_encoder.schema.observation_dim
+        self._history: dict[str, deque[np.ndarray]] = {}
+        self._last_vector: dict[str, np.ndarray] = {}
 
         super().__init__(
             *args,
@@ -60,6 +79,42 @@ class RLPolicyAgent(InstrumentedPlayer):
             return int(getattr(battle, "gen"))
         except (TypeError, ValueError, AttributeError):
             return 0
+
+    @staticmethod
+    def _battle_key(battle: AbstractBattle) -> str:
+        return str(
+            getattr(battle, "battle_tag", None)
+            or getattr(battle, "_battle_tag", None)
+            or id(battle)
+        )
+
+    def _model_observation(
+        self,
+        battle: AbstractBattle,
+        vector: np.ndarray,
+    ) -> np.ndarray:
+        if self.policy_spec.history_len <= 1:
+            return np.asarray(vector, dtype=np.float32)
+
+        key = self._battle_key(battle)
+        if key not in self._history:
+            self._history[key] = deque(maxlen=self.policy_spec.history_len)
+            self._last_vector.pop(key, None)
+
+        current = np.asarray(vector, dtype=np.float32).reshape(-1)
+        previous = self._last_vector.get(key)
+
+        # Avoid duplicating identical transport requests, while still allowing
+        # multiple distinct decisions within the same battle turn.
+        if previous is None or not np.array_equal(previous, current):
+            self._history[key].append(current.copy())
+            self._last_vector[key] = current.copy()
+
+        return padded_history(
+            self._history[key],
+            history_len=self.policy_spec.history_len,
+            base_dim=self._base_dim,
+        )
 
     def choose_move(self, battle: AbstractBattle):
         if bool(
@@ -86,8 +141,9 @@ class RLPolicyAgent(InstrumentedPlayer):
                 decision_reason="rl_zero_mask_fallback",
             )
 
+        model_obs = self._model_observation(battle, encoded.vector)
         action, _ = self.model.predict(
-            encoded.vector,
+            model_obs,
             action_masks=mask,
             deterministic=self.deterministic,
         )
@@ -114,7 +170,7 @@ class RLPolicyAgent(InstrumentedPlayer):
             )
             reason = "rl_illegal_action_first_legal_fallback"
         else:
-            reason = "maskable_ppo_policy"
+            reason = f"maskable_ppo_policy:{self.policy_spec.name}"
 
         order = self.create_order(selected)
 

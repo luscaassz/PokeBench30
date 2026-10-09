@@ -37,6 +37,86 @@ def _move_id(move: Any) -> str:
         or move
     ).lower()
 
+def _order_has_special_flags(order: Any) -> bool:
+    return any(
+        bool(_safe_attr(order, attr, False))
+        for attr in (
+            "mega",
+            "z_move",
+            "zmove",
+            "dynamax",
+            "terastallize",
+        )
+    )
+
+
+def _regular_moves_from_valid_orders(
+    battle: Any,
+) -> list[Any]:
+    """Return ordinary legal moves exposed by battle.valid_orders.
+
+    This is a defensive supplement to battle.available_moves.  It is
+    especially useful when poke-env's battle trackers momentarily disagree
+    about available_moves while valid_orders already contains the legal
+    Showdown command.
+
+    Generation-specific gimmick orders remain outside the UBR core action
+    space.
+    """
+    moves: list[Any] = []
+    seen: set[str] = set()
+
+    valid_orders = list(
+        _safe_attr(battle, "valid_orders", []) or []
+    )
+
+    for order in valid_orders:
+        if _order_has_special_flags(order):
+            continue
+
+        selected = _safe_attr(order, "order", None)
+        if selected is None:
+            continue
+
+        # Switch orders are handled by the team portion of the UBR.
+        if _safe_attr(selected, "species", None) is not None:
+            continue
+
+        move_id = _move_id(selected)
+        if not move_id or move_id in seen:
+            continue
+
+        moves.append(selected)
+        seen.add(move_id)
+
+    return moves
+
+
+def _legal_regular_moves(
+    battle: Any,
+) -> list[Any]:
+    """Union of available_moves and ordinary move valid_orders."""
+    candidates = list(
+        _safe_attr(battle, "available_moves", []) or []
+    )
+
+    candidates.extend(
+        _regular_moves_from_valid_orders(battle)
+    )
+
+    moves: list[Any] = []
+    seen: set[str] = set()
+
+    for move in candidates:
+        move_id = _move_id(move)
+        if not move_id or move_id in seen:
+            continue
+
+        moves.append(move)
+        seen.add(move_id)
+
+    return moves    
+
 
 def _pokemon_ident(pokemon: Any) -> str:
     if pokemon is None:
@@ -169,7 +249,7 @@ class UniversalActionSpace:
             slots.append(move)
             slot_ids.add(move_id)
 
-        available_raw = list(getattr(battle, "available_moves", []) or [])
+        available_raw = _legal_regular_moves(battle)
         available: list[Any] = []
         available_ids: set[str] = set()
         for move in available_raw:
@@ -227,7 +307,7 @@ class UniversalActionSpace:
 
         force_switch = _force_switch(battle)
         move_slots = self.move_slots(battle)
-        available_moves = list(getattr(battle, "available_moves", []) or [])
+        available_moves = _legal_regular_moves(battle)
         legal_move_ids = {_move_id(move) for move in available_moves}
 
         if not force_switch:
