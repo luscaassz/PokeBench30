@@ -28,6 +28,8 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
         "turns": [], "moves": 0, "switches": 0,
         "voluntary_switches": 0, "forced_switches": 0,
         "action_requests": 0,
+        "opponent_reveal_fractions": [],
+        "switch_loop_events": 0,
     })
 
     for row in battles:
@@ -42,6 +44,16 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
             if turns is not None:
                 stats[key]["turns"].append(turns)
 
+        try:
+            stats[(gen, a1)]["opponent_reveal_fractions"].append(
+                float(row.get("agent_1_opponent_reveal_fraction", 0.0) or 0.0)
+            )
+            stats[(gen, a2)]["opponent_reveal_fractions"].append(
+                float(row.get("agent_2_opponent_reveal_fraction", 0.0) or 0.0)
+            )
+        except (TypeError, ValueError):
+            pass
+
         if result == "win":
             stats[(gen, a1)]["wins"] += 1
             stats[(gen, a2)]["losses"] += 1
@@ -52,6 +64,18 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
             stats[(gen, a1)]["draws"] += 1
             stats[(gen, a2)]["draws"] += 1
 
+    last_voluntary_switch = {}
+
+    actions = sorted(
+        actions,
+        key=lambda row: (
+            int(row["generation"]),
+            row["agent"],
+            row["battle_tag"],
+            int(row.get("request_index", 0) or 0),
+        ),
+    )
+
     for row in actions:
         key = (int(row["generation"]), row["agent"])
         stats[key]["action_requests"] += 1
@@ -59,10 +83,53 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
             stats[key]["moves"] += 1
         elif row["action_type"] == "switch":
             stats[key]["switches"] += 1
-        if row.get("voluntary_switch", "").lower() == "true":
-            stats[key]["voluntary_switches"] += 1
-        if row.get("forced_switch", "").lower() == "true":
-            stats[key]["forced_switches"] += 1
+            if row.get("voluntary_switch", "").lower() == "true":
+                stats[key]["voluntary_switches"] += 1
+
+                battle_key = (
+                    int(row["generation"]),
+                    row["agent"],
+                    row["battle_tag"],
+                )
+
+                current_switch = {
+                    "from": row.get("active_pokemon", ""),
+                    "to": row.get("action", ""),
+                    "turn": int(
+                        float(row.get("turn", 0) or 0)
+                    ),
+                }
+
+                previous_switch = last_voluntary_switch.get(
+                    battle_key
+                )
+
+                if previous_switch is not None:
+                    reversed_switch = (
+                        previous_switch["from"]
+                        == current_switch["to"]
+                        and previous_switch["to"]
+                        == current_switch["from"]
+                    )
+
+                    close_in_time = (
+                        current_switch["turn"]
+                        - previous_switch["turn"]
+                        <= 2
+                    )
+
+                    if (
+                        reversed_switch
+                        and close_in_time
+                    ):
+                        stats[key]["switch_loop_events"] += 1
+
+                last_voluntary_switch[
+                    battle_key
+                ] = current_switch
+
+            if row.get("forced_switch", "").lower() == "true":
+                stats[key]["forced_switches"] += 1
 
     rows = []
     for (generation, agent), s in sorted(stats.items()):
@@ -83,8 +150,21 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
             "moves": s["moves"],
             "switches": s["switches"],
             "switch_rate": round(s["switches"] / action_n, 6) if action_n else 0.0,
+            "voluntary_switch_rate": round(s["voluntary_switches"] / action_n, 6) if action_n else 0.0,
+            "forced_switch_rate": round(s["forced_switches"] / action_n, 6) if action_n else 0.0,
             "voluntary_switches": s["voluntary_switches"],
             "forced_switches": s["forced_switches"],
+            "switch_loop_events": s["switch_loop_events"],
+            "switch_loop_rate": round(
+                s["switch_loop_events"]
+                / s["voluntary_switches"],
+                6,
+            )
+            if s["voluntary_switches"]
+            else 0.0,
+            "mean_opponent_reveal_fraction": round(
+                mean(s["opponent_reveal_fractions"]), 6
+            ) if s["opponent_reveal_fractions"] else 0.0,
         })
 
     _write_csv(
@@ -94,10 +174,18 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
             "generation", "agent", "battles", "wins", "losses", "draws",
             "win_rate_all", "win_rate_decisive", "mean_battle_turns",
             "action_requests", "moves", "switches", "switch_rate",
-            "voluntary_switches", "forced_switches",
+            "voluntary_switch_rate", "forced_switch_rate",
+            "voluntary_switches",
+            "forced_switches",
+
+            "switch_loop_events",
+            "switch_loop_rate",
+
+            "mean_opponent_reveal_fraction",
         ],
     )
     return rows
+
 
 
 def create_plots(run_dir: Path, agent_rows: list[dict]) -> list[Path]:
@@ -113,40 +201,87 @@ def create_plots(run_dir: Path, agent_rows: list[dict]) -> list[Path]:
     generations = sorted({int(r["generation"]) for r in agent_rows})
     agents = sorted({r["agent"] for r in agent_rows})
 
-    # Win-rate plot: one line per agent across generations.
+    def value(agent, gen, field):
+        match = next(
+            (
+                r for r in agent_rows
+                if r["agent"] == agent and int(r["generation"]) == gen
+            ),
+            None,
+        )
+        return float(match[field]) if match else float("nan")
+
+    # Win rate: bars for a single generation; lines for longitudinal runs.
     fig, ax = plt.subplots(figsize=(8, 5))
-    for agent in agents:
-        values = []
-        for gen in generations:
-            match = next((r for r in agent_rows if r["agent"] == agent and int(r["generation"]) == gen), None)
-            values.append(float(match["win_rate_all"]) if match else float("nan"))
-        ax.plot(generations, values, marker="o", label=agent)
-    ax.set_xlabel("Generation")
+    if len(generations) == 1:
+        gen = generations[0]
+        vals = [value(agent, gen, "win_rate_all") for agent in agents]
+        ax.bar(agents, vals)
+        ax.set_title(f"Agent win rate — Generation {gen}")
+        ax.tick_params(axis="x", rotation=20)
+    else:
+        for agent in agents:
+            vals = [value(agent, gen, "win_rate_all") for gen in generations]
+            ax.plot(generations, vals, marker="o", label=agent)
+        ax.set_xticks(generations)
+        ax.set_xlabel("Generation")
+        ax.set_title("Agent win rate by generation")
+        ax.legend()
     ax.set_ylabel("Win rate")
     ax.set_ylim(0, 1)
-    ax.set_title("Agent win rate by generation")
-    ax.legend()
     fig.tight_layout()
     path = figure_dir / "agent_win_rate.png"
     fig.savefig(path, dpi=160)
     plt.close(fig)
     generated.append(path)
 
-    # Switch-rate plot.
+    # Total switch rate (kept for backwards compatibility).
     fig, ax = plt.subplots(figsize=(8, 5))
-    for agent in agents:
-        values = []
-        for gen in generations:
-            match = next((r for r in agent_rows if r["agent"] == agent and int(r["generation"]) == gen), None)
-            values.append(float(match["switch_rate"]) if match else float("nan"))
-        ax.plot(generations, values, marker="o", label=agent)
-    ax.set_xlabel("Generation")
-    ax.set_ylabel("Switch requests / action requests")
+    if len(generations) == 1:
+        gen = generations[0]
+        vals = [value(agent, gen, "switch_rate") for agent in agents]
+        ax.bar(agents, vals)
+        ax.set_title(f"Total switch rate — Generation {gen}")
+        ax.tick_params(axis="x", rotation=20)
+    else:
+        for agent in agents:
+            vals = [value(agent, gen, "switch_rate") for gen in generations]
+            ax.plot(generations, vals, marker="o", label=agent)
+        ax.set_xticks(generations)
+        ax.set_xlabel("Generation")
+        ax.set_title("Total switch rate by generation")
+        ax.legend()
+    ax.set_ylabel("All switches / action requests")
     ax.set_ylim(0, 1)
-    ax.set_title("Switch rate by generation")
-    ax.legend()
     fig.tight_layout()
     path = figure_dir / "switch_rate.png"
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+    generated.append(path)
+
+    # Strategic switching: forced switches removed.
+    fig, ax = plt.subplots(figsize=(8, 5))
+    if len(generations) == 1:
+        gen = generations[0]
+        vals = [value(agent, gen, "voluntary_switch_rate") for agent in agents]
+        ax.bar(agents, vals)
+        ax.set_title(f"Voluntary switch rate — Generation {gen}")
+        ax.tick_params(axis="x", rotation=20)
+    else:
+        for agent in agents:
+            vals = [
+                value(agent, gen, "voluntary_switch_rate")
+                for gen in generations
+            ]
+            ax.plot(generations, vals, marker="o", label=agent)
+        ax.set_xticks(generations)
+        ax.set_xlabel("Generation")
+        ax.set_title("Voluntary switch rate by generation")
+        ax.legend()
+    ax.set_ylabel("Voluntary switches / action requests")
+    ax.set_ylim(0, 1)
+    fig.tight_layout()
+    path = figure_dir / "voluntary_switch_rate.png"
     fig.savefig(path, dpi=160)
     plt.close(fig)
     generated.append(path)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import random
+
 from poke_env.battle import AbstractBattle
 
 from .base_agent import hp_fraction, is_force_switch
@@ -17,6 +19,15 @@ class SwitchAwareAgent(TypeAwareAgent):
     agent_name = "SwitchAwareAgent"
     SWITCH_IMPROVEMENT_THRESHOLD = 1.0
     LOW_HP_THRESHOLD = 0.20
+    SWITCH_COOLDOWN_TURNS = 2
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Guarda o Pokémon do qual o agente acabou de sair
+        # e o turno em que ocorreu a troca voluntária.
+        self._last_switch_from = {}
+        self._last_switch_turn = {}
 
     @staticmethod
     def _types(pokemon):
@@ -64,48 +75,167 @@ class SwitchAwareAgent(TypeAwareAgent):
         hp_bonus = 0.25 * float(hp_fraction(candidate) or 0.0)
         return float(offensive - defensive_risk + hp_bonus)
 
+    @staticmethod
+    def _species(pokemon):
+        if pokemon is None:
+            return None
+        return str(getattr(pokemon, "species", ""))
+
+    def _blocked_return_species(self, battle):
+        """Impede voltar imediatamente ao Pokémon do qual acabou de sair."""
+        battle_tag = getattr(battle, "battle_tag", None)
+
+        if battle_tag is None:
+            return None
+
+        previous_species = self._last_switch_from.get(battle_tag)
+        previous_turn = self._last_switch_turn.get(battle_tag)
+
+        if previous_species is None or previous_turn is None:
+            return None
+
+        current_turn = int(getattr(battle, "turn", 0) or 0)
+
+        if current_turn - previous_turn <= self.SWITCH_COOLDOWN_TURNS:
+            return previous_species
+
+        return None
+
+
+    def _remember_voluntary_switch(self, battle, active):
+        battle_tag = getattr(battle, "battle_tag", None)
+
+        if battle_tag is None:
+            return
+
+        self._last_switch_from[battle_tag] = self._species(active)
+        self._last_switch_turn[battle_tag] = int(
+            getattr(battle, "turn", 0) or 0
+        )
+
     @classmethod
-    def best_switch(cls, battle: AbstractBattle):
+    def best_switch(
+        cls,
+        battle: AbstractBattle,
+        excluded_species=None,
+    ):
         opponent = battle.opponent_active_pokemon
         switches = list(battle.available_switches or [])
+
+        if excluded_species is not None:
+            switches = [
+                pokemon
+                for pokemon in switches
+                if str(getattr(pokemon, "species", ""))
+                != excluded_species
+            ]
+
         if not switches:
             return None, float("-inf")
 
-        scored = [(cls.matchup_score(mon, opponent), mon) for mon in switches]
-        score, pokemon = max(scored, key=lambda item: item[0])
+        scored = [
+            (cls.matchup_score(mon, opponent), mon)
+            for mon in switches
+        ]
+
+        score, pokemon = max(
+            scored,
+            key=lambda item: item[0],
+        )
+
         return pokemon, float(score)
 
     def choose_move(self, battle: AbstractBattle):
         active = battle.active_pokemon
         opponent = battle.opponent_active_pokemon
-        current_matchup = self.matchup_score(active, opponent)
-        switch_target, switch_score = self.best_switch(battle)
 
-        if is_force_switch(battle) and switch_target is not None:
-            order = self.create_order(switch_target)
-            return self.record_order(
-                battle,
-                order,
-                heuristic_score=switch_score,
-                decision_reason="forced_best_matchup_switch",
-                current_matchup_score=current_matchup,
-                target_matchup_score=switch_score,
-            )
+        current_matchup = self.matchup_score(
+            active,
+            opponent,
+        )
 
-        improvement = switch_score - current_matchup if switch_target is not None else float("-inf")
-        active_hp = float(hp_fraction(active) or 0.0)
+        # --------------------------------------------------
+        # 1. SWITCH FORÇADO
+        # --------------------------------------------------
+
+        if is_force_switch(battle):
+            switch_target, switch_score = self.best_switch(battle)
+
+            if switch_target is not None:
+                order = self.create_order(switch_target)
+
+                return self.record_order(
+                    battle,
+                    order,
+                    heuristic_score=switch_score,
+                    decision_reason="forced_best_matchup_switch",
+                    current_matchup_score=current_matchup,
+                    target_matchup_score=switch_score,
+                )
+
+        # --------------------------------------------------
+        # 2. SWITCH VOLUNTÁRIO
+        # --------------------------------------------------
+
+        blocked_species = self._blocked_return_species(battle)
+
+        switch_target, switch_score = self.best_switch(
+            battle,
+            excluded_species=blocked_species,
+        )
+
+        if switch_target is not None:
+            improvement = switch_score - current_matchup
+        else:
+            improvement = float("-inf")
+
+        active_hp = float(
+            hp_fraction(active) or 0.0
+        )
 
         bad_matchup = current_matchup < 0.0
-        meaningful_improvement = improvement >= self.SWITCH_IMPROVEMENT_THRESHOLD
+
+        meaningful_improvement = (
+            improvement
+            >= self.SWITCH_IMPROVEMENT_THRESHOLD
+        )
+
         low_hp_escape = (
             active_hp <= self.LOW_HP_THRESHOLD
             and switch_target is not None
-            and switch_score > current_matchup + 0.5
+            and improvement >= 0.5
         )
 
-        if switch_target is not None and ((bad_matchup and meaningful_improvement) or low_hp_escape):
-            reason = "bad_matchup_switch" if bad_matchup and meaningful_improvement else "low_hp_switch"
-            order = self.create_order(switch_target)
+        should_switch = (
+            switch_target is not None
+            and (
+                (
+                    bad_matchup
+                    and meaningful_improvement
+                )
+                or low_hp_escape
+            )
+        )
+
+        if should_switch:
+            if (
+                bad_matchup
+                and meaningful_improvement
+            ):
+                reason = "bad_matchup_switch"
+            else:
+                reason = "low_hp_switch"
+
+            # Guarda de qual Pokémon estamos saindo.
+            self._remember_voluntary_switch(
+                battle,
+                active,
+            )
+
+            order = self.create_order(
+                switch_target
+            )
+
             return self.record_order(
                 battle,
                 order,
@@ -115,34 +245,91 @@ class SwitchAwareAgent(TypeAwareAgent):
                 target_matchup_score=switch_score,
             )
 
-        best_move, attack_score = self.best_scored_move(battle)
-        if best_move is not None and attack_score > 0:
+        # --------------------------------------------------
+        # 3. MELHOR ATAQUE
+        # --------------------------------------------------
+
+        best_move, attack_score = self.best_scored_move(
+            battle
+        )
+
+        if (
+            best_move is not None
+            and attack_score > 0
+        ):
             order = self.create_order(best_move)
+
             return self.record_order(
                 battle,
                 order,
                 heuristic_score=attack_score,
                 decision_reason="best_type_aware_attack",
                 current_matchup_score=current_matchup,
-                target_matchup_score=switch_score if switch_target is not None else None,
+                target_matchup_score=(
+                    switch_score
+                    if switch_target is not None
+                    else None
+                ),
             )
 
+        # --------------------------------------------------
+        # 4. NÃO TROCAR APENAS PORQUE SCORE = 0
+        # --------------------------------------------------
+
+        available_moves = list(
+            battle.available_moves or []
+        )
+
+        if available_moves:
+            move = random.choice(
+                available_moves
+            )
+
+            order = self.create_order(move)
+
+            return self.record_order(
+                battle,
+                order,
+                heuristic_score=0.0,
+                decision_reason="fallback_move_no_positive_attack",
+                current_matchup_score=current_matchup,
+                target_matchup_score=(
+                    switch_score
+                    if switch_target is not None
+                    else None
+                ),
+            )
+
+        # --------------------------------------------------
+        # 5. CASO EXTREMO: SEM MOVES
+        # --------------------------------------------------
+
         if switch_target is not None:
-            order = self.create_order(switch_target)
+            order = self.create_order(
+                switch_target
+            )
+
             return self.record_order(
                 battle,
                 order,
                 heuristic_score=switch_score,
-                decision_reason="no_positive_attack_switch",
+                decision_reason="no_move_available_switch",
                 current_matchup_score=current_matchup,
                 target_matchup_score=switch_score,
             )
 
-        order = self.choose_random_move(battle)
+        # --------------------------------------------------
+        # 6. FALLBACK FINAL
+        # --------------------------------------------------
+
+        order, _ = self.choose_random_core_order(
+            battle
+        )
+
         return self.record_order(
             battle,
             order,
             heuristic_score=0.0,
-            decision_reason="fallback_random_legal_action",
+            decision_reason="fallback_random_core_action",
             current_matchup_score=current_matchup,
         )

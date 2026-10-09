@@ -1,131 +1,101 @@
-# PokéBench30 v0.2 — Experimental Instrumentation
+# PokéBench30 v0.2.1 — Partial Observation + Experimental Instrumentation
 
 **PokéBench30** é um benchmark de pesquisa para estudar agentes de IA em batalhas Pokémon ao longo de diferentes gerações.
 
-A v0.1 provou que o mesmo pipeline consegue executar Gen I, Gen IV e Gen IX. A **v0.2** transforma esse protótipo em uma infraestrutura experimental mais informativa.
+Esta revisão da **v0.2.1** corrige a política de informação do benchmark: um agente conhece integralmente o próprio time, mas conhece do adversário **apenas os Pokémon que já foram revelados pela batalha**, assim como ocorre para um jogador humano.
 
-## O que mudou na v0.2
+## Princípio central: sem information leakage
 
-- Quarto agente: **SwitchAwareAgent**.
-- `decisions.csv` virou **`actions.csv`**: uma chamada de `choose_move()` é uma *action request*, não necessariamente um turno.
-- Estado da batalha é capturado antes de cada ação.
-- Logging de Pokémon ativos, HP, tipos, status, boosts e ações legais.
-- Separação de **switch voluntário** e **switch forçado**.
-- Métricas de Pokémon restantes e soma de HP no fim da batalha.
-- Intervalo de confiança de Wilson e teste binomial exploratório por matchup.
-- `agent_summary.csv` criado automaticamente.
-- Gráficos automáticos em `figures/`.
-- Versão do `poke-env` registrada no metadata.
+Durante `choose_move()`, o agente pode usar:
+
+```text
+próprio time completo
++ Pokémon adversário ativo
++ Pokémon adversários já revelados
++ histórico/estado observado da batalha
+```
+
+Ele **não recebe** os slots ainda ocultos do oponente.
+
+O benchmark mantém duas camadas diferentes:
+
+### 1. Observação do agente
+
+Usada durante a tomada de decisão e registrada em `actions.csv`.
+
+Exemplos:
+
+```text
+own_team_size
+own_remaining
+opponent_revealed
+opponent_revealed_remaining
+opponent_revealed_hp_sum
+```
+
+### 2. Ground truth do avaliador
+
+Calculada **somente depois da batalha** a partir do time próprio de cada jogador.
+
+É salva em `battles.csv` para avaliação, mas nunca é passada aos agentes.
+
+Exemplos:
+
+```text
+agent_1_team_size_true
+agent_2_team_size_true
+agent_1_remaining_true
+agent_2_remaining_true
+agent_1_hp_sum_true
+agent_2_hp_sum_true
+```
+
+Também registramos quanto cada jogador chegou a revelar do adversário:
+
+```text
+agent_1_opponent_revealed
+agent_2_opponent_revealed
+agent_1_opponent_reveal_fraction
+agent_2_opponent_reveal_fraction
+```
+
+Isso permite estudar posteriormente **opponent modeling sob informação parcial**.
 
 ---
 
 ## Agentes
 
 ### RandomAgent
-Escolhe qualquer ação legal aleatoriamente. É o baseline mínimo.
+
+Escolhe uniformemente entre golpes normais e switches legais.
 
 ### MaxDamageAgent
+
 Prioriza o golpe disponível com maior Base Power.
 
 ### TypeAwareAgent
-Usa a heurística:
+
+Usa:
 
 ```text
 score = base_power × accuracy × STAB × type_effectiveness
 ```
 
 ### SwitchAwareAgent
-Mantém a heurística ofensiva do TypeAwareAgent, mas compara o matchup atual com os Pokémon disponíveis para troca.
 
-Ele pode trocar quando:
+Usa a heurística ofensiva do TypeAwareAgent, mas também compara o matchup atual com os Pokémon disponíveis para troca.
+
+Pode trocar quando:
 
 - a troca é obrigatória;
-- o matchup atual é desfavorável e existe uma melhora suficientemente grande;
-- o HP está muito baixo e uma troca melhora o matchup.
+- o matchup atual é desfavorável e existe melhora suficiente;
+- o HP está muito baixo e a troca melhora o matchup.
 
-O objetivo **não** é criar um agente ótimo, mas um baseline interpretável que possua decisão explícita `attack vs switch`.
-
----
-
-# Instalação no Windows + VS Code + Conda
-
-Você já pode continuar usando o ambiente `games` sem precisar de `conda activate`:
-
-```powershell
-conda run -n games python -m pip install -r requirements.txt
-```
-
-Mantenha o Pokémon Showdown local aberto em outro terminal:
-
-```powershell
-cd C:\Users\lucas\OneDrive\Desktop\pokemon-showdown
-node pokemon-showdown start --no-security
-```
-
-Verifique o ambiente:
-
-```powershell
-conda run -n games python scripts\check_setup.py
-```
-
----
-
-# Primeiro smoke test da v0.2
-
-Teste primeiro somente Gen IX e 1 batalha por matchup:
-
-```powershell
-conda run -n games python run_pilot.py --generations 9 --battles 1
-```
-
-Como existem 4 agentes, há 6 combinações:
-
-```text
-Random × MaxDamage
-Random × TypeAware
-Random × SwitchAware
-MaxDamage × TypeAware
-MaxDamage × SwitchAware
-TypeAware × SwitchAware
-```
-
-Logo, esse comando executa 6 batalhas.
-
-Depois teste as três gerações:
-
-```powershell
-conda run -n games python run_pilot.py --generations 1 4 9 --battles 5
-```
-
-Isso produz:
-
-```text
-3 gerações × 6 matchups × 5 = 90 batalhas
-```
-
----
-
-# Piloto recomendado
-
-Depois do smoke test:
-
-```powershell
-conda run -n games python run_pilot.py --generations 1 4 9 --battles 50
-```
-
-Total:
-
-```text
-3 × 6 × 50 = 900 batalhas
-```
-
-Não é necessário rodar esse lote antes de validar o smoke test.
+Nenhum dos quatro baselines ativa deliberadamente Mega Evolution, Z-Moves, Dynamax ou Terastallization nesta versão. As flags dessas mecânicas continuam registradas para auditoria.
 
 ---
 
 # Arquivos gerados
-
-Cada execução cria:
 
 ```text
 results/
@@ -137,26 +107,17 @@ results/
     ├── metadata.json
     └── figures/
         ├── agent_win_rate.png
-        └── switch_rate.png
+        ├── switch_rate.png
+        └── voluntary_switch_rate.png
 ```
 
-## battles.csv
+## `actions.csv`
 
-Uma linha por batalha, com:
+Uma linha por **action request**, não necessariamente uma por turno.
 
-- resultado;
-- duração;
-- action requests;
-- golpes;
-- switches;
-- switches voluntários;
-- switches forçados;
-- Pokémon conhecidos/restantes;
-- soma das frações de HP restantes.
+O estado é capturado antes da ação.
 
-## actions.csv
-
-Uma linha por solicitação de ação. Inclui o estado **antes** da ação:
+Campos importantes:
 
 ```text
 battle_tag
@@ -164,126 +125,182 @@ generation
 turn
 request_index
 agent
+
 active_pokemon
 active_hp_fraction
-active_status
 active_type_1
 active_type_2
-active_boosts
+
 opponent_pokemon
 opponent_hp_fraction
-opponent_status
 opponent_type_1
 opponent_type_2
-opponent_boosts
+
+own_team_size
+own_remaining
+
+opponent_revealed
+opponent_revealed_remaining
+
 action_type
 action
 voluntary_switch
 forced_switch
 decision_reason
 heuristic_score
-move_base_power
-move_accuracy
-move_type
-move_stab
-move_type_effectiveness
-...
 ```
 
-## summary.csv
+Os campos `opponent_revealed*` são sempre a visão parcial daquele agente.
 
-Resumo por matchup e geração, incluindo:
+## `battles.csv`
 
-- win rate;
-- draws;
-- duração média;
-- Wilson 95% CI;
-- teste binomial bilateral exploratório contra 50%;
-- Pokémon restantes médios.
+Uma linha por batalha.
 
-**Importante:** o p-value desta versão é diagnóstico/exploratório. Ele não corrige múltiplas comparações e não elimina os vieses dos Random Battles.
+Há duas famílias de campos:
 
-## agent_summary.csv
-
-Resume cada agente por geração:
-
-- batalhas;
-- vitórias/derrotas/empates;
-- win rate;
-- duração média;
-- action requests;
-- movimentos;
-- switches;
-- switch rate;
-- switches voluntários/forçados.
-
----
-
-# Analisar novamente um run existente
-
-```powershell
-conda run -n games python run_analysis.py results\run_YYYYMMDD_HHMMSS
-```
-
-Para não gerar figuras:
-
-```powershell
-conda run -n games python run_analysis.py results\run_YYYYMMDD_HHMMSS --no-plots
-```
-
----
-
-# Rodar apenas alguns agentes
-
-Exemplo, comparar TypeAware e SwitchAware:
-
-```powershell
-conda run -n games python run_pilot.py --generations 1 4 9 --agents type_aware switch_aware --battles 50
-```
-
-Isso é útil para experimentos específicos sem rodar todos os pares.
-
----
-
-# Limitações ainda presentes
-
-A v0.2 melhora **instrumentação**, não o controle experimental.
-
-Ainda usamos Random Battle. Portanto:
-
-1. os times mudam entre partidas;
-2. o matchup dos times influencia o resultado;
-3. a seed interna do Random Battle não é controlada neste workflow;
-4. os dois agentes não recebem necessariamente os mesmos times em condições espelhadas;
-5. o SwitchAware é uma heurística simples de tipos, não um planejador ótimo;
-6. Gen I precisa continuar sendo validada cuidadosamente.
-
-Esses pontos são justamente o foco da **v0.3: Experimental Control**.
-
----
-
-# Roadmap
+### Ground truth — apenas avaliação
 
 ```text
-v0.1  Infrastructure validation        ✓
-v0.2  Experimental instrumentation     ← atual
-v0.3  Fixed teams + mirrored matches
-v0.4  Universal state representation
-v0.5  RL baseline (PPO)
-v0.6  Cross-generation transfer matrix
+agent_1_team_size_true
+agent_2_team_size_true
+agent_1_remaining_true
+agent_2_remaining_true
+agent_1_fainted_true
+agent_2_fainted_true
+agent_1_hp_sum_true
+agent_2_hp_sum_true
 ```
 
-## Próximo objetivo científico
+### Informação revelada a cada agente
 
-A v0.2 deve permitir responder não apenas **quem ganha**, mas **como os agentes jogam**:
+```text
+agent_1_opponent_revealed
+agent_2_opponent_revealed
+agent_1_opponent_revealed_remaining
+agent_2_opponent_revealed_remaining
+agent_1_opponent_reveal_fraction
+agent_2_opponent_reveal_fraction
+```
 
-- quais agentes trocam mais;
-- quais fazem switches voluntários;
-- que tipos de matchup desencadeiam troca;
-- quantos Pokémon restam no fim;
-- quanto tempo cada estilo leva para vencer;
-- como essas características mudam entre Gen I, IV e IX.
+Por exemplo:
+
+```text
+agent_1_team_size_true = 6
+agent_2_team_size_true = 6
+
+agent_1_opponent_revealed = 2
+```
+
+significa:
+
+> O avaliador sabe que o agente 2 possuía seis Pokémon, mas o agente 1 só chegou a ver dois deles.
+
+Isso é comportamento esperado, não erro.
+
+## `agent_summary.csv`
+
+Além de win rate e switches, inclui:
+
+```text
+mean_opponent_reveal_fraction
+```
+
+para medir quanto do time adversário ficou conhecido durante as partidas.
 
 ---
 
-Pokémon e Pokémon Showdown pertencem aos seus respectivos detentores. Este projeto é independente, acadêmico e não afiliado à The Pokémon Company, Nintendo, Game Freak, Creatures ou Smogon.
+# Instalação — Windows + VS Code + Conda
+
+Dentro da pasta do projeto:
+
+```powershell
+conda run -n games python -m pip install -r requirements.txt
+```
+
+Mantenha o Pokémon Showdown aberto em outro terminal:
+
+```powershell
+node pokemon-showdown start --no-security
+```
+
+Verifique:
+
+```powershell
+conda run -n games python scripts\check_setup.py
+```
+
+---
+
+# Smoke test
+
+Primeiro:
+
+```powershell
+conda run -n games python run_pilot.py --generations 9 --battles 1
+```
+
+Depois:
+
+```powershell
+conda run -n games python run_pilot.py --generations 1 4 9 --battles 5
+```
+
+Com quatro agentes, o segundo comando executa:
+
+```text
+3 gerações × 6 matchups × 5 = 90 batalhas
+```
+
+---
+
+# O que verificar no smoke test
+
+Em `battles.csv`, é normal observar algo como:
+
+```text
+agent_1_team_size_true = 6
+agent_2_team_size_true = 6
+agent_1_opponent_revealed = 2
+agent_2_opponent_revealed = 4
+```
+
+Isso confirma a separação entre:
+
+```text
+GROUND TRUTH DO AVALIADOR
+```
+
+e
+
+```text
+INFORMAÇÃO PARCIAL DO AGENTE
+```
+
+Em `actions.csv`, nenhum campo deve revelar Pokémon adversários ainda desconhecidos.
+
+---
+
+# Limitações atuais
+
+- Random Battle ainda não possui seed controlada neste fluxo.
+- Os times aleatórios ainda confundem habilidade do agente com matchup de equipes.
+- Fixed teams + mirrored matches continuam planejados para a v0.3.
+- SwitchAware é uma heurística transparente, não um modelo completo de busca.
+- Gerações antigas ainda precisam de validação específica.
+- Mecânicas especiais de geração serão incorporadas explicitamente em uma versão posterior.
+
+---
+
+# Próximo objetivo
+
+Depois de validar esta v0.2.1:
+
+```text
+v0.3
+├── fixed teams
+├── mirrored matches
+├── controlled experimental pairs
+└── stronger reproducibility
+```
+
+A política de informação parcial desta versão deve permanecer nas versões futuras.

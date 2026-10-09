@@ -17,9 +17,9 @@ import yaml
 
 from pokebench30 import __version__
 from pokebench30.agents import MaxDamageAgent, RandomAgent, SwitchAwareAgent, TypeAwareAgent
-from pokebench30.agents.base_agent import team_snapshot
 from pokebench30.evaluation import exact_binomial_two_sided, wilson_interval
 from pokebench30.evaluation.analysis import analyze_run
+from pokebench30.evaluation.information import final_information_snapshot
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -36,13 +36,24 @@ AGENT_CLASSES = {
 ACTION_FIELDS = [
     "battle_tag", "generation", "battle_format", "request_index", "turn", "agent",
     "forced_switch_request", "available_moves", "available_switches",
-    "active_pokemon", "active_hp_fraction", "active_status", "active_type_1", "active_type_2", "active_boosts",
-    "opponent_pokemon", "opponent_hp_fraction", "opponent_status", "opponent_type_1", "opponent_type_2", "opponent_boosts",
-    "own_team_known", "own_remaining_known", "own_fainted_known", "own_hp_sum_known",
-    "opponent_team_known", "opponent_remaining_known", "opponent_fainted_known", "opponent_hp_sum_known",
-    "action_type", "action", "voluntary_switch", "forced_switch", "decision_reason", "heuristic_score",
-    "current_matchup_score", "target_matchup_score",
-    "move_base_power", "move_accuracy", "move_type", "move_category", "move_stab", "move_type_effectiveness",
+    "active_pokemon", "active_hp_fraction", "active_status",
+    "active_type_1", "active_type_2", "active_terastallized", "active_tera_type",
+    "active_boosts",
+    "opponent_pokemon", "opponent_hp_fraction", "opponent_status",
+    "opponent_type_1", "opponent_type_2",
+    "opponent_terastallized", "opponent_tera_type", "opponent_boosts",
+
+    # Agent-observable information only.
+    "own_team_size", "own_remaining", "own_fainted", "own_hp_sum",
+    "opponent_revealed", "opponent_revealed_remaining",
+    "opponent_revealed_fainted", "opponent_revealed_hp_sum",
+
+    "action_type", "action", "voluntary_switch", "forced_switch",
+    "decision_reason",
+    "order_mega", "order_z_move", "order_dynamax", "order_terastallize",
+    "heuristic_score", "current_matchup_score", "target_matchup_score",
+    "move_base_power", "move_accuracy", "move_type", "move_category",
+    "move_stab", "move_type_effectiveness",
     "switch_target_hp_fraction", "switch_target_type_1", "switch_target_type_2",
 ]
 
@@ -89,6 +100,7 @@ def action_counts(player, battle_tag: str) -> dict[str, int]:
     }
 
 
+
 def summarize_battles(battle_rows: list[dict]) -> list[dict]:
     grouped: dict[tuple, list[dict]] = defaultdict(list)
     for row in battle_rows:
@@ -121,8 +133,18 @@ def summarize_battles(battle_rows: list[dict]) -> list[dict]:
             "ci95_low_agent_1_decisive": round(ci_low, 6),
             "ci95_high_agent_1_decisive": round(ci_high, 6),
             "two_sided_binomial_p_vs_0_5": round(p_value, 8),
-            "mean_remaining_agent_1": round(mean(int(r["agent_1_remaining_known"]) for r in rows), 3),
-            "mean_remaining_agent_2": round(mean(int(r["agent_2_remaining_known"]) for r in rows), 3),
+            "mean_remaining_agent_1_true": round(
+                mean(int(r["agent_1_remaining_true"]) for r in rows), 3
+            ),
+            "mean_remaining_agent_2_true": round(
+                mean(int(r["agent_2_remaining_true"]) for r in rows), 3
+            ),
+            "mean_opponent_reveal_fraction_agent_1": round(
+                mean(float(r["agent_1_opponent_reveal_fraction"]) for r in rows), 6
+            ),
+            "mean_opponent_reveal_fraction_agent_2": round(
+                mean(float(r["agent_2_opponent_reveal_fraction"]) for r in rows), 6
+            ),
         })
 
     return sorted(summaries, key=lambda r: (int(r["generation"]), r["agent_1"], r["agent_2"]))
@@ -148,8 +170,13 @@ async def run_matchup(
         else:
             result_1, winner = "draw", "draw"
 
-        own_known, own_remaining, own_fainted, own_hp = team_snapshot(getattr(battle, "team", {}))
-        opp_known, opp_remaining, opp_fainted, opp_hp = team_snapshot(getattr(battle, "opponent_team", {}))
+        p2_battle = p2.battles.get(battle_tag)
+        if p2_battle is None:
+            raise RuntimeError(
+                f"Battle {battle_tag} is missing from agent 2's battle registry."
+            )
+
+        info = final_information_snapshot(battle, p2_battle)
         c1 = action_counts(p1, battle_tag) if log_actions else {k: 0 for k in ["requests", "moves", "switches", "voluntary_switches", "forced_switches"]}
         c2 = action_counts(p2, battle_tag) if log_actions else {k: 0 for k in ["requests", "moves", "switches", "voluntary_switches", "forced_switches"]}
 
@@ -173,14 +200,7 @@ async def run_matchup(
             "agent_2_voluntary_switches": c2["voluntary_switches"],
             "agent_1_forced_switches": c1["forced_switches"],
             "agent_2_forced_switches": c2["forced_switches"],
-            "agent_1_team_known": own_known,
-            "agent_2_team_known": opp_known,
-            "agent_1_remaining_known": own_remaining,
-            "agent_2_remaining_known": opp_remaining,
-            "agent_1_fainted_known": own_fainted,
-            "agent_2_fainted_known": opp_fainted,
-            "agent_1_hp_sum_known": own_hp,
-            "agent_2_hp_sum_known": opp_hp,
+            **info,
         })
 
     actions = []
@@ -219,12 +239,30 @@ async def run_experiment(args: argparse.Namespace) -> Path:
             all_actions.extend(actions)
 
     battle_fields = [
-        "run_id", "battle_tag", "generation", "battle_format", "agent_1", "agent_2", "winner", "result_agent_1", "turns",
-        "agent_1_action_requests", "agent_2_action_requests", "agent_1_moves", "agent_2_moves",
-        "agent_1_switches", "agent_2_switches", "agent_1_voluntary_switches", "agent_2_voluntary_switches",
-        "agent_1_forced_switches", "agent_2_forced_switches", "agent_1_team_known", "agent_2_team_known",
-        "agent_1_remaining_known", "agent_2_remaining_known", "agent_1_fainted_known", "agent_2_fainted_known",
-        "agent_1_hp_sum_known", "agent_2_hp_sum_known",
+        "run_id", "battle_tag", "generation", "battle_format",
+        "agent_1", "agent_2", "winner", "result_agent_1", "turns",
+        "agent_1_action_requests", "agent_2_action_requests",
+        "agent_1_moves", "agent_2_moves",
+        "agent_1_switches", "agent_2_switches",
+        "agent_1_voluntary_switches", "agent_2_voluntary_switches",
+        "agent_1_forced_switches", "agent_2_forced_switches",
+
+        # Evaluator-only ground truth.
+        "agent_1_team_size_true", "agent_2_team_size_true",
+        "agent_1_remaining_true", "agent_2_remaining_true",
+        "agent_1_fainted_true", "agent_2_fainted_true",
+        "agent_1_hp_sum_true", "agent_2_hp_sum_true",
+
+        # Final partial-information view of each agent.
+        "agent_1_opponent_revealed", "agent_2_opponent_revealed",
+        "agent_1_opponent_revealed_remaining",
+        "agent_2_opponent_revealed_remaining",
+        "agent_1_opponent_revealed_fainted",
+        "agent_2_opponent_revealed_fainted",
+        "agent_1_opponent_revealed_hp_sum",
+        "agent_2_opponent_revealed_hp_sum",
+        "agent_1_opponent_reveal_fraction",
+        "agent_2_opponent_reveal_fraction",
     ]
     write_csv(run_dir / "battles.csv", all_battles, battle_fields)
 
@@ -236,7 +274,9 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         "generation", "battle_format", "agent_1", "agent_2", "battles", "wins_agent_1", "wins_agent_2", "draws",
         "win_rate_agent_1", "win_rate_agent_2", "draw_rate", "mean_turns",
         "ci95_low_agent_1_decisive", "ci95_high_agent_1_decisive", "two_sided_binomial_p_vs_0_5",
-        "mean_remaining_agent_1", "mean_remaining_agent_2",
+        "mean_remaining_agent_1_true", "mean_remaining_agent_2_true",
+        "mean_opponent_reveal_fraction_agent_1",
+        "mean_opponent_reveal_fraction_agent_2",
     ]
     write_csv(run_dir / "summary.csv", summary_rows, summary_fields)
 
@@ -252,10 +292,24 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         "generations": args.generations, "agents": args.agents, "matchups": matchups,
         "battles_per_matchup": args.battles, "max_concurrent_battles": args.concurrency,
         "action_log": not args.no_action_log,
+        "information_policy": {
+            "agent_observation": (
+                "Agents use only their own battle perspective. The opponent team "
+                "contains only Pokémon revealed by the simulator."
+            ),
+            "hidden_opponent_slots": (
+                "Hidden opposing Pokémon are never reconstructed or passed to choose_move()."
+            ),
+            "evaluator_ground_truth": (
+                "After a battle ends, each player's own team is used to calculate "
+                "ground-truth outcome metrics in battles.csv only."
+            ),
+        },
         "limitations": [
             "Random Battle team generation is not seed-controlled in this Player.battle_against workflow.",
             "Random teams confound agent strength with team matchup; fixed mirrored teams are planned for v0.3.",
             "SwitchAwareAgent uses a transparent type-matchup heuristic, not a full damage or search model.",
+            "Scripted v0.2.1 baselines do not intentionally activate generation-specific gimmicks; these will be modeled explicitly later.",
             "Earlier generations require targeted validation because poke-env is primarily developed around recent generations.",
         ],
     }
@@ -278,7 +332,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the PokéBench30 v0.2 instrumented pilot.")
+    parser = argparse.ArgumentParser(description="Run the PokéBench30 v0.2.2 partial-observation pilot.")
     parser.add_argument("--generations", nargs="+", type=int, default=[1, 4, 9])
     parser.add_argument("--agents", nargs="+", default=["random", "max_damage", "type_aware", "switch_aware"])
     parser.add_argument("--battles", type=int, default=20, help="Battles per matchup per generation. Default: 20")

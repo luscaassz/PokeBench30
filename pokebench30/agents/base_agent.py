@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 import json
+import random
 from typing import Any
 
 from poke_env.player import Player
@@ -32,6 +33,32 @@ def hp_fraction(pokemon: Any) -> float | None:
         return None
 
 
+
+def pokemon_special_state(pokemon: Any) -> tuple[bool, str]:
+    """Return Terastallization state in a version-tolerant way."""
+    if pokemon is None:
+        return False, ""
+    is_tera = bool(
+        getattr(pokemon, "is_terastallized", False)
+        or getattr(pokemon, "terastallized", False)
+    )
+    tera_type = (
+        getattr(pokemon, "tera_type", None)
+        or getattr(pokemon, "terastallized_type", None)
+    )
+    return is_tera, enum_name(tera_type)
+
+
+def order_special_flags(order: Any) -> tuple[bool, bool, bool, bool]:
+    """Best-effort extraction of generation-specific order flags."""
+    return (
+        bool(getattr(order, "mega", False)),
+        bool(getattr(order, "z_move", False) or getattr(order, "zmove", False)),
+        bool(getattr(order, "dynamax", False)),
+        bool(getattr(order, "terastallize", False)),
+    )
+
+
 def is_force_switch(battle: Any) -> bool:
     value = getattr(battle, "force_switch", False)
     if isinstance(value, (list, tuple)):
@@ -55,8 +82,13 @@ class InstrumentedPlayer(Player):
     """Base player with state-rich action-request logging.
 
     ``choose_move`` is called when Showdown requests an action. This is not
-    necessarily one call per turn, so v0.2 explicitly calls these records
-    *action requests* rather than turns/decisions.
+    necessarily one call per turn, so these records are called *action requests*.
+
+    Information policy:
+    - ``battle.team`` contains the agent's own team.
+    - ``battle.opponent_team`` is treated strictly as the currently revealed
+      portion of the opposing team.
+    - Hidden opponent slots are never reconstructed or exposed to an agent.
     """
 
     agent_name = "InstrumentedPlayer"
@@ -90,6 +122,28 @@ class InstrumentedPlayer(Player):
         except TypeError:
             return json.dumps(str(value), ensure_ascii=False)
 
+
+    def choose_random_core_order(self, battle: Any):
+        """Choose uniformly among ordinary legal moves and switches.
+
+        This intentionally excludes generation-specific gimmick activation
+        (Mega/Z/Dynamax/Terastallization) so the scripted baselines are
+        comparable until those mechanics are modeled explicitly.
+        """
+        moves = list(getattr(battle, "available_moves", []) or [])
+        switches = list(getattr(battle, "available_switches", []) or [])
+
+        candidates = [("move", move) for move in moves] + [
+            ("switch", pokemon) for pokemon in switches
+        ]
+
+        if candidates:
+            action_type, selected = random.choice(candidates)
+            return self.create_order(selected), action_type
+
+        # Extremely defensive fallback for unusual simulator requests.
+        return self.choose_random_move(battle), "fallback"
+
     def record_order(
         self,
         battle: Any,
@@ -120,6 +174,9 @@ class InstrumentedPlayer(Player):
         forced = is_force_switch(battle)
         active_t1, active_t2 = pokemon_types(active)
         opp_t1, opp_t2 = pokemon_types(opponent)
+        active_tera, active_tera_type = pokemon_special_state(active)
+        opp_tera, opp_tera_type = pokemon_special_state(opponent)
+        order_mega, order_z_move, order_dynamax, order_tera = order_special_flags(order)
 
         row: dict[str, Any] = {
             "battle_tag": battle_tag,
@@ -134,26 +191,34 @@ class InstrumentedPlayer(Player):
             "active_status": enum_name(getattr(active, "status", None)) if active else "",
             "active_type_1": active_t1,
             "active_type_2": active_t2,
+            "active_terastallized": active_tera,
+            "active_tera_type": active_tera_type,
             "active_boosts": self._json(getattr(active, "boosts", {}) if active else {}),
             "opponent_pokemon": getattr(opponent, "species", "") if opponent else "",
             "opponent_hp_fraction": hp_fraction(opponent),
             "opponent_status": enum_name(getattr(opponent, "status", None)) if opponent else "",
             "opponent_type_1": opp_t1,
             "opponent_type_2": opp_t2,
+            "opponent_terastallized": opp_tera,
+            "opponent_tera_type": opp_tera_type,
             "opponent_boosts": self._json(getattr(opponent, "boosts", {}) if opponent else {}),
-            "own_team_known": own_known,
-            "own_remaining_known": own_remaining,
-            "own_fainted_known": own_fainted,
-            "own_hp_sum_known": own_hp_sum,
-            "opponent_team_known": opp_known,
-            "opponent_remaining_known": opp_remaining,
-            "opponent_fainted_known": opp_fainted,
-            "opponent_hp_sum_known": opp_hp_sum,
+            "own_team_size": own_known,
+            "own_remaining": own_remaining,
+            "own_fainted": own_fainted,
+            "own_hp_sum": own_hp_sum,
+            "opponent_revealed": opp_known,
+            "opponent_revealed_remaining": opp_remaining,
+            "opponent_revealed_fainted": opp_fainted,
+            "opponent_revealed_hp_sum": opp_hp_sum,
             "action_type": action_type,
             "action": action,
             "voluntary_switch": action_type == "switch" and not forced,
             "forced_switch": action_type == "switch" and forced,
             "decision_reason": decision_reason,
+            "order_mega": order_mega,
+            "order_z_move": order_z_move,
+            "order_dynamax": order_dynamax,
+            "order_terastallize": order_tera,
             "heuristic_score": None if heuristic_score is None else round(float(heuristic_score), 6),
             "current_matchup_score": None if current_matchup_score is None else round(float(current_matchup_score), 6),
             "target_matchup_score": None if target_matchup_score is None else round(float(target_matchup_score), 6),

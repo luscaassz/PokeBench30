@@ -23,10 +23,10 @@ class MaxDamageAgent(InstrumentedPlayer):
                     decision_reason="max_base_power",
                 )
 
-        order = self.choose_random_move(battle)
+        order, _ = self.choose_random_core_order(battle)
         return self.record_order(
             battle,
             order,
             heuristic_score=0.0,
-            decision_reason="fallback_random_legal_action",
+            decision_reason="fallback_random_core_action",
         )
