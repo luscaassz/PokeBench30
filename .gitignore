@@ -1,33 +1,30 @@
-.venv/
-venv/
+# Python
 __pycache__/
 *.py[cod]
-*.egg-info/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# IDE / OS
 .vscode/
 .idea/
 .DS_Store
-results/run_*/
+Thumbs.db
 
-# Fixed teams are intentionally versionable for reproducibility.
-!teams/fixed/
-!teams/fixed/**
-models/*
-!models/.gitkeep
-results/*
-!results/.gitkeep
+# PokÃ©Bench30 runtime outputs
+crossgen_results/
+transfer_results/
+**/tensorboard/
 
-multiseed_results/*
-!multiseed_results/.gitkeep
-budget_results/*
-!budget_results/.gitkeep
-curriculum_results/*
-!curriculum_results/.gitkeep
-policy_results/*
-!policy_results/.gitkeep
-algorithm_results/*
-!algorithm_results/.gitkeep
-crossgen_results/*
-!crossgen_results/.gitkeep
-transfer_results/*
-!transfer_results/.gitkeep
+# Large trained checkpoints / model outputs
+**/checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Temporary files
+*.log
+*.tmp
