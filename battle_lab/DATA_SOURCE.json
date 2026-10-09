@@ -1,0 +1,8 @@
+{
+  "source": "aggregate(5).zip",
+  "sha256": "fcb4a87b853face45bc8f7632f7f94f7d7788f3c1bb8eaa8c872d1262bd27216",
+  "seeds": 10,
+  "total_controlled_battles": 10800,
+  "app_mode": "aggregate-backed MVP",
+  "raw_turn_replay_available": false
+}

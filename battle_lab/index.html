@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PokéBench30 Battle Lab</title>
+  <meta name="description" content="Pixel-art cross-generation Pokémon battle analytics for PokéBench30." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="sky-strip"></div>
+
+  <header class="topbar pixel-frame">
+    <div class="brand-wrap">
+      <div class="lab-mark" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div>
+        <div class="eyebrow">CROSS-GENERATION BATTLE ANALYTICS</div>
+        <h1>PokéBench30 <span>Battle Lab</span></h1>
+      </div>
+    </div>
+
+    <div class="header-badges">
+      <div class="mini-badge">
+        <strong id="seedBadge">10</strong>
+        <span>SEEDS</span>
+      </div>
+      <div class="mini-badge">
+        <strong id="battleBadge">10800</strong>
+        <span>BATTLES</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav-tabs pixel-frame" aria-label="Battle Lab sections">
+    <button class="nav-btn active" data-view="overview">▣ OVERVIEW</button>
+    <button class="nav-btn" data-view="transfer">↔ TRANSFER</button>
+    <button class="nav-btn" data-view="telemetry">⌁ TELEMETRY</button>
+    <button class="nav-btn" data-view="generations">◈ GENERATION DNA</button>
+    <button class="nav-btn" data-view="inspector">⚔ BATTLE INSPECTOR</button>
+  </nav>
+
+  <main>
+    <section id="view-overview" class="view active">
+      <div class="hero-grid">
+        <article class="panel pixel-frame intro-panel">
+          <div class="panel-title">LAB STATUS</div>
+          <h2>Same core.<br><span>Different worlds.</span></h2>
+          <p>
+            Explore how policies trained in Gen I, IV and IX behave,
+            generalize and change their tactical profile.
+          </p>
+          <div class="generation-switcher">
+            <button class="gen-chip active" data-gen="1">GEN I</button>
+            <button class="gen-chip" data-gen="4">GEN IV</button>
+            <button class="gen-chip" data-gen="9">GEN IX</button>
+          </div>
+          <div id="overviewQuickStats" class="quick-stats"></div>
+        </article>
+
+        <article class="panel pixel-frame arena-card">
+          <div class="panel-title">BATTLE LAB // LIVE SUMMARY</div>
+          <div class="arena-sky">
+            <div class="pixel-cloud c1"></div>
+            <div class="pixel-cloud c2"></div>
+            <div class="arena-ground"></div>
+            <div class="monster monster-left" aria-label="Policy creature">
+              <div class="monster-eye"></div>
+            </div>
+            <div class="monster monster-right" aria-label="Opponent creature">
+              <div class="monster-eye"></div>
+            </div>
+          </div>
+          <div class="battle-hud">
+            <div>
+              <small>POLICY</small>
+              <strong id="hudPolicy">GEN I</strong>
+            </div>
+            <div class="versus">VS</div>
+            <div>
+              <small>OPPONENT</small>
+              <strong id="hudOpponent">TYPE AWARE</strong>
+            </div>
+          </div>
+          <div class="dialog-box">
+            <span class="cursor-dot">▶</span>
+            <span id="arenaNarrative">Loading battle profile...</span>
+          </div>
+        </article>
+
+        <article class="panel pixel-frame score-panel">
+          <div class="panel-title">IN-DOMAIN SCOREBOARD</div>
+          <div id="scoreboard"></div>
+        </article>
+      </div>
+
+      <div class="two-col">
+        <article class="panel pixel-frame">
+          <div class="panel-title">STRATEGY FINGERPRINT</div>
+          <div id="fingerprintBars" class="metric-list"></div>
+        </article>
+        <article class="panel pixel-frame">
+          <div class="panel-title">TOP MOVE TYPES</div>
+          <div id="overviewTypeBars" class="metric-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-transfer" class="view">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">ZERO-SHOT GENERALIZATION</div>
+          <h2>Transfer Matrix</h2>
+        </div>
+        <label class="pixel-select-wrap">
+          Opponent
+          <select id="transferOpponent" class="pixel-select"></select>
+        </label>
+      </div>
+
+      <div class="transfer-layout">
+        <article class="panel pixel-frame matrix-panel">
+          <div class="panel-title">TRAINED ON ↓ / TESTED ON →</div>
+          <div id="transferMatrix" class="matrix-grid"></div>
+        </article>
+
+        <article class="panel pixel-frame">
+          <div class="panel-title">SELECTED CELL</div>
+          <div id="transferCellDetail" class="cell-detail"></div>
+        </article>
+      </div>
+
+      <div class="two-col">
+        <article class="panel pixel-frame">
+          <div class="panel-title">TRANSFER GAP</div>
+          <div id="transferGapBars" class="metric-list"></div>
+        </article>
+        <article class="panel pixel-frame">
+          <div class="panel-title">ZERO-SHOT SUMMARY</div>
+          <div id="zeroShotCards" class="zero-shot-cards"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-telemetry" class="view">
+      <div class="section-head filter-head">
+        <div>
+          <div class="eyebrow">BEHAVIORAL TELEMETRY</div>
+          <h2>What was available vs. what was chosen?</h2>
+        </div>
+        <div class="filter-row">
+          <label>Train
+            <select id="telemetryTrain" class="pixel-select"></select>
+          </label>
+          <label>Test
+            <select id="telemetryEval" class="pixel-select"></select>
+          </label>
+          <label>Opponent
+            <select id="telemetryOpponent" class="pixel-select"></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="telemetry-layout">
+        <article class="panel pixel-frame">
+          <div class="panel-title">ACTION PROFILE</div>
+          <div id="telemetryMetrics" class="metric-list"></div>
+        </article>
+        <article class="panel pixel-frame">
+          <div class="panel-title">MOVE EXPLORER</div>
+          <div class="mini-tabs">
+            <button class="mini-tab active" data-move-mode="selected">SELECTED SHARE</button>
+            <button class="mini-tab" data-move-mode="conditional">WHEN AVAILABLE</button>
+          </div>
+          <div id="moveExplorer" class="move-table"></div>
+        </article>
+      </div>
+
+      <div class="two-col">
+        <article class="panel pixel-frame">
+          <div class="panel-title">TYPE USAGE</div>
+          <div id="typeExplorer" class="metric-list"></div>
+        </article>
+        <article class="panel pixel-frame">
+          <div class="panel-title">BATTLE DYNAMICS</div>
+          <div id="dynamicsCards" class="stats-grid"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-generations" class="view">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">STRUCTURAL ECOLOGY</div>
+          <h2>Generation DNA</h2>
+        </div>
+      </div>
+      <div id="generationCards" class="generation-cards"></div>
+
+      <div class="two-col">
+        <article class="panel pixel-frame">
+          <div class="panel-title">FIXED-POOL MOVE FEATURES</div>
+          <div id="poolFeatureCompare" class="feature-compare"></div>
+        </article>
+        <article class="panel pixel-frame">
+          <div class="panel-title">FIXED-POOL TYPE DISTRIBUTION</div>
+          <div id="poolTypeCompare" class="feature-compare"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-inspector" class="view">
+      <div class="section-head filter-head">
+        <div>
+          <div class="eyebrow">FIXED-POOL ARENA</div>
+          <h2>Battle Inspector</h2>
+        </div>
+        <div class="filter-row">
+          <label>Environment
+            <select id="inspectGen" class="pixel-select"></select>
+          </label>
+          <label>Pair
+            <select id="inspectPair" class="pixel-select"></select>
+          </label>
+          <label>Policy trained in
+            <select id="inspectTrain" class="pixel-select"></select>
+          </label>
+          <label>Opponent
+            <select id="inspectOpponent" class="pixel-select"></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="inspector-grid">
+        <article class="panel pixel-frame team-panel">
+          <div class="panel-title">TEAM A</div>
+          <div id="teamA" class="roster"></div>
+        </article>
+
+        <article class="panel pixel-frame inspector-arena">
+          <div class="panel-title">ARENA PREVIEW</div>
+          <div class="arena-large">
+            <div class="pixel-cloud c3"></div>
+            <div class="pixel-cloud c4"></div>
+            <div class="arena-ground large"></div>
+            <div class="monster monster-left big"><div class="monster-eye"></div></div>
+            <div class="monster monster-right big"><div class="monster-eye"></div></div>
+          </div>
+          <div id="inspectorSummary" class="dialog-box inspector-dialog"></div>
+          <div class="replay-lock">
+            <strong>REPLAY MODE</strong>
+            <span>Aggregate bundle loaded. Add raw <code>actions.csv</code> to unlock literal turn-by-turn replay.</span>
+          </div>
+        </article>
+
+        <article class="panel pixel-frame team-panel">
+          <div class="panel-title">TEAM B</div>
+          <div id="teamB" class="roster"></div>
+        </article>
+      </div>
+
+      <div class="two-col">
+        <article class="panel pixel-frame">
+          <div class="panel-title">POLICY PROFILE IN THIS ENVIRONMENT</div>
+          <div id="inspectMetrics" class="metric-list"></div>
+        </article>
+        <article class="panel pixel-frame">
+          <div class="panel-title">PAIR NOTES</div>
+          <div id="pairNotes" class="pair-notes"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pixel-frame">
+    <span>POKÉBENCH30 // BATTLE LAB MVP</span>
+    <span id="sourceNote">DATA: aggregate(5).zip</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
