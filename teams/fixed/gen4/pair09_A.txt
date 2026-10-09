@@ -1,0 +1,55 @@
+Dialga @ Choice Specs  
+Ability: Pressure  
+Level: 70  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Aura Sphere  
+- Thunderbolt  
+- Fire Blast  
+- Draco Meteor  
+
+Medicham @ Choice Scarf  
+Ability: Pure Power  
+Level: 86  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- High Jump Kick  
+- Zen Headbutt  
+- Trick  
+- Ice Punch  
+
+Rhyperior @ Leftovers  
+Ability: Solid Rock  
+Level: 78  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Rock Polish  
+- Stone Edge  
+- Ice Punch  
+- Earthquake  
+
+Drifblim @ Chesto Berry  
+Ability: Unburden  
+Level: 82  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 3 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Calm Mind  
+- Hidden Power [Fighting]  
+- Shadow Ball  
+- Rest  
+
+Infernape @ Life Orb  
+Ability: Blaze  
+Level: 76  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- U-turn  
+- Overheat  
+- Close Combat  
+- Mach Punch  
+
+Deoxys (Deoxys-Speed) @ Leftovers  
+Ability: Pressure  
+Level: 80  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Spikes  
+- Superpower  
+- Taunt  
+- Psycho Boost

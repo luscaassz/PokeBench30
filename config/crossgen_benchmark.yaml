@@ -1,0 +1,57 @@
+# PokéBench30 v0.6 cross-generation benchmark.
+# PPO values follow Wang (MIT, 2024) where they map cleanly.
+# Training uses true two-player PettingZoo self-play: both player
+# perspectives share one policy and both trajectories enter PPO.
+schema_version: 1
+study:
+  generations:
+  - 1
+  - 4
+  - 9
+  seeds:
+  - 42
+  - 123
+  - 456
+  - 789
+  - 2026
+  total_timesteps: 900000
+  checkpoint_interval: 150000
+  diagnostic_opponents:
+  - type_aware
+  diagnostic_repeats_per_leg: 1
+  final_opponents:
+  - random
+  - max_damage
+  - type_aware
+  - switch_aware
+  final_repeats_per_leg: 3
+  fixed_team_pairs_per_generation: 10
+ppo:
+  n_epochs: 7
+  gamma: 0.9999
+  gae_lambda: 0.754
+  clip_range: 0.0829
+  clip_range_vf: 0.0184
+  ent_coef: 0.0588
+  vf_coef: 0.4375
+  max_grad_norm: 0.543
+  n_steps: 2048
+  batch_size: 1024
+  hidden_dim: 256
+  trunk_layers: 3
+  head_layers: 2
+  parallel_env_copies: 1
+literature_protocol:
+  algorithm: MaskablePPO
+  training_regime: online_current_policy_self_play
+  reward: sparse_terminal_win_loss
+  learning_rate:
+    initial: 10^-4.23
+    schedule: initial / (8*x + 1)^1.5
+  notes:
+  - UBR 1.2 replaces Wang's generation-specific 3725-dimensional representation.
+  - Only learner-side rollout trajectories are stored; Wang recorded both players.
+  - MCTS is not used because the project contribution is the cross-generation benchmark
+    rather than strongest-agent inference.
+  - Generation-specific gimmicks such as Terastallization remain excluded from the
+    common-core 10-action space in v0.6.0.

@@ -1,305 +1,556 @@
-# PokéBench30 v0.5.6 — RL Algorithm Study
+# PokéBench30 v0.6.0 — Cross-Generation Benchmark
 
-A v0.5.6 testa a próxima hipótese do projeto:
+A partir da v0.6, o projeto deixa de tratar **qual RL é melhor** como a
+pergunta central.
 
-> O gargalo atual está no algoritmo de aprendizado, e não na arquitetura da
-> policy?
+As versões v0.5.x ficam como estudos piloto / validação de engenharia.
 
-A v0.5.5 mostrou que a MLP original `[256,128]` continuou sendo a melhor das
-arquiteturas testadas contra TypeAware:
+A pergunta principal agora é:
 
-```text
-MLP baseline       13.67%
-History LSTM        7.00%
-MLP large           6.00%
-History MLP         3.67%
-```
+> **Como o mesmo agente de Reinforcement Learning aprende e se comporta nas
+> Gerações I, IV e IX de Pokémon quando representação, algoritmo,
+> hiperparâmetros, orçamento de treino e avaliação são mantidos constantes?**
 
-Por isso a v0.5.6 congela a arquitetura original e compara três algoritmos.
+## O agente oficial da v0.6
 
-## Algoritmos
+O benchmark congela uma configuração de PPO inspirada diretamente em:
 
-```text
-MaskablePPO
-Masked DQN
-Masked Double DQN
-```
+**Jett Wang — _Winning at Pokémon Random Battles Using Reinforcement Learning_
+(MIT, 2024).**
 
-Todos usam:
+A escala prática de 900k steps também é compatível com uma das condições
+experimentais de Rossi et al. (SBGames 2024).
+
+A configuração oficial passa a ser:
 
 ```text
-Generation        IX
-UBR               1.2
-Observation       518
-Action space      10
-Policy/Q network  [256, 128]
-Reward            igual à v0.5-v0.5.5
-Seeds             42, 123, 456, 789, 2026
+Algorithm          PPO + custom action masking
+Representation     UBR 1.2
+Observation dim    518
+Action dim         10
+Training           online self-play
+Reward             +1 win / -1 loss / 0 otherwise
 
-Curriculum:
-0-100k            Random
-100-300k          TypeAware
+PPO:
+n_epochs           7
+gamma              0.9999
+gae_lambda          0.754
+clip_range          0.0829
+clip_range_vf       0.0184
+entropy_coef        0.0588
+value_coef          0.4375
+max_grad_norm       0.5430
+batch_size          1024
+
+Network:
+shared trunk        3 × 256 ReLU
+actor head          2 × 256
+critic head         2 × 256
 ```
 
-## Action masking no DQN/DDQN
-
-O DQN não pode simplesmente usar `argmax Q(s,a)` sobre as 10 ações, porque
-algumas são ilegais em cada turno.
-
-A v0.5.6 mascara ações ilegais em dois pontos:
+Learning rate:
 
 ```text
-1. escolha epsilon-greedy da ação
-2. bootstrap do próximo estado
+lr(x) = 10^-4.23 / (8x + 1)^1.5
 ```
 
-No Double DQN:
+com `x` indo de 0 a 1 durante o treinamento.
+
+## O que significa "inspirado em Wang"
+
+Não estamos afirmando reproduzir exatamente o agente da tese.
+
+Wang usa, entre outras coisas:
 
 ```text
-online network
-    escolhe a melhor ação legal
-
-target network
-    avalia essa ação
+3725-dimensional Gen-IV state
+categorical embeddings
+78 workers
+both-player trajectories
+150M steps
+MCTS at inference
 ```
 
-Assim uma ação ilegal nunca entra no `max`/`argmax` do target.
+PokéBench30 precisa usar **a mesma interface nas três gerações**.
 
-## Mesmo orçamento efetivo de experiência
-
-Nos estudos anteriores, cada bloco nominal de 50k do PPO contém na prática:
+Por isso v0.6 mantém:
 
 ```text
-ceil(50000 / 2048) × 2048
-= 51200 environment steps
+UBR 1.2
+1 PettingZoo battle environment copy
+both-player PPO trajectories
+900k nominal policy transitions
+sem MCTS
 ```
 
-Por isso o modelo final do PPO recebe:
+Detalhes: `docs/LITERATURE_PROTOCOL_v0.6.md`.
+
+---
+
+# Experimento principal
 
 ```text
-6 × 51200
-= 307200 environment interactions
+Gen I
+Gen IV
+Gen IX
+
+× 5 seeds
+
+42
+123
+456
+789
+2026
+
+× 900k nominal steps
 ```
 
-A v0.5.6 dá exatamente **307200 interações** também ao DQN e ao Double DQN.
-
-Os gráficos continuam usando os rótulos nominais:
+Total:
 
 ```text
-50k
-100k
-150k
-200k
-250k
-300k
+15 modelos
 ```
 
-## Configuração DQN/DDQN
+Com `n_steps=2048` e duas perspectivas de jogador no VecEnv, cada rollout
+contém:
 
 ```text
-learning rate           2.5e-4
-gamma                   0.99
-batch size              128
-replay buffer           50,000
-learning starts         5,000
-train frequency         4
-gradient steps          1
-target update           2,000
-epsilon                 1.00 -> 0.05
-epsilon decay           primeiros 50% do treino
-loss                    Huber
-network                 [256, 128]
+2048 × 2 = 4096 transitions
 ```
 
-DQN e Double DQN usam exatamente os mesmos valores; a única diferença entre
-eles é a regra do bootstrap target.
-
-## Hotfixes incorporados
-
-A v0.5.6 já inclui as duas correções encontradas durante a v0.5.5:
+Cada modelo deve terminar aproximadamente em:
 
 ```text
-valid_orders suplementa available_moves
+901120 policy transitions
 ```
 
-para evitar o erro de movimentos legais como Earthquake não serem mapeados, e
+Total esperado:
 
 ```text
-canonicalização do study_manifest
+13,516,800 policy transitions
 ```
 
-para permitir resume correto depois da serialização JSON.
+Cada modelo é treinado **do zero dentro de sua própria geração**.
 
-## 1. Copie o fixed-team pool
+v0.6.0 não faz transferência de pesos Gen I → IV → IX.
 
-A nova versão não distribui novamente os times gerados.
+---
 
-Dentro da pasta v0.5.6:
+# Self-play
+
+Durante o treino:
+
+```text
+same PPO policy
+   ↙       ↘
+Player 1  Player 2
+```
+
+O ambiente PettingZoo expõe as duas perspectivas para a mesma policy.
+**As trajetórias dos dois jogadores entram no rollout PPO**, aproximando de
+forma muito mais direta o protocolo de self-play usado por Wang.
+
+Assim, não existe mais:
+
+```text
+treinar Gen I contra TypeAware
+treinar Gen IV contra TypeAware
+treinar Gen IX contra TypeAware
+```
+
+como potencial fonte de viés.
+
+Os scripted agents são usados apenas na avaliação.
+
+---
+
+# Common-core benchmark
+
+A v0.6.0 mantém o action space universal:
+
+```text
+0–3    move slots
+4–9    own team slots
+```
+
+Mecânicas específicas como **Terastallization** permanecem fora do benchmark.
+
+Isso é proposital.
+
+A v0.6.0 mede um **núcleo comum de batalha** com exatamente as mesmas ações nas
+três gerações.
+
+Uma extensão futura poderá estudar full-mechanics, mas não misturamos isso no
+primeiro benchmark entre gerações.
+
+---
+
+# Fixed evaluation pool agora tem 10 pares
+
+Não copie o pool da v0.5.6.
+
+A configuração mudou de:
+
+```text
+3 pairs / generation
+```
+
+para:
+
+```text
+10 pairs / generation
+```
+
+Os primeiros 3 pares foram preservados e 7 novos foram adicionados.
+
+Isso melhora muito o desenho estatístico porque a comparação final passa a ter
+10 unidades de team-pair por geração.
+
+---
+
+# 1. Instalação
+
+Na pasta da v0.6.0:
 
 ```powershell
-Remove-Item ".\teams\fixed" -Recurse -Force -ErrorAction SilentlyContinue
-
-Copy-Item `
-  "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\teams\fixed" `
-  ".\teams\fixed" `
-  -Recurse
+python -m pip install -r requirements.txt
 ```
 
-Confira:
+---
+
+# 2. Gere o novo fixed-team pool
+
+Use o mesmo clone do Pokémon Showdown:
+
+```powershell
+python prepare_fixed_teams.py `
+  --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" `
+  --force
+```
+
+Depois:
 
 ```powershell
 Test-Path ".\teams\fixed\manifest.json"
 ```
 
-Deve retornar `True`.
-
-## 2. Valide o setup e a baseline PPO
-
-O seu estudo completo da v0.5.5 foi:
+deve retornar:
 
 ```text
-PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318
+True
 ```
 
-Rode:
+O `--force` é importante porque a v0.6 usa uma configuração nova com 10 pares.
+
+---
+
+# 3. Valide tudo
 
 ```powershell
-python scripts\check_algorithm_study_setup.py `
-  --ppo-baseline-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318"
+python scripts\check_crossgen_setup.py
 ```
 
-O checker valida:
+O checker confirma:
 
-- UBR e SHA;
-- fixed-team pool;
-- seeds;
-- curriculum;
-- checkpoints;
-- adversários;
-- protocolo final;
-- compatibilidade da baseline PPO.
+```text
+UBR 1.2
+518 observations
+10 actions
 
-## 3. Smoke test
+Gen I / IV / IX
+5 seeds
+10 fixed pairs/gen
 
-Antes do experimento real:
+Wang learning-rate schedule
+Wang PPO hyperparameters
+900k budget
+Showdown commit/config hash
+```
+
+---
+
+# 4. Inicie o Pokémon Showdown local
+
+Recomendado:
 
 ```powershell
+cd "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown"
+
+node pokemon-showdown start --no-security
+```
+
+Deixe esse terminal aberto.
+
+---
+
+# 5. Smoke test
+
+Em outro PowerShell:
+
+```powershell
+conda activate games
+
+cd "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.6.0"
+
 $env:MPLBACKEND="Agg"
 
-python run_algorithm_study.py --smoke
+python run_crossgen_benchmark.py --smoke
 ```
 
-O smoke treina:
+O smoke executa:
 
 ```text
 1 seed
-3 algorithms
-6144 nominal/effective steps
-Random 2048 -> TypeAware 4096
+Gen I + IV + IX
+8192 steps/gen
+checkpoints 4096 / 8192
+Wang-style self-play
+sparse reward
 ```
 
-com avaliações em:
+Para não ficar excessivamente lento, o smoke avalia apenas:
 
 ```text
-2048
-4096
-6144
+pair01
+pair02
+pair03
 ```
 
-Os resultados do smoke não devem ser interpretados cientificamente.
+Os resultados do smoke **não são resultados científicos**.
 
-## 4. Experimento completo recomendado
+Ele existe para testar:
 
-Depois do smoke:
+```text
+Gen I self-play
+Gen IV self-play
+Gen IX self-play
+
+sparse terminal reward
+learning-rate annealing
+custom Wang policy architecture
+PPO com masking nos logits
+checkpoint save/load
+controlled mirrored evaluation
+```
+
+---
+
+# 6. Experimento completo
+
+Se o smoke passar:
 
 ```powershell
 $env:MPLBACKEND="Agg"
 
-python run_algorithm_study.py `
-  --ppo-baseline-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318"
+python run_crossgen_benchmark.py
 ```
 
-Como o PPO será importado, apenas dois novos algoritmos serão treinados:
+O estudo cria:
 
 ```text
-Masked DQN
-Masked Double DQN
+crossgen_results\
+└── crossgen_YYYYMMDD_HHMMSS\
 ```
 
-Carga nova:
+Guarde esse nome.
+
+---
+
+# Checkpoints
+
+Modelos são salvos em:
 
 ```text
-2 algorithms
-× 5 seeds
-× 307200 effective environment steps
-
-= 10 novas trajetórias
-= 3,072,000 novas interações
+150k
+300k
+450k
+600k
+750k
+900k
 ```
 
-## Resume
+O PPO termina o rollout antes de salvar.
 
-Guarde o diretório impresso no início:
+Por isso o projeto guarda:
 
 ```text
-algorithm_results\algorithm_gen9_YYYYMMDD_HHMMSS
+nominal_checkpoint
+actual_model_timesteps
 ```
 
-Se parar:
+separadamente.
+
+---
+
+# Avaliação intermediária
+
+Nos checkpoints não finais:
+
+```text
+vs TypeAware
+10 pairs
+× 2 mirror legs
+× 1 repeat
+
+= 20 battles/model/checkpoint
+```
+
+Essa avaliação é usada para a curva de aprendizagem entre gerações.
+
+---
+
+# Avaliação final
+
+No 900k:
+
+```text
+Random
+MaxDamage
+TypeAware
+SwitchAware
+```
+
+Para cada adversário:
+
+```text
+10 pairs
+× 2 mirror legs
+× 3 repeats
+
+= 60 battles / seed / opponent
+```
+
+Com 15 modelos:
+
+```text
+3600 final battles
+```
+
+Mais aproximadamente:
+
+```text
+1500 diagnostic battles
+```
+
+Total esperado:
+
+```text
+5100 controlled evaluation battles
+```
+
+---
+
+# Resume
+
+Se o treino parar:
 
 ```powershell
-python run_algorithm_study.py `
-  --study-dir ".\algorithm_results\algorithm_gen9_YYYYMMDD_HHMMSS" `
-  --ppo-baseline-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.5\policy_results\policy_gen9_20261002_194318"
+python run_crossgen_benchmark.py `
+  --study-dir ".\crossgen_results\crossgen_YYYYMMDD_HHMMSS"
 ```
 
-Para DQN/DDQN, o projeto guarda também o replay buffer do checkpoint mais
-recente. O runner se recusa a continuar uma trajetória incompleta caso esse
-replay não esteja disponível, em vez de resetá-lo silenciosamente.
-
-## Resultados
+O programa procura o último checkpoint completo de cada:
 
 ```text
-algorithm_results/
-└── algorithm_gen9_.../
+generation × seed
+```
+
+e continua dali.
+
+Não crie um novo estudo se o objetivo for continuar a mesma execução.
+
+---
+
+# Principais resultados
+
+Ao final:
+
+```text
+crossgen_results\
+└── crossgen_...\
     ├── study_manifest.json
-    ├── imported_maskable_ppo/
-    ├── runs/
-    │   ├── masked_dqn/
-    │   └── masked_double_dqn/
-    └── aggregate/
+    ├── runs\
+    │   ├── gen1\
+    │   ├── gen4\
+    │   └── gen9\
+    └── aggregate\
         ├── learning_curve.csv
         ├── aggregate_learning_curve.csv
         ├── training_progress.csv
-        ├── final_summary.csv
-        ├── paired_algorithm_differences.csv
-        ├── algorithm_comparison.csv
-        └── figures/
+        ├── generation_summary.csv
+        ├── generation_comparison.csv
+        ├── generation_pairwise_differences.csv
+        ├── pair_level_final.csv
+        ├── learning_efficiency_typeaware.csv
+        └── figures\
 ```
 
-O arquivo principal será:
+## `generation_summary.csv`
+
+Resposta principal:
 
 ```text
-algorithm_comparison.csv
+como o mesmo RL terminou em cada geração?
 ```
 
-A comparação mais importante continuará sendo:
+separado por adversário.
+
+## `generation_comparison.csv`
+
+Comparações pareadas pelas mesmas seeds:
 
 ```text
-vs TypeAware @ 300k
+Gen IV - Gen I
+Gen IX - Gen I
+Gen IX - Gen IV
 ```
 
-pareada pelas mesmas cinco seeds.
+## `pair_level_final.csv`
 
-## Sequência experimental
+Preserva os 10 team pairs.
+
+Esse arquivo é importante para análise estatística posterior porque evita
+tratar 60 batalhas repetidas como 60 unidades completamente independentes.
+
+## `learning_efficiency_typeaware.csv`
+
+Resume descritivamente a velocidade de aprendizagem contra TypeAware.
+
+---
+
+# O que NÃO é mais a pergunta principal
+
+A partir daqui não continuamos fazendo:
 
 ```text
-v0.5.2  representação
-v0.5.3  training budget
-v0.5.4  curriculum
-v0.5.5  policy architecture
-v0.5.6  RL algorithm
+qual reward é melhor?
+qual DQN é melhor?
+qual MLP é melhor?
+qual curriculum é melhor?
 ```
 
-Detalhes metodológicos:
-`docs/RL_ALGORITHM_v0.5.6.md`.
+a menos que apareça um bug que impeça o benchmark.
+
+A v0.5.x já serviu para validar o pipeline.
+
+A contribuição central passa a ser:
+
+```text
+SAME RL
+SAME INTERFACE
+SAME PROTOCOL
+
+       ↓
+
+GEN I
+vs
+GEN IV
+vs
+GEN IX
+```
+
+Veja também:
+
+- `docs/LITERATURE_PROTOCOL_v0.6.md`
+- `docs/CROSS_GENERATION_DESIGN_v0.6.md`
+- `CHANGELOG_v0.6.0.md`

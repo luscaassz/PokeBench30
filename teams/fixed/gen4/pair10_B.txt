@@ -1,0 +1,57 @@
+Lugia @ Leftovers  
+Ability: Pressure  
+Level: 70  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Earth Power  
+- Calm Mind  
+- Aeroblast  
+- Roost  
+
+Zapdos @ Life Orb  
+Ability: Pressure  
+Level: 75  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Thunderbolt  
+- Heat Wave  
+- Roost  
+- U-turn  
+
+Bibarel @ Leftovers  
+Ability: Simple  
+Level: 93  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Quick Attack  
+- Return  
+- Waterfall  
+- Curse  
+
+Manectric @ Choice Specs  
+Ability: Static  
+Level: 83  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 2 Atk / 30 Def  
+- Thunderbolt  
+- Switcheroo  
+- Hidden Power [Ice]  
+- Overheat  
+
+Mewtwo @ Life Orb  
+Ability: Pressure  
+Level: 70  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Psychic  
+- Signal Beam  
+- Fire Blast  
+- Calm Mind  
+
+Walrein @ Leftovers  
+Ability: Thick Fat  
+Level: 84  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Ice Beam  
+- Surf  
+- Super Fang  
+- Toxic

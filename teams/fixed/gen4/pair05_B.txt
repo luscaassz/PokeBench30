@@ -1,0 +1,54 @@
+Nidoking (M) @ Life Orb  
+Ability: Poison Point  
+Level: 83  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Toxic Spikes  
+- Thunderbolt  
+- Earthquake  
+- Sludge Bomb  
+
+Dugtrio @ Choice Band  
+Ability: Arena Trap  
+Level: 82  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Stone Edge  
+- Night Slash  
+- Sucker Punch  
+
+Ho-Oh @ Leftovers  
+Ability: Pressure  
+Level: 69  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Recover  
+- Sacred Fire  
+- Brave Bird  
+- Toxic  
+
+Gallade (M) @ Choice Scarf  
+Ability: Steadfast  
+Level: 82  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Close Combat  
+- Zen Headbutt  
+- Trick  
+- Night Slash  
+
+Gardevoir @ Choice Scarf  
+Ability: Trace  
+Level: 86  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Trick  
+- Focus Blast  
+- Shadow Ball  
+- Psychic  
+
+Leafeon @ Life Orb  
+Ability: Leaf Guard  
+Level: 85  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- X-Scissor  
+- Double-Edge  
+- Leaf Blade

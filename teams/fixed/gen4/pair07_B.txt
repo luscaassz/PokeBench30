@@ -1,0 +1,56 @@
+Zangoose @ Choice Band  
+Ability: Immunity  
+Level: 84  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Quick Attack  
+- Close Combat  
+- Night Slash  
+- Return  
+
+Quagsire @ Leftovers  
+Ability: Water Absorb  
+Level: 88  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Recover  
+- Toxic  
+- Waterfall  
+
+Regigigas @ Leftovers  
+Ability: Slow Start  
+Level: 83  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Return  
+- Substitute  
+- Earthquake  
+- Thunder Wave  
+
+Sunflora @ Choice Specs  
+Ability: Chlorophyll  
+Level: 99  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 2 Atk / 30 Def  
+- Sludge Bomb  
+- Earth Power  
+- Hidden Power [Ice]  
+- Leaf Storm  
+
+Victreebel @ Life Orb  
+Ability: Chlorophyll  
+Level: 89  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Sunny Day  
+- Solar Beam  
+- Sludge Bomb  
+- Weather Ball  
+
+Arceus (Arceus-Rock) @ Stone Plate  
+Ability: Multitype  
+Level: 69  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Recover  
+- Earth Power  
+- Calm Mind  
+- Judgment

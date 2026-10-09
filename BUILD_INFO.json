@@ -1,24 +1,25 @@
 {
   "project": "PokeBench30",
-  "version": "0.5.6",
-  "milestone": "RL Algorithm Study",
-  "base": "PokéBench30 v0.5.5",
-  "research_question": "With UBR, reward, MLP architecture, curriculum, seeds, effective environment-interaction budget and evaluation fixed, how does the RL algorithm affect performance?",
-  "algorithms": [
-    "MaskablePPO",
-    "MaskedDQN",
-    "MaskedDoubleDQN"
-  ],
-  "fixed_conditions": {
-    "generation": 9,
+  "version": "0.6.0",
+  "milestone": "Cross-Generation Benchmark",
+  "primary_variable": "Pokemon generation: I vs IV vs IX",
+  "training_protocol": {
+    "algorithm": "PPO with custom invalid-action masking",
+    "self_play": "shared-policy two-player PettingZoo self-play",
+    "trajectory_collection": "both player perspectives",
     "representation": "ubr-1.2",
     "observation_dim": 518,
     "action_dim": 10,
-    "network": [
-      256,
-      128
-    ],
-    "reward": "unchanged v0.5 dense reward",
+    "reward": {
+      "win": 1.0,
+      "loss": -1.0,
+      "other": 0.0
+    },
+    "nominal_steps_per_model": 900000,
+    "ppo_rollout_n_steps": 2048,
+    "player_perspectives": 2,
+    "rollout_transitions": 4096,
+    "expected_actual_final_steps": 901120,
     "seeds": [
       42,
       123,
@@ -26,60 +27,89 @@
       789,
       2026
     ],
-    "nominal_timesteps": 300000,
-    "effective_environment_steps": 307200,
-    "curriculum": [
-      {
-        "opponent": "random",
-        "timesteps": 100000
-      },
-      {
-        "opponent": "type_aware",
-        "timesteps": 200000
-      }
+    "generations": [
+      1,
+      4,
+      9
     ]
   },
-  "dqn_shared": {
-    "learning_rate": 0.00025,
-    "gamma": 0.99,
-    "batch_size": 128,
-    "replay_capacity": 50000,
-    "learning_starts": 5000,
-    "train_frequency": 4,
-    "gradient_steps": 1,
-    "target_update_interval": 2000,
-    "epsilon_start": 1.0,
-    "epsilon_final": 0.05,
-    "epsilon_fraction": 0.5,
-    "loss": "Huber",
-    "max_grad_norm": 10.0
+  "wang_protocol": {
+    "learning_rate_initial": 5.888436553555884e-05,
+    "learning_rate_schedule": "initial / (8*x + 1)^1.5",
+    "n_epochs": 7,
+    "gamma": 0.9999,
+    "gae_lambda": 0.754,
+    "clip_range": 0.0829,
+    "clip_range_vf": 0.0184,
+    "entropy_coef": 0.0588,
+    "value_coef": 0.4375,
+    "max_grad_norm": 0.543,
+    "batch_size": 1024,
+    "hidden_dim": 256,
+    "shared_trunk_layers": 3,
+    "actor_head_layers": 2,
+    "critic_head_layers": 2
   },
-  "important_design": [
-    "DQN/DDQN mask illegal actions in epsilon-greedy behavior selection.",
-    "DQN/DDQN mask illegal next-state actions before bootstrap max/argmax.",
-    "Double DQN uses online masked argmax and target-network evaluation.",
-    "Replay buffer is retained across Random -> TypeAware transition.",
-    "DQN/DDQN receive the same 307,200 effective environment interactions as the PPO baseline.",
-    "Crash-safe DQN resume includes online/target networks, optimizer, RNG and replay buffer."
+  "adaptations_not_exact_wang_reproduction": [
+    "UBR 1.2 replaces Wang's Gen-IV-specific 3725-dimensional state.",
+    "One PettingZoo battle-env copy is used instead of Wang's 78 workers.",
+    "900k nominal transitions/model are used instead of 150M steps.",
+    "MCTS is not used.",
+    "Common-core 10-action space excludes generation-specific gimmicks such as Terastallization."
   ],
-  "incorporated_hotfixes": [
-    "valid_orders supplements available_moves for legal core move mapping",
-    "JSON manifest tuple/list canonicalization for resume"
+  "evaluation": {
+    "fixed_pairs_per_generation": 10,
+    "checkpoints": [
+      150000,
+      300000,
+      450000,
+      600000,
+      750000,
+      900000
+    ],
+    "diagnostic_opponents": [
+      "type_aware"
+    ],
+    "diagnostic_repeats_per_leg": 1,
+    "final_opponents": [
+      "random",
+      "max_damage",
+      "type_aware",
+      "switch_aware"
+    ],
+    "final_repeats_per_leg": 3,
+    "final_battles_per_seed_opponent": 60,
+    "expected_final_battles": 3600,
+    "expected_diagnostic_battles": 1500
+  },
+  "main_outputs": [
+    "generation_summary.csv",
+    "generation_comparison.csv",
+    "generation_pairwise_differences.csv",
+    "pair_level_final.csv",
+    "learning_efficiency_typeaware.csv"
   ],
+  "config_hashes": {
+    "crossgen_benchmark.yaml": "d7b7a9412b88822190b227b9cce5ef2bfc811d6b037ffaebe2e5f515507ab298",
+    "fixed_teams.yaml": "7cc1932c1c1e80aa3ccc1c1f05bcb2dc6c86f685b0d8e59f0a753810c8d8720b",
+    "observation_schema_ubr_1_2.json": "30a774ba752f457be15be6d28e9af71d91ceaecc9755806ec1eaf4f1322c6d25"
+  },
   "validation": {
-    "python_test_suite": "71 tests PASS",
-    "syntax_compileall": "PASS",
-    "masked_dqn_unit_tests": "PASS",
-    "double_dqn_target_test": "PASS",
-    "replay_save_load_test": "PASS",
-    "valid_orders_regression_test": "PASS",
-    "actual_v0.5.5_csv_baseline_import": {
-      "evaluation_rows": 90,
-      "training_rows": 30,
-      "final_typeaware_mean": 0.1366666,
-      "status": "PASS"
+    "python_files_syntax_checked": 85,
+    "compileall": "PASS",
+    "pure_tests": {
+      "test_wang_protocol.py": "PASS",
+      "test_crossgen_study.py": "PASS",
+      "test_policy_specs.py": "PASS",
+      "test_rl_model_io.py": "PASS",
+      "test_representation_schema.py": "PASS",
+      "test_universal_action_space.py": "PASS",
+      "test_metrics.py": "PASS",
+      "test_mirrored_metrics.py": "PASS",
+      "test_rl_config.py": "PASS",
+      "test_architecture_study.py": "PASS",
+      "test_algorithm_study.py": "PASS"
     },
-    "synthetic_dqn_training_loop": "PASS",
-    "live_poke_env_showdown_smoke": "Pending user-side execution with python run_algorithm_study.py --smoke"
+    "live_poke_env_showdown_smoke": "Pending user-side execution: python run_crossgen_benchmark.py --smoke"
   }
 }

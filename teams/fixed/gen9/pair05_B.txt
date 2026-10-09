@@ -1,0 +1,60 @@
+Flamigo (F) @ Choice Band  
+Ability: Scrappy  
+Level: 82  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Throat Chop  
+- Brave Bird  
+- U-turn  
+- Close Combat  
+
+Moltres (Moltres-Galar) @ Weakness Policy  
+Ability: Berserk  
+Level: 79  
+Tera Type: Dark  
+EVs: 81 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Fiery Wrath  
+- Nasty Plot  
+- Hurricane  
+- Agility  
+
+Jirachi @ Leftovers  
+Ability: Serene Grace  
+Level: 80  
+Tera Type: Water  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Body Slam  
+- Iron Head  
+- Wish  
+- Protect  
+
+Perrserker (M) @ Life Orb  
+Ability: Tough Claws  
+Level: 89  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Iron Head  
+- Close Combat  
+- U-turn  
+- Stealth Rock  
+
+Infernape (F) @ Life Orb  
+Ability: Blaze  
+Level: 82  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Close Combat  
+- Overheat  
+- Grass Knot  
+- Knock Off  
+
+Cinccino (M) @ Loaded Dice  
+Ability: Technician  
+Level: 83  
+Tera Type: Normal  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Triple Axel  
+- U-turn  
+- Bullet Seed  
+- Tail Slap

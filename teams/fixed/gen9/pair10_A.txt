@@ -1,0 +1,62 @@
+Rhydon (M) @ Eviolite  
+Ability: Lightning Rod  
+Level: 85  
+Tera Type: Fairy  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Megahorn  
+- Swords Dance  
+- Stone Edge  
+- Earthquake  
+
+Iron Crown @ Choice Specs  
+Ability: Quark Drive  
+Level: 78  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Psyshock  
+- Focus Blast  
+- Tachyon Cutter  
+- Volt Switch  
+
+Arceus (Arceus-Fighting) @ Fist Plate  
+Ability: Multitype  
+Level: 70  
+Tera Type: Steel  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Body Press  
+- Iron Defense  
+- Shadow Ball  
+- Recover  
+
+Chansey (F) @ Eviolite  
+Ability: Natural Cure  
+Level: 85  
+Tera Type: Dark  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Thunder Wave  
+- Seismic Toss  
+- Stealth Rock  
+- Soft-Boiled  
+
+Rayquaza @ Heavy-Duty Boots  
+Ability: Air Lock  
+Level: 72  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Dragon Ascent  
+- Outrage  
+- Earthquake  
+- Dragon Dance  
+
+Kricketune (M) @ Heavy-Duty Boots  
+Ability: Technician  
+Level: 99  
+Tera Type: Ghost  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Knock Off  
+- Taunt  
+- Pounce  
+- Sticky Web

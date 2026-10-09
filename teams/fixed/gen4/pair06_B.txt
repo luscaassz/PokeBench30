@@ -1,0 +1,56 @@
+Espeon @ Life Orb  
+Ability: Synchronize  
+Level: 81  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 3 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Calm Mind  
+- Morning Sun  
+- Psychic  
+- Hidden Power [Fighting]  
+
+Azumarill @ Choice Band  
+Ability: Huge Power  
+Level: 83  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Superpower  
+- Aqua Jet  
+- Ice Punch  
+- Waterfall  
+
+Mew @ Life Orb  
+Ability: Synchronize  
+Level: 77  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Psychic  
+- Fire Blast  
+- Nasty Plot  
+- Aura Sphere  
+
+Rhyperior @ Leftovers  
+Ability: Solid Rock  
+Level: 78  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Rock Polish  
+- Stone Edge  
+- Earthquake  
+- Megahorn  
+
+Shaymin @ Leftovers  
+Ability: Natural Cure  
+Level: 78  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Seed Flare  
+- Air Slash  
+- Leech Seed  
+- Substitute  
+
+Regirock @ Leftovers  
+Ability: Clear Body  
+Level: 84  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Explosion  
+- Stone Edge  
+- Earthquake  
+- Toxic

@@ -1,0 +1,61 @@
+Mudsdale (M) @ Leftovers  
+Ability: Stamina  
+Level: 83  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Heavy Slam  
+- Stealth Rock  
+- Stone Edge  
+
+Clodsire (F) @ Leftovers  
+Ability: Water Absorb  
+Level: 81  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Recover  
+- Earthquake  
+- Poison Jab  
+- Toxic  
+
+Smeargle (M) @ Wide Lens  
+Ability: Technician  
+Level: 95  
+Tera Type: Ghost  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Power Trip  
+- Population Bomb  
+- Shell Smash  
+- Spore  
+
+Furret (F) @ Life Orb  
+Ability: Frisk  
+Level: 94  
+Tera Type: Ghost  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Tidy Up  
+- Knock Off  
+- Brick Break  
+- Double-Edge  
+
+Palkia (Palkia-Origin) @ Lustrous Globe  
+Ability: Pressure  
+Level: 72  
+Tera Type: Water  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Hydro Pump  
+- Spacial Rend  
+- Fire Blast  
+- Thunder Wave  
+
+Keldeo (Keldeo-Resolute) @ Life Orb  
+Ability: Justified  
+Level: 79  
+Tera Type: Water  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Hydro Pump  
+- Vacuum Wave  
+- Calm Mind  
+- Secret Sword

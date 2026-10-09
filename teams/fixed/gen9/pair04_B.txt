@@ -1,0 +1,60 @@
+Malamar (M) @ Leftovers  
+Ability: Contrary  
+Level: 82  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Rest  
+- Superpower  
+- Sleep Talk  
+- Knock Off  
+
+Glaceon (M) @ Heavy-Duty Boots  
+Ability: Ice Body  
+Level: 94  
+Tera Type: Ground  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Freeze-Dry  
+- Wish  
+- Mud Shot  
+- Protect  
+
+Zangoose (F) @ Toxic Orb  
+Ability: Toxic Boost  
+Level: 85  
+Tera Type: Normal  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- Knock Off  
+- Quick Attack  
+- Facade  
+
+Tsareena (F) @ Life Orb  
+Ability: Queenly Majesty  
+Level: 87  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- High Jump Kick  
+- Triple Axel  
+- Synthesis  
+- Power Whip  
+
+Braviary (M) @ Heavy-Duty Boots  
+Ability: Defiant  
+Level: 85  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Brave Bird  
+- Bulk Up  
+- Roost  
+- Close Combat  
+
+Jirachi @ Leftovers  
+Ability: Serene Grace  
+Level: 80  
+Tera Type: Water  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Body Slam  
+- Iron Head  
+- Drain Punch  
+- Stealth Rock

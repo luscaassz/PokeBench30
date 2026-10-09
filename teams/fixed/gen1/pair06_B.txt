@@ -1,0 +1,59 @@
+Golem  
+Ability: No Ability  
+Level: 71  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Rock Slide  
+- Body Slam  
+- Explosion  
+- Earthquake  
+
+Weezing  
+Ability: No Ability  
+Level: 76  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Explosion  
+- Thunderbolt  
+- Fire Blast  
+- Sludge  
+
+Mew  
+Ability: No Ability  
+Level: 64  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunder Wave  
+- Psychic  
+- Soft-Boiled  
+- Explosion  
+
+Pinsir  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Submission  
+- Hyper Beam  
+- Swords Dance  
+
+Parasect  
+Ability: No Ability  
+Level: 77  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Spore  
+- Swords Dance  
+- Mega Drain  
+
+Jigglypuff  
+Ability: No Ability  
+Level: 89  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Seismic Toss  
+- Counter  
+- Body Slam  
+- Thunder Wave

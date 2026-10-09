@@ -1,0 +1,59 @@
+Mewtwo  
+Ability: No Ability  
+Level: 60  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Blizzard  
+- Amnesia  
+- Psychic  
+- Recover  
+
+Persian  
+Ability: No Ability  
+Level: 73  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Thunderbolt  
+- Slash  
+- Bubble Beam  
+
+Omanyte  
+Ability: No Ability  
+Level: 87  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Blizzard  
+- Body Slam  
+- Rest  
+- Surf  
+
+Jigglypuff  
+Ability: No Ability  
+Level: 89  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunder Wave  
+- Body Slam  
+- Seismic Toss  
+- Sing  
+
+Nidoqueen  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Blizzard  
+- Body Slam  
+- Thunderbolt  
+- Earthquake  
+
+Bellsprout  
+Ability: No Ability  
+Level: 88  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Swords Dance  
+- Sleep Powder  
+- Double-Edge  
+- Razor Leaf

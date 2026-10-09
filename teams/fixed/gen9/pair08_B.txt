@@ -1,0 +1,61 @@
+Flapple (F) @ Lum Berry  
+Ability: Hustle  
+Level: 88  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Outrage  
+- Dragon Dance  
+- Sucker Punch  
+- Grav Apple  
+
+Ludicolo (M) @ Life Orb  
+Ability: Swift Swim  
+Level: 90  
+Tera Type: Water  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Giga Drain  
+- Hydro Pump  
+- Ice Beam  
+- Rain Dance  
+
+Gurdurr (M) @ Eviolite  
+Ability: Guts  
+Level: 85  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Drain Punch  
+- Mach Punch  
+- Knock Off  
+- Bulk Up  
+
+Spiritomb (F) @ Choice Band  
+Ability: Infiltrator  
+Level: 89  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Poltergeist  
+- Foul Play  
+- Shadow Sneak  
+- Sucker Punch  
+
+Eternatus @ Rocky Helmet  
+Ability: Pressure  
+Level: 69  
+Tera Type: Dragon  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Fire Blast  
+- Sludge Bomb  
+- Recover  
+- Dynamax Cannon  
+
+Froslass (F) @ Wide Lens  
+Ability: Cursed Body  
+Level: 87  
+Tera Type: Ice  
+EVs: 81 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Triple Axel  
+- Will-O-Wisp  
+- Poltergeist  
+- Spikes

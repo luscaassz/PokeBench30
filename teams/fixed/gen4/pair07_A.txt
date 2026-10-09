@@ -1,0 +1,54 @@
+Delibird @ Leftovers  
+Ability: Vital Spirit  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Ice Shard  
+- Seismic Toss  
+- Ice Beam  
+- Toxic  
+
+Steelix @ Leftovers  
+Ability: Rock Head  
+Level: 84  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Protect  
+- Toxic  
+- Iron Head  
+
+Plusle @ Life Orb  
+Ability: Plus  
+Level: 90  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 2 Atk / 30 Def  
+- Nasty Plot  
+- Thunderbolt  
+- Hidden Power [Ice]  
+- Grass Knot  
+
+Dustox @ Black Sludge  
+Ability: Shield Dust  
+Level: 99  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 3 Atk / 30 SpA / 30 SpD  
+- Bug Buzz  
+- Roost  
+- Hidden Power [Ground]  
+- Toxic  
+
+Tyranitar @ Leftovers  
+Ability: Sand Stream  
+Level: 75  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Crunch  
+- Fire Blast  
+- Superpower  
+- Stone Edge  
+
+Machamp @ Choice Band  
+Ability: No Guard  
+Level: 80  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Payback  
+- Bullet Punch  
+- Earthquake  
+- Dynamic Punch

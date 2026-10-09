@@ -1,0 +1,58 @@
+Magmortar @ Life Orb  
+Ability: Flame Body  
+Level: 81  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Focus Blast  
+- Thunderbolt  
+- Taunt  
+- Fire Blast  
+
+Manaphy @ Leftovers  
+Ability: Hydration  
+Level: 76  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Tail Glow  
+- Surf  
+- Ice Beam  
+- Energy Ball  
+
+Gorebyss @ Life Orb  
+Ability: Swift Swim  
+Level: 88  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 2 Atk / 30 SpA  
+- Hydro Pump  
+- Rain Dance  
+- Ice Beam  
+- Hidden Power [Grass]  
+
+Lucario @ Life Orb  
+Ability: Inner Focus  
+Level: 79  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Close Combat  
+- Extreme Speed  
+- Swords Dance  
+- Stone Edge  
+
+Raichu @ Choice Specs  
+Ability: Static  
+Level: 86  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 2 Atk / 30 Def  
+- Focus Blast  
+- Surf  
+- Hidden Power [Ice]  
+- Thunderbolt  
+
+Cresselia (F) @ Leftovers  
+Ability: Levitate  
+Level: 79  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 3 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Toxic  
+- Psychic  
+- Moonlight  
+- Hidden Power [Fighting]

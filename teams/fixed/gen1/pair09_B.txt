@@ -1,0 +1,59 @@
+Persian  
+Ability: No Ability  
+Level: 73  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunderbolt  
+- Bubble Beam  
+- Slash  
+- Body Slam  
+
+Mr. Mime  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunderbolt  
+- Thunder Wave  
+- Psychic  
+- Seismic Toss  
+
+Arcanine  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Fire Blast  
+- Hyper Beam  
+- Agility  
+- Body Slam  
+
+Marowak  
+Ability: No Ability  
+Level: 79  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Seismic Toss  
+- Earthquake  
+- Blizzard  
+- Body Slam  
+
+Farfetch’d  
+Ability: No Ability  
+Level: 78  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Slash  
+- Body Slam  
+- Swords Dance  
+- Agility  
+
+Blastoise  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Earthquake  
+- Blizzard  
+- Hydro Pump  
+- Body Slam

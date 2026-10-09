@@ -27,3 +27,5 @@ policy_results/*
 !policy_results/.gitkeep
 algorithm_results/*
 !algorithm_results/.gitkeep
+crossgen_results/*
+!crossgen_results/.gitkeep

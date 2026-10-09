@@ -124,5 +124,30 @@ class RLModelIOTests(unittest.TestCase):
         self.assertEqual(metadata.algorithm_config, {})
 
 
+    def test_resolve_ppo_directory(self):
+        metadata = self.make_metadata(9, "ubr-1.2")
+        metadata = ModelMetadata(
+            **{
+                **metadata.to_dict(),
+                "algorithm": "PPO",
+                "policy_architecture": "wang_style_mlp",
+                "policy_config": {
+                    "family": "wang_style_mlp",
+                    "shared_hidden_dim": 256,
+                },
+                "model_input_dim": 518,
+            }
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            model = root / "ppo.zip"
+            model.write_bytes(b"placeholder")
+            (root / "metadata.json").write_text(
+                json.dumps(metadata.to_dict()),
+                encoding="utf-8",
+            )
+            self.assertEqual(resolve_model_file(root), model.resolve())
+
+
 if __name__ == "__main__":
     unittest.main()

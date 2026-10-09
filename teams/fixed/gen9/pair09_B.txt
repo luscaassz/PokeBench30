@@ -1,0 +1,58 @@
+Sandslash (M) @ Leftovers  
+Ability: Sand Rush  
+Level: 89  
+Tera Type: Water  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Rapid Spin  
+- Stone Edge  
+- Swords Dance  
+- Earthquake  
+
+Meowstic (Meowstic-F) (F) @ Life Orb  
+Ability: Competitive  
+Level: 89  
+Tera Type: Fairy  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Alluring Voice  
+- Psychic  
+- Dark Pulse  
+- Nasty Plot  
+
+Lumineon (F) @ Heavy-Duty Boots  
+Ability: Storm Drain  
+Level: 93  
+Tera Type: Ground  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- U-turn  
+- Encore  
+- Ice Beam  
+- Hydro Pump  
+
+Raichu (Raichu-Alola) (M) @ Life Orb  
+Ability: Surge Surfer  
+Level: 87  
+Tera Type: Grass  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Thunderbolt  
+- Psyshock  
+- Nasty Plot  
+- Grass Knot  
+
+Ditto @ Choice Scarf  
+Ability: Imposter  
+Level: 87  
+Tera Type: Ghost  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Transform  
+
+Ambipom (F) @ Silk Scarf  
+Ability: Technician  
+Level: 84  
+Tera Type: Normal  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Fake Out  
+- Double-Edge  
+- U-turn  
+- Knock Off

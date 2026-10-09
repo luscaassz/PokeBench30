@@ -1,0 +1,60 @@
+Dialga @ Assault Vest  
+Ability: Pressure  
+Level: 73  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Dragon Tail  
+- Draco Meteor  
+- Fire Blast  
+- Heavy Slam  
+
+Roaring Moon @ Booster Energy  
+Ability: Protosynthesis  
+Level: 72  
+Tera Type: Flying  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Outrage  
+- Knock Off  
+- Acrobatics  
+- Dragon Dance  
+
+Perrserker (F) @ Choice Band  
+Ability: Tough Claws  
+Level: 89  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Close Combat  
+- Knock Off  
+- Iron Head  
+- U-turn  
+
+Yanmega (M) @ Heavy-Duty Boots  
+Ability: Speed Boost  
+Level: 82  
+Tera Type: Ground  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Protect  
+- Bug Buzz  
+- Tera Blast  
+- Air Slash  
+
+Zapdos (Zapdos-Galar) @ Choice Scarf  
+Ability: Defiant  
+Level: 77  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- U-turn  
+- Brave Bird  
+- Knock Off  
+- Close Combat  
+
+Dedenne (F) @ Sitrus Berry  
+Ability: Cheek Pouch  
+Level: 88  
+Tera Type: Flying  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Thunderbolt  
+- Dazzling Gleam  
+- Nuzzle  
+- U-turn

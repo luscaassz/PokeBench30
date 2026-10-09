@@ -1,0 +1,61 @@
+Zoroark (F) @ Choice Specs  
+Ability: Illusion  
+Level: 83  
+Tera Type: Poison  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Psychic  
+- Sludge Bomb  
+- Dark Pulse  
+- Trick  
+
+Swalot (F) @ Leftovers  
+Ability: Liquid Ooze  
+Level: 90  
+Tera Type: Dark  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Toxic Spikes  
+- Knock Off  
+- Sludge Bomb  
+- Ice Beam  
+
+Serperior (M) @ Life Orb  
+Ability: Contrary  
+Level: 79  
+Tera Type: Dragon  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Dragon Pulse  
+- Leaf Storm  
+- Synthesis  
+- Glare  
+
+Vespiquen (F) @ Heavy-Duty Boots  
+Ability: Pressure  
+Level: 99  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Roost  
+- U-turn  
+- Air Slash  
+- Toxic  
+
+Fezandipiti (M) @ Leftovers  
+Ability: Toxic Chain  
+Level: 82  
+Tera Type: Dark  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Beat Up  
+- Moonblast  
+- Roost  
+- Gunk Shot  
+
+Eelektross (M) @ Assault Vest  
+Ability: Levitate  
+Level: 87  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Discharge  
+- Dragon Tail  
+- U-turn  
+- Flamethrower

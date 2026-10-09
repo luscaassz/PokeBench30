@@ -1,0 +1,63 @@
+Whiscash (F) @ Leftovers  
+Ability: Oblivious  
+Level: 88  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Stealth Rock  
+- Ice Beam  
+- Hydro Pump  
+
+Magnezone @ Assault Vest  
+Ability: Magnet Pull  
+Level: 84  
+Tera Type: Flying  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Thunderbolt  
+- Flash Cannon  
+- Mirror Coat  
+- Volt Switch  
+
+Mismagius (M) @ Leftovers  
+Ability: Levitate  
+Level: 86  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Tera Blast  
+- Nasty Plot  
+- Substitute  
+- Shadow Ball  
+
+Iron Jugulis @ Choice Specs  
+Ability: Quark Drive  
+Level: 77  
+Tera Type: Dark  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Fire Blast  
+- Earth Power  
+- Hurricane  
+- Dark Pulse  
+
+Tauros (Tauros-Paldea-Blaze) (M) @ Sitrus Berry  
+Ability: Cud Chew  
+Level: 81  
+Tera Type: Water  
+EVs: 73 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Bulk Up  
+- Substitute  
+- Raging Bull  
+- Close Combat  
+
+Sylveon (M) @ Leftovers  
+Ability: Pixilate  
+Level: 85  
+Tera Type: Steel  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Hyper Voice  
+- Wish  
+- Protect  
+- Calm Mind

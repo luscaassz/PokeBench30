@@ -1,0 +1,54 @@
+Weezing @ Black Sludge  
+Ability: Levitate  
+Level: 90  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Rest  
+- Sludge Bomb  
+- Fire Blast  
+- Sleep Talk  
+
+Butterfree @ Leftovers  
+Ability: Compound Eyes  
+Level: 91  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Bug Buzz  
+- U-turn  
+- Stun Spore  
+- Sleep Powder  
+
+Metagross @ Choice Band  
+Ability: Clear Body  
+Level: 77  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Zen Headbutt  
+- Earthquake  
+- Meteor Mash  
+- Explosion  
+
+Rayquaza @ Life Orb  
+Ability: Air Lock  
+Level: 70  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Dragon Claw  
+- Extreme Speed  
+- Swords Dance  
+- Earthquake  
+
+Golem @ Life Orb  
+Ability: Rock Head  
+Level: 86  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Rock Polish  
+- Stone Edge  
+- Earthquake  
+- Explosion  
+
+Abomasnow @ Leftovers  
+Ability: Snow Warning  
+Level: 81  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Blizzard  
+- Ice Shard  
+- Wood Hammer

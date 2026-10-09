@@ -1,0 +1,59 @@
+Gengar  
+Ability: No Ability  
+Level: 68  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunderbolt  
+- Hypnosis  
+- Psychic  
+- Night Shade  
+
+Pinsir  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Swords Dance  
+- Hyper Beam  
+- Submission  
+- Slash  
+
+Starmie  
+Ability: No Ability  
+Level: 68  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunder Wave  
+- Recover  
+- Psychic  
+- Surf  
+
+Nidoran-M  
+Ability: No Ability  
+Level: 90  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunderbolt  
+- Double-Edge  
+- Blizzard  
+- Body Slam  
+
+Cloyster  
+Ability: No Ability  
+Level: 70  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Surf  
+- Hyper Beam  
+- Explosion  
+- Blizzard  
+
+Kadabra  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Reflect  
+- Recover  
+- Psychic  
+- Thunder Wave

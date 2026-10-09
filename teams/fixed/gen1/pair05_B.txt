@@ -1,0 +1,59 @@
+Clefairy  
+Ability: No Ability  
+Level: 88  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunder Wave  
+- Thunderbolt  
+- Counter  
+- Blizzard  
+
+Tangela  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Sleep Powder  
+- Stun Spore  
+- Body Slam  
+- Mega Drain  
+
+Oddish  
+Ability: No Ability  
+Level: 90  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Double-Edge  
+- Sleep Powder  
+- Swords Dance  
+- Mega Drain  
+
+Abra  
+Ability: No Ability  
+Level: 84  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Seismic Toss  
+- Thunder Wave  
+- Substitute  
+- Psychic  
+
+Ponyta  
+Ability: No Ability  
+Level: 84  
+EVs: 251 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Agility  
+- Body Slam  
+- Substitute  
+- Fire Blast  
+
+Omastar  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Surf  
+- Body Slam  
+- Rest  
+- Blizzard

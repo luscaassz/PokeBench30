@@ -1,55 +1,123 @@
-schema_version: 1
-
-# Fixed teams are generated deterministically from Pokémon Showdown's
-# random-battle generator, frozen on disk and then reused in Custom Game.
+# PokéBench30 v0.6 fixed/mirrored evaluation pool.
 #
-# Information policy:
-# - Gen I and Gen IV Custom Game do not use Team Preview by default.
-# - Gen IX Team Preview is explicitly removed to keep the same partial-
-#   observability condition across all three benchmark generations.
-
+# Ten independent deterministic team pairs are generated per generation from
+# Pokémon Showdown's random-battle generator and frozen on disk.
+#
+# The first three pairs are retained from v0.3-v0.5 for continuity. Seven new
+# pairs are added so the primary cross-generation analysis has 10 independent
+# pair units per generation instead of only 3.
+#
+# Gen I and Gen IV Custom Game do not use Team Preview by default.
+# Gen IX Team Preview is explicitly removed to keep the same partial-
+# observability condition across all three benchmark generations.
+#
+# The universal v0.6 core action space intentionally excludes generation-
+# specific gimmicks (e.g. Terastallization) so all generations expose the same
+# 10 actions. This is a common-core cross-generation benchmark.
+schema_version: 1
 generations:
   1:
-    source_format: "gen1randombattle"
-    validation_format: "gen1customgame"
-    battle_format: "gen1customgame"
+    source_format: gen1randombattle
+    validation_format: gen1customgame
+    battle_format: gen1customgame
     pairs:
-      - id: "pair01"
-        team_a_seed: "101,202,303,404"
-        team_b_seed: "505,606,707,808"
-      - id: "pair02"
-        team_a_seed: "1101,1202,1303,1404"
-        team_b_seed: "1505,1606,1707,1808"
-      - id: "pair03"
-        team_a_seed: "2101,2202,2303,2404"
-        team_b_seed: "2505,2606,2707,2808"
-
+    - id: pair01
+      team_a_seed: 101,202,303,404
+      team_b_seed: 505,606,707,808
+    - id: pair02
+      team_a_seed: 1101,1202,1303,1404
+      team_b_seed: 1505,1606,1707,1808
+    - id: pair03
+      team_a_seed: 2101,2202,2303,2404
+      team_b_seed: 2505,2606,2707,2808
+    - id: pair04
+      team_a_seed: 3101,3202,3303,3404
+      team_b_seed: 3505,3606,3707,3808
+    - id: pair05
+      team_a_seed: 4101,4202,4303,4404
+      team_b_seed: 4505,4606,4707,4808
+    - id: pair06
+      team_a_seed: 5101,5202,5303,5404
+      team_b_seed: 5505,5606,5707,5808
+    - id: pair07
+      team_a_seed: 6101,6202,6303,6404
+      team_b_seed: 6505,6606,6707,6808
+    - id: pair08
+      team_a_seed: 7101,7202,7303,7404
+      team_b_seed: 7505,7606,7707,7808
+    - id: pair09
+      team_a_seed: 8101,8202,8303,8404
+      team_b_seed: 8505,8606,8707,8808
+    - id: pair10
+      team_a_seed: 9101,9202,9303,9404
+      team_b_seed: 9505,9606,9707,9808
   4:
-    source_format: "gen4randombattle"
-    validation_format: "gen4customgame"
-    battle_format: "gen4customgame"
+    source_format: gen4randombattle
+    validation_format: gen4customgame
+    battle_format: gen4customgame
     pairs:
-      - id: "pair01"
-        team_a_seed: "3101,3202,3303,3404"
-        team_b_seed: "3505,3606,3707,3808"
-      - id: "pair02"
-        team_a_seed: "4101,4202,4303,4404"
-        team_b_seed: "4505,4606,4707,4808"
-      - id: "pair03"
-        team_a_seed: "5101,5202,5303,5404"
-        team_b_seed: "5505,5606,5707,5808"
-
+    - id: pair01
+      team_a_seed: 3101,3202,3303,3404
+      team_b_seed: 3505,3606,3707,3808
+    - id: pair02
+      team_a_seed: 4101,4202,4303,4404
+      team_b_seed: 4505,4606,4707,4808
+    - id: pair03
+      team_a_seed: 5101,5202,5303,5404
+      team_b_seed: 5505,5606,5707,5808
+    - id: pair04
+      team_a_seed: 6101,6202,6303,6404
+      team_b_seed: 6505,6606,6707,6808
+    - id: pair05
+      team_a_seed: 7101,7202,7303,7404
+      team_b_seed: 7505,7606,7707,7808
+    - id: pair06
+      team_a_seed: 8101,8202,8303,8404
+      team_b_seed: 8505,8606,8707,8808
+    - id: pair07
+      team_a_seed: 9101,9202,9303,9404
+      team_b_seed: 9505,9606,9707,9808
+    - id: pair08
+      team_a_seed: 10101,10202,10303,10404
+      team_b_seed: 10505,10606,10707,10808
+    - id: pair09
+      team_a_seed: 11101,11202,11303,11404
+      team_b_seed: 11505,11606,11707,11808
+    - id: pair10
+      team_a_seed: 12101,12202,12303,12404
+      team_b_seed: 12505,12606,12707,12808
   9:
-    source_format: "gen9randombattle"
-    validation_format: "gen9customgame"
-    battle_format: "gen9customgame@@@!teampreview"
+    source_format: gen9randombattle
+    validation_format: gen9customgame
+    battle_format: gen9customgame@@@!teampreview
     pairs:
-      - id: "pair01"
-        team_a_seed: "6101,6202,6303,6404"
-        team_b_seed: "6505,6606,6707,6808"
-      - id: "pair02"
-        team_a_seed: "7101,7202,7303,7404"
-        team_b_seed: "7505,7606,7707,7808"
-      - id: "pair03"
-        team_a_seed: "8101,8202,8303,8404"
-        team_b_seed: "8505,8606,8707,8808"
+    - id: pair01
+      team_a_seed: 6101,6202,6303,6404
+      team_b_seed: 6505,6606,6707,6808
+    - id: pair02
+      team_a_seed: 7101,7202,7303,7404
+      team_b_seed: 7505,7606,7707,7808
+    - id: pair03
+      team_a_seed: 8101,8202,8303,8404
+      team_b_seed: 8505,8606,8707,8808
+    - id: pair04
+      team_a_seed: 9101,9202,9303,9404
+      team_b_seed: 9505,9606,9707,9808
+    - id: pair05
+      team_a_seed: 10101,10202,10303,10404
+      team_b_seed: 10505,10606,10707,10808
+    - id: pair06
+      team_a_seed: 11101,11202,11303,11404
+      team_b_seed: 11505,11606,11707,11808
+    - id: pair07
+      team_a_seed: 12101,12202,12303,12404
+      team_b_seed: 12505,12606,12707,12808
+    - id: pair08
+      team_a_seed: 13101,13202,13303,13404
+      team_b_seed: 13505,13606,13707,13808
+    - id: pair09
+      team_a_seed: 14101,14202,14303,14404
+      team_b_seed: 14505,14606,14707,14808
+    - id: pair10
+      team_a_seed: 15101,15202,15303,15404
+      team_b_seed: 15505,15606,15707,15808

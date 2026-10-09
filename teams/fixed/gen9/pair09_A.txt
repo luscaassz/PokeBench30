@@ -1,0 +1,61 @@
+Glastrier @ Heavy-Duty Boots  
+Ability: Chilling Neigh  
+Level: 86  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- Close Combat  
+- Icicle Crash  
+- Heavy Slam  
+
+Dragapult (M) @ Life Orb  
+Ability: Clear Body  
+Level: 77  
+Tera Type: Ghost  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Fire Blast  
+- Tera Blast  
+- Dragon Dance  
+- Dragon Darts  
+
+Primarina (M) @ Choice Specs  
+Ability: Torrent  
+Level: 83  
+Tera Type: Water  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Moonblast  
+- Hydro Pump  
+- Psychic  
+- Flip Turn  
+
+Rotom (Rotom-Frost) @ Heavy-Duty Boots  
+Ability: Levitate  
+Level: 87  
+Tera Type: Electric  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Blizzard  
+- Volt Switch  
+- Thunderbolt  
+- Will-O-Wisp  
+
+Kleavor (F) @ Choice Band  
+Ability: Sharpness  
+Level: 78  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- X-Scissor  
+- Close Combat  
+- U-turn  
+- Stone Axe  
+
+Magnezone @ Choice Scarf  
+Ability: Magnet Pull  
+Level: 84  
+Tera Type: Electric  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Thunderbolt  
+- Volt Switch  
+- Flash Cannon  
+- Body Press

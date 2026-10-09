@@ -1,0 +1,54 @@
+Rampardos @ Life Orb  
+Ability: Mold Breaker  
+Level: 86  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Fire Punch  
+- Earthquake  
+- Rock Polish  
+- Stone Edge  
+
+Steelix @ Leftovers  
+Ability: Rock Head  
+Level: 84  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Iron Head  
+- Toxic  
+- Explosion  
+- Earthquake  
+
+Chatot @ Life Orb  
+Ability: Tangled Feet  
+Level: 90  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Hyper Voice  
+- Encore  
+- Heat Wave  
+- Nasty Plot  
+
+Pidgeot @ Life Orb  
+Ability: Tangled Feet  
+Level: 88  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Roost  
+- Double-Edge  
+- Brave Bird  
+- U-turn  
+
+Seviper @ Choice Scarf  
+Ability: Shed Skin  
+Level: 91  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Switcheroo  
+- Aqua Tail  
+- Earthquake  
+- Sludge Bomb  
+
+Garchomp @ Lum Berry  
+Ability: Sand Veil  
+Level: 74  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Outrage  
+- Swords Dance  
+- Stone Edge

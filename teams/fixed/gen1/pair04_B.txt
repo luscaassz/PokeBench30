@@ -1,0 +1,59 @@
+Kabutops  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Surf  
+- Body Slam  
+- Swords Dance  
+- Hyper Beam  
+
+Exeggcute  
+Ability: No Ability  
+Level: 84  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Stun Spore  
+- Psychic  
+- Explosion  
+- Sleep Powder  
+
+Grimer  
+Ability: No Ability  
+Level: 90  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunderbolt  
+- Body Slam  
+- Sludge  
+- Explosion  
+
+Clefable  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Psychic  
+- Blizzard  
+- Body Slam  
+- Thunder Wave  
+
+Slowbro  
+Ability: No Ability  
+Level: 69  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Psychic  
+- Thunder Wave  
+- Blizzard  
+- Amnesia  
+
+Sandshrew  
+Ability: No Ability  
+Level: 88  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Swords Dance  
+- Earthquake  
+- Rock Slide

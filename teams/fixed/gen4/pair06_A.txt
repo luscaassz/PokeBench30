@@ -1,0 +1,54 @@
+Golem @ Leftovers  
+Ability: Rock Head  
+Level: 86  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Sucker Punch  
+- Stone Edge  
+- Toxic  
+- Earthquake  
+
+Scizor @ Choice Band  
+Ability: Technician  
+Level: 75  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Superpower  
+- Pursuit  
+- Bullet Punch  
+- U-turn  
+
+Probopass @ Leftovers  
+Ability: Magnet Pull  
+Level: 89  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Power Gem  
+- Earth Power  
+- Explosion  
+- Toxic  
+
+Deoxys (Deoxys-Speed) @ Leftovers  
+Ability: Pressure  
+Level: 80  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Taunt  
+- Psycho Boost  
+- Spikes  
+- Superpower  
+
+Ludicolo @ Choice Specs  
+Ability: Swift Swim  
+Level: 85  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Surf  
+- Hydro Pump  
+- Ice Beam  
+- Energy Ball  
+
+Volbeat (M) @ Leftovers  
+Ability: Swarm  
+Level: 97  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Seismic Toss  
+- Roost  
+- Toxic  
+- U-turn

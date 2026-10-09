@@ -24,6 +24,17 @@ class PolicySpec:
 
 
 POLICY_SPECS: dict[str, PolicySpec] = {
+
+    "wang_style_mlp": PolicySpec(
+        name="wang_style_mlp",
+        family="wang_style_mlp",
+        history_len=1,
+        net_arch=(256, 256, 256),
+        description=(
+            "PokéBench30 v0.6 Wang-inspired shared 3-layer 256-unit trunk "
+            "with separate 2-layer actor/critic heads."
+        ),
+    ),
     "mlp_baseline": PolicySpec(
         name="mlp_baseline",
         family="mlp",

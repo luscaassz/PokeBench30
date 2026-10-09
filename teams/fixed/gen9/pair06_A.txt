@@ -1,0 +1,61 @@
+Chien-Pao @ Choice Band  
+Ability: Sword of Ruin  
+Level: 72  
+Tera Type: Dark  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Ice Shard  
+- Icicle Crash  
+- Sacred Sword  
+- Crunch  
+
+Exeggutor (Exeggutor-Alola) (M) @ Sitrus Berry  
+Ability: Harvest  
+Level: 89  
+Tera Type: Fire  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Sleep Powder  
+- Draco Meteor  
+- Flamethrower  
+- Wood Hammer  
+
+Revavroom (F) @ Life Orb  
+Ability: Filter  
+Level: 79  
+Tera Type: Ground  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Gunk Shot  
+- High Horsepower  
+- Shift Gear  
+- Iron Head  
+
+Gholdengo @ Leftovers  
+Ability: Good as Gold  
+Level: 77  
+Tera Type: Water  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Thunder Wave  
+- Shadow Ball  
+- Recover  
+- Make It Rain  
+
+Slaking (M) @ Choice Band  
+Ability: Truant  
+Level: 84  
+Tera Type: Ghost  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Double-Edge  
+- Knock Off  
+- Earthquake  
+- Giga Impact  
+
+Articuno (Articuno-Galar) @ Heavy-Duty Boots  
+Ability: Competitive  
+Level: 84  
+Tera Type: Steel  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Psyshock  
+- Recover  
+- Calm Mind  
+- Hurricane

@@ -1,0 +1,60 @@
+Granbull (F) @ Leftovers  
+Ability: Intimidate  
+Level: 88  
+Tera Type: Ground  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Play Rough  
+- Thunder Wave  
+- Roar  
+
+Farigiraf (M) @ Leftovers  
+Ability: Sap Sipper  
+Level: 90  
+Tera Type: Ground  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Wish  
+- Protect  
+- Psychic Noise  
+- Body Slam  
+
+Espeon (F) @ Life Orb  
+Ability: Magic Bounce  
+Level: 84  
+Tera Type: Psychic  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Psyshock  
+- Alluring Voice  
+- Calm Mind  
+- Morning Sun  
+
+Duraludon (F) @ Eviolite  
+Ability: Light Metal  
+Level: 82  
+Tera Type: Fighting  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Body Press  
+- Flash Cannon  
+- Draco Meteor  
+- Dragon Tail  
+
+Swanna (F) @ Heavy-Duty Boots  
+Ability: Hydration  
+Level: 89  
+Tera Type: Ground  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Roost  
+- Hydro Pump  
+- Defog  
+- Brave Bird  
+
+Torterra (M) @ Loaded Dice  
+Ability: Overgrow  
+Level: 78  
+Tera Type: Water  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Bullet Seed  
+- Shell Smash  
+- Headlong Rush  
+- Rock Blast

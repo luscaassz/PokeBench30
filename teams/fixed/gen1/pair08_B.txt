@@ -1,0 +1,59 @@
+Wartortle  
+Ability: No Ability  
+Level: 82  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Rest  
+- Surf  
+- Blizzard  
+
+Fearow  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Drill Peck  
+- Hyper Beam  
+- Agility  
+- Double-Edge  
+
+Dugtrio  
+Ability: No Ability  
+Level: 73  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Earthquake  
+- Body Slam  
+- Rock Slide  
+- Slash  
+
+Jynx  
+Ability: No Ability  
+Level: 68  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Psychic  
+- Body Slam  
+- Lovely Kiss  
+- Blizzard  
+
+Jolteon  
+Ability: No Ability  
+Level: 69  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunder Wave  
+- Double Kick  
+- Thunderbolt  
+- Body Slam  
+
+Jigglypuff  
+Ability: No Ability  
+Level: 89  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Seismic Toss  
+- Thunder Wave  
+- Sing  
+- Body Slam

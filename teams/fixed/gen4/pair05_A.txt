@@ -1,0 +1,55 @@
+Chatot @ Life Orb  
+Ability: Tangled Feet  
+Level: 90  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 2 Atk / 30 SpA  
+- Hidden Power [Grass]  
+- Heat Wave  
+- Hyper Voice  
+- Nasty Plot  
+
+Dewgong @ Leftovers  
+Ability: Thick Fat  
+Level: 90  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Ice Beam  
+- Surf  
+- Protect  
+- Toxic  
+
+Abomasnow @ Leftovers  
+Ability: Snow Warning  
+Level: 81  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Ice Shard  
+- Blizzard  
+- Earthquake  
+- Wood Hammer  
+
+Clefable @ Life Orb  
+Ability: Magic Guard  
+Level: 83  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Double-Edge  
+- Fire Blast  
+- Aromatherapy  
+- Soft-Boiled  
+
+Gastrodon (Gastrodon-East) @ Leftovers  
+Ability: Sticky Hold  
+Level: 88  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Recover  
+- Surf  
+- Earthquake  
+- Toxic  
+
+Gallade (M) @ Choice Band  
+Ability: Steadfast  
+Level: 82  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Trick  
+- Zen Headbutt  
+- Shadow Sneak  
+- Close Combat

@@ -47,6 +47,8 @@ def resolve_model_file(model_path: str | Path) -> Path:
 
             if algorithm == "MaskablePPO":
                 candidate = path / "maskable_ppo.zip"
+            elif algorithm == "PPO":
+                candidate = path / "ppo.zip"
             elif algorithm in {"MaskedDQN", "MaskedDoubleDQN"}:
                 candidate = path / "masked_dqn.pt"
             else:
@@ -55,14 +57,14 @@ def resolve_model_file(model_path: str | Path) -> Path:
             if candidate is not None and candidate.exists():
                 return candidate
 
-        for candidate_name in ("maskable_ppo.zip", "masked_dqn.pt"):
+        for candidate_name in ("maskable_ppo.zip", "ppo.zip", "masked_dqn.pt"):
             candidate = path / candidate_name
             if candidate.exists():
                 return candidate
 
         raise FileNotFoundError(
             f"Could not find a supported RL model in {path}. Expected "
-            "maskable_ppo.zip or masked_dqn.pt with metadata.json."
+            "maskable_ppo.zip, ppo.zip or masked_dqn.pt with metadata.json."
         )
 
     if path.exists():

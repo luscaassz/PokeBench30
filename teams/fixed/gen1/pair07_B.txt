@@ -1,0 +1,59 @@
+Seadra  
+Ability: No Ability  
+Level: 77  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Surf  
+- Rest  
+- Agility  
+- Blizzard  
+
+Tangela  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Mega Drain  
+- Stun Spore  
+- Sleep Powder  
+- Body Slam  
+
+Weepinbell  
+Ability: No Ability  
+Level: 80  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Double-Edge  
+- Stun Spore  
+- Sleep Powder  
+- Razor Leaf  
+
+Staryu  
+Ability: No Ability  
+Level: 84  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Recover  
+- Blizzard  
+- Surf  
+- Thunder Wave  
+
+Koffing  
+Ability: No Ability  
+Level: 90  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Fire Blast  
+- Sludge  
+- Thunderbolt  
+- Explosion  
+
+Magneton  
+Ability: No Ability  
+Level: 76  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunderbolt  
+- Thunder  
+- Rest  
+- Thunder Wave

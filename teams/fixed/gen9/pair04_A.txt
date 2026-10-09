@@ -1,0 +1,60 @@
+Hippowdon (F) @ Leftovers  
+Ability: Sand Stream  
+Level: 82  
+Tera Type: Rock  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Stone Edge  
+- Curse  
+- Earthquake  
+- Slack Off  
+
+Rampardos (F) @ Life Orb  
+Ability: Sheer Force  
+Level: 90  
+Tera Type: Psychic  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Zen Headbutt  
+- Fire Punch  
+- Rock Slide  
+- Earthquake  
+
+Tsareena (F) @ Heavy-Duty Boots  
+Ability: Queenly Majesty  
+Level: 87  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Synthesis  
+- Power Whip  
+- Triple Axel  
+- U-turn  
+
+Enamorus (F) @ Leftovers  
+Ability: Cute Charm  
+Level: 79  
+Tera Type: Ground  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Moonblast  
+- Substitute  
+- Earth Power  
+- Calm Mind  
+
+Camerupt (F) @ Leftovers  
+Ability: Solid Rock  
+Level: 91  
+Tera Type: Water  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Stealth Rock  
+- Roar  
+- Overheat  
+
+Hatterene (F) @ Assault Vest  
+Ability: Magic Bounce  
+Level: 85  
+Tera Type: Fairy  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Psychic  
+- Draining Kiss  
+- Nuzzle  
+- Mystical Fire

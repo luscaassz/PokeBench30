@@ -35,6 +35,11 @@ class RLPolicyAgent(InstrumentedPlayer):
         except ImportError:
             _temporal_policy = None
 
+        try:
+            from . import wang_style as _wang_style  # noqa: F401
+        except ImportError:
+            _wang_style = None
+
         self.model_path = resolve_model_file(model_path)
         self.model_metadata = load_model_metadata(self.model_path)
         self.deterministic = bool(deterministic)
@@ -74,6 +79,26 @@ class RLPolicyAgent(InstrumentedPlayer):
                 device="auto",
             )
             self._value_based = False
+            self._dict_mask_policy = False
+
+        elif self.model_metadata.algorithm == "PPO":
+            try:
+                from stable_baselines3 import PPO
+            except ImportError as exc:
+                raise ImportError(
+                    "PPO inference requires stable-baselines3. "
+                    "Run: python -m pip install -r requirements.txt"
+                ) from exc
+
+            # Import custom v0.6 policy class before deserialization.
+            from . import wang_style as _wang_style  # noqa: F401
+
+            self.model = PPO.load(
+                str(self.model_path),
+                device="auto",
+            )
+            self._value_based = False
+            self._dict_mask_policy = True
 
         elif self.model_metadata.algorithm in {
             "MaskedDQN",
@@ -86,6 +111,7 @@ class RLPolicyAgent(InstrumentedPlayer):
                 device="auto",
             )
             self._value_based = True
+            self._dict_mask_policy = False
 
         else:
             raise ValueError(
@@ -169,6 +195,18 @@ class RLPolicyAgent(InstrumentedPlayer):
                     action_mask=mask,
                 )
             )
+        elif self._dict_mask_policy:
+            action, _ = self.model.predict(
+                {
+                    "observation": np.asarray(
+                        model_obs,
+                        dtype=np.float32,
+                    ),
+                    "action_mask": mask.astype(np.int8),
+                },
+                deterministic=self.deterministic,
+            )
+            action_index = int(np.asarray(action).item())
         else:
             action, _ = self.model.predict(
                 model_obs,
@@ -203,6 +241,8 @@ class RLPolicyAgent(InstrumentedPlayer):
                     f"{self.model_metadata.algorithm.lower()}_policy:"
                     f"{self.policy_spec.name}"
                 )
+            elif self._dict_mask_policy:
+                reason = f"ppo_masked_policy:{self.policy_spec.name}"
             else:
                 reason = f"maskable_ppo_policy:{self.policy_spec.name}"
 

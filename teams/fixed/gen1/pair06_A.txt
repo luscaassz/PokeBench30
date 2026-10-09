@@ -1,0 +1,55 @@
+Gloom  
+Ability: No Ability  
+Level: 83  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Sleep Powder  
+- Mega Drain  
+- Double-Edge  
+- Stun Spore  
+
+Growlithe  
+Ability: No Ability  
+Level: 91  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Agility  
+- Body Slam  
+- Fire Blast  
+- Flamethrower  
+
+Ditto  
+Ability: No Ability  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Transform  
+
+Aerodactyl  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Hyper Beam  
+- Fire Blast  
+- Sky Attack  
+- Double-Edge  
+
+Abra  
+Ability: No Ability  
+Level: 84  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Reflect  
+- Psychic  
+- Seismic Toss  
+- Thunder Wave  
+
+Voltorb  
+Ability: No Ability  
+Level: 88  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Explosion  
+- Thunder  
+- Thunder Wave  
+- Thunderbolt

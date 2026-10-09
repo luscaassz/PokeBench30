@@ -1,0 +1,59 @@
+Poliwrath  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Blizzard  
+- Surf  
+- Hypnosis  
+
+Farfetch’d  
+Ability: No Ability  
+Level: 78  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Swords Dance  
+- Slash  
+- Agility  
+- Body Slam  
+
+Venusaur  
+Ability: No Ability  
+Level: 73  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Razor Leaf  
+- Swords Dance  
+- Sleep Powder  
+- Body Slam  
+
+Magnemite  
+Ability: No Ability  
+Level: 88  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunderbolt  
+- Thunder Wave  
+- Double-Edge  
+- Thunder  
+
+Alakazam  
+Ability: No Ability  
+Level: 68  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunder Wave  
+- Reflect  
+- Psychic  
+- Recover  
+
+Tauros  
+Ability: No Ability  
+Level: 68  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Blizzard  
+- Hyper Beam  
+- Earthquake  
+- Body Slam

@@ -1,0 +1,59 @@
+Swampert (M) @ Leftovers  
+Ability: Damp  
+Level: 83  
+Tera Type: Poison  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Yawn  
+- Stealth Rock  
+- Knock Off  
+- Earthquake  
+
+Electivire (F) @ Life Orb  
+Ability: Motor Drive  
+Level: 84  
+Tera Type: Flying  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Supercell Slam  
+- Flamethrower  
+- Earthquake  
+- Ice Punch  
+
+Inteleon (F) @ Choice Specs  
+Ability: Torrent  
+Level: 81  
+Tera Type: Water  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Ice Beam  
+- Hydro Pump  
+- Scald  
+- U-turn  
+
+Leavanny (F) @ Loaded Dice  
+Ability: Chlorophyll  
+Level: 86  
+Tera Type: Ghost  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Bullet Seed  
+- Knock Off  
+- Sticky Web  
+- Triple Axel  
+
+Bisharp (M) @ Eviolite  
+Ability: Defiant  
+Level: 79  
+Tera Type: Flying  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- Sucker Punch  
+- Iron Head  
+- Throat Chop  
+
+Okidogi (M) @ Leftovers  
+Ability: Toxic Chain  
+Level: 77  
+Tera Type: Dark  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Drain Punch  
+- Gunk Shot  
+- Knock Off  
+- Bulk Up

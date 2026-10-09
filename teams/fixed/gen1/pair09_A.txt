@@ -1,0 +1,59 @@
+Spearow  
+Ability: No Ability  
+Level: 89  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Mirror Move  
+- Drill Peck  
+- Double-Edge  
+- Agility  
+
+Weepinbell  
+Ability: No Ability  
+Level: 80  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Razor Leaf  
+- Stun Spore  
+- Double-Edge  
+- Sleep Powder  
+
+Chansey  
+Ability: No Ability  
+Level: 68  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Ice Beam  
+- Soft-Boiled  
+- Thunder Wave  
+- Thunderbolt  
+
+Krabby  
+Ability: No Ability  
+Level: 89  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Swords Dance  
+- Blizzard  
+- Body Slam  
+- Crabhammer  
+
+Vulpix  
+Ability: No Ability  
+Level: 89  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Flamethrower  
+- Confuse Ray  
+- Fire Blast  
+
+Pinsir  
+Ability: No Ability  
+Level: 75  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Hyper Beam  
+- Swords Dance  
+- Submission

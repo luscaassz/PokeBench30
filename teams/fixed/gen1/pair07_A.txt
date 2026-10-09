@@ -1,0 +1,59 @@
+Dodrio  
+Ability: No Ability  
+Level: 73  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Agility  
+- Body Slam  
+- Drill Peck  
+- Hyper Beam  
+
+Poliwrath  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Blizzard  
+- Surf  
+- Amnesia  
+- Hypnosis  
+
+Wigglytuff  
+Ability: No Ability  
+Level: 76  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Blizzard  
+- Sing  
+- Thunder Wave  
+- Body Slam  
+
+Arbok  
+Ability: No Ability  
+Level: 78  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Earthquake  
+- Hyper Beam  
+- Glare  
+
+Diglett  
+Ability: No Ability  
+Level: 86  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Substitute  
+- Earthquake  
+- Rock Slide  
+- Slash  
+
+Electrode  
+Ability: No Ability  
+Level: 76  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Thunder Wave  
+- Thunderbolt  
+- Thunder  
+- Explosion

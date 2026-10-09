@@ -1,0 +1,57 @@
+Medicham @ Choice Scarf  
+Ability: Pure Power  
+Level: 86  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- High Jump Kick  
+- Trick  
+- Zen Headbutt  
+- Ice Punch  
+
+Togekiss @ Leftovers  
+Ability: Serene Grace  
+Level: 76  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Aura Sphere  
+- Air Slash  
+- Roost  
+- Nasty Plot  
+
+Drifblim @ Chesto Berry  
+Ability: Unburden  
+Level: 82  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Shadow Ball  
+- Calm Mind  
+- Rest  
+- Thunderbolt  
+
+Sunflora @ Choice Specs  
+Ability: Chlorophyll  
+Level: 99  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 2 Atk / 30 Def  
+- Hidden Power [Ice]  
+- Earth Power  
+- Sludge Bomb  
+- Leaf Storm  
+
+Mewtwo @ Life Orb  
+Ability: Pressure  
+Level: 70  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Signal Beam  
+- Calm Mind  
+- Aura Sphere  
+- Psychic  
+
+Primeape @ Life Orb  
+Ability: Vital Spirit  
+Level: 84  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Close Combat  
+- Stone Edge  
+- Bulk Up
