@@ -26,6 +26,7 @@ training:
   default_opponent: "type_aware"
   default_timesteps: 10000
   default_seed: 42
+  default_representation: "ubr-1.2"
   default_device: "auto"
   training_format_template: "gen{generation}randombattle"
 
@@ -39,3 +40,11 @@ research_policy:
   action_dim: 10
   generation_specific_gimmicks: false
   cross_generation_evaluation: "reserved for v0.6"
+
+multiseed:
+  representations: ["ubr-1.1", "ubr-1.2"]
+  seeds: [42, 123, 456, 789, 2026]
+  timesteps: 10000
+  training_opponent: "type_aware"
+  evaluation_opponents: ["random", "type_aware"]
+  repeats_per_leg: 10

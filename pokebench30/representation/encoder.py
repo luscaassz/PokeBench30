@@ -288,9 +288,19 @@ class UniversalStateEncoder:
         self,
         action_space: UniversalActionSpace | None = None,
         schema: FeatureSchema | None = None,
+        representation_version: str | None = None,
     ) -> None:
+        if schema is not None and representation_version is not None:
+            if schema.version != representation_version:
+                raise ValueError(
+                    "schema.version and representation_version disagree: "
+                    f"{schema.version!r} != {representation_version!r}."
+                )
+
         self.action_space = action_space or UniversalActionSpace()
-        self.schema = schema or build_feature_schema()
+        self.schema = schema or build_feature_schema(
+            representation_version or "ubr-1.2"
+        )
 
     @staticmethod
     def _generation(battle: Any) -> int:
@@ -473,7 +483,7 @@ class UniversalStateEncoder:
                 )
             )
 
-        # ---- UBR 1.2 battle-context extension ----
+        # ---- Optional UBR 1.2 battle-context extension ----
         own_side_conditions = _safe_attr(
             battle,
             "side_conditions",
@@ -487,28 +497,29 @@ class UniversalStateEncoder:
         weather = _safe_attr(battle, "weather", {}) or {}
         fields = _safe_attr(battle, "fields", {}) or {}
 
-        vector.extend(
-            _side_condition_features(own_side_conditions)
-        )
-        vector.extend(
-            _side_condition_features(opponent_side_conditions)
-        )
-        vector.extend(
-            _categorical_context_features(
-                weather,
-                WEATHER_FEATURES,
-                WEATHER_ALIASES,
+        if self.schema.version == "ubr-1.2":
+            vector.extend(
+                _side_condition_features(own_side_conditions)
             )
-        )
-        vector.extend(
-            _categorical_context_features(
-                fields,
-                FIELD_FEATURES,
-                FIELD_ALIASES,
+            vector.extend(
+                _side_condition_features(opponent_side_conditions)
             )
-        )
-        vector.extend(_volatile_features(active))
-        vector.extend(_volatile_features(opponent_active))
+            vector.extend(
+                _categorical_context_features(
+                    weather,
+                    WEATHER_FEATURES,
+                    WEATHER_ALIASES,
+                )
+            )
+            vector.extend(
+                _categorical_context_features(
+                    fields,
+                    FIELD_FEATURES,
+                    FIELD_ALIASES,
+                )
+            )
+            vector.extend(_volatile_features(active))
+            vector.extend(_volatile_features(opponent_active))
 
         array = np.asarray(vector, dtype=np.float32)
 
@@ -520,6 +531,7 @@ class UniversalStateEncoder:
             )
 
         metadata = {
+            "representation_version": self.schema.version,
             "generation": generation,
             "turn": int(turn),
             "battle_tag": str(

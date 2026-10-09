@@ -5,7 +5,10 @@ import hashlib
 import json
 
 
-FEATURE_SCHEMA_VERSION = "ubr-1.2"
+DEFAULT_FEATURE_SCHEMA_VERSION = "ubr-1.2"
+SUPPORTED_FEATURE_SCHEMA_VERSIONS = ("ubr-1.1", "ubr-1.2")
+# Backwards-compatible alias: the default non-ablation profile remains UBR 1.2.
+FEATURE_SCHEMA_VERSION = DEFAULT_FEATURE_SCHEMA_VERSION
 
 TYPE_NAMES = (
     "NORMAL", "FIRE", "WATER", "ELECTRIC", "GRASS", "ICE",
@@ -161,7 +164,13 @@ def _move_slot_features(prefix: str) -> list[str]:
     return names
 
 
-def build_feature_schema() -> FeatureSchema:
+def build_feature_schema(version: str = DEFAULT_FEATURE_SCHEMA_VERSION) -> FeatureSchema:
+    if version not in SUPPORTED_FEATURE_SCHEMA_VERSIONS:
+        raise ValueError(
+            f"Unsupported UBR version {version!r}. "
+            f"Supported: {SUPPORTED_FEATURE_SCHEMA_VERSIONS}."
+        )
+
     # ---- UBR 1.1-compatible 472-dimensional prefix ----
     names: list[str] = [
         "global.generation_norm",
@@ -197,30 +206,34 @@ def build_feature_schema() -> FeatureSchema:
         )
 
     # ---- UBR 1.2 battle-context extension: 46 features ----
-    for side in ("own_side", "opponent_side"):
+    # UBR 1.1 stops at the 472-dimensional core above. Keeping both profiles
+    # inside the same codebase lets v0.5.2 compare representations without
+    # changing the PPO implementation, reward, action space, or evaluator.
+    if version == "ubr-1.2":
+        for side in ("own_side", "opponent_side"):
+            names.extend(
+                f"battle_context.{side}.{feature}"
+                for feature in SIDE_CONDITION_FEATURES
+            )
+
         names.extend(
-            f"battle_context.{side}.{feature}"
-            for feature in SIDE_CONDITION_FEATURES
+            f"battle_context.weather.{feature}"
+            for feature in WEATHER_FEATURES
         )
 
-    names.extend(
-        f"battle_context.weather.{feature}"
-        for feature in WEATHER_FEATURES
-    )
-
-    names.extend(
-        f"battle_context.field.{feature}"
-        for feature in FIELD_FEATURES
-    )
-
-    for perspective in ("active_self", "active_opponent"):
         names.extend(
-            f"battle_context.{perspective}.effect.{feature}"
-            for feature in VOLATILE_EFFECT_FEATURES
+            f"battle_context.field.{feature}"
+            for feature in FIELD_FEATURES
         )
+
+        for perspective in ("active_self", "active_opponent"):
+            names.extend(
+                f"battle_context.{perspective}.effect.{feature}"
+                for feature in VOLATILE_EFFECT_FEATURES
+            )
 
     return FeatureSchema(
-        version=FEATURE_SCHEMA_VERSION,
+        version=version,
         feature_names=tuple(names),
         action_labels=ACTION_LABELS,
     )

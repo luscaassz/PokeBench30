@@ -309,6 +309,20 @@ class UniversalEncoderTests(unittest.TestCase):
         )
         self.assertTrue(report.ok, report.errors)
 
+
+    def test_ubr11_profile_encodes_472_features(self):
+        battle = DummyBattle(9)
+        encoder = UniversalStateEncoder(representation_version="ubr-1.1")
+        observation = encoder.encode(battle)
+
+        self.assertEqual(observation.vector.shape, (472,))
+        self.assertEqual(encoder.schema.version, "ubr-1.1")
+        report = ObservationValidator("ubr-1.1").validate(
+            observation,
+            battle=battle,
+        )
+        self.assertTrue(report.ok, report.errors)
+
     def test_ubr11_core_prefix_is_preserved(self):
         encoder = UniversalStateEncoder()
         schema = encoder.schema

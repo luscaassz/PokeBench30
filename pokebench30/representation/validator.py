@@ -24,8 +24,8 @@ class ValidationReport:
 
 
 class ObservationValidator:
-    def __init__(self) -> None:
-        self.schema = build_feature_schema()
+    def __init__(self, representation_version: str = "ubr-1.2") -> None:
+        self.schema = build_feature_schema(representation_version)
         self._indices = {
             name: index
             for index, name in enumerate(

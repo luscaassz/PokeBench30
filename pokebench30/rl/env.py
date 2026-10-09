@@ -32,10 +32,11 @@ from .reward import RewardConfig
 
 
 class UniversalRLSinglesEnv(SinglesEnv):
-    """poke-env SinglesEnv using PokéBench30 UBR 1.2.
+    """poke-env SinglesEnv using a selectable PokéBench30 UBR profile.
 
     Core interface:
-        observation: float32[518]
+        UBR 1.1 -> observation: float32[472]
+        UBR 1.2 -> observation: float32[518]
         action: Discrete(10)
 
     The actual PettingZoo/PokeEnv observation returned internally includes the
@@ -47,14 +48,18 @@ class UniversalRLSinglesEnv(SinglesEnv):
         self,
         *,
         reward_config: RewardConfig | None = None,
+        representation_version: str = "ubr-1.2",
         **kwargs: Any,
     ) -> None:
-        self.encoder = UniversalStateEncoder()
+        self.representation_version = representation_version
+        self.encoder = UniversalStateEncoder(
+            representation_version=representation_version
+        )
         self.reward_config = reward_config or RewardConfig()
 
         super().__init__(**kwargs)
 
-        schema = build_feature_schema()
+        schema = build_feature_schema(representation_version)
 
         # SinglesEnv 0.16.x builds its native generation-dependent action
         # spaces explicitly. Override them with PokéBench30's 10-action space.
@@ -157,7 +162,7 @@ class UniversalRLSinglesEnv(SinglesEnv):
 
             if isinstance(order, ForfeitBattleOrder):
                 raise ValueError(
-                    "Forfeit is intentionally outside UBR 1.2."
+                    "Forfeit is intentionally outside the UBR action space."
                 )
 
             if not isinstance(order, SingleBattleOrder):
@@ -180,7 +185,7 @@ class UniversalRLSinglesEnv(SinglesEnv):
             )
             if action is None:
                 raise ValueError(
-                    f"Order {order} cannot be represented by UBR 1.2."
+                    f"Order {order} cannot be represented by the selected UBR profile."
                 )
 
             return np.int64(action)

@@ -15,7 +15,7 @@ from .model_io import load_model_metadata, resolve_model_file, validate_model_me
 
 
 class RLPolicyAgent(InstrumentedPlayer):
-    """Inference-only MaskablePPO player using UBR 1.2."""
+    """Inference-only MaskablePPO player using the model's recorded UBR profile."""
 
     agent_name = "RLPolicyAgent"
 
@@ -39,9 +39,15 @@ class RLPolicyAgent(InstrumentedPlayer):
         self.model_metadata = load_model_metadata(self.model_path)
         self.deterministic = bool(deterministic)
         self.require_same_generation = bool(require_same_generation)
-        self.state_encoder = UniversalStateEncoder()
+        state_encoder = UniversalStateEncoder(
+            representation_version=self.model_metadata.observation_schema_version
+        )
 
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            *args,
+            state_encoder=state_encoder,
+            **kwargs,
+        )
 
         self.model = MaskablePPO.load(
             str(self.model_path),

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import argparse
 import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -114,8 +115,18 @@ class DummyBattle:
 
 
 def main():
-    encoder = UniversalStateEncoder()
-    validator = ObservationValidator()
+    parser = argparse.ArgumentParser(
+        description="Offline check for a PokéBench30 universal representation profile."
+    )
+    parser.add_argument(
+        "--ubr",
+        choices=["ubr-1.1", "ubr-1.2"],
+        default="ubr-1.2",
+    )
+    args = parser.parse_args()
+
+    encoder = UniversalStateEncoder(representation_version=args.ubr)
+    validator = ObservationValidator(args.ubr)
 
     print(
         f"[OK] UBR schema: {encoder.schema.version}"

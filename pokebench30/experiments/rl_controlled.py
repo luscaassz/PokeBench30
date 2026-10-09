@@ -271,7 +271,10 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         )
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = RESULTS_DIR / f"rl_controlled_{run_id}"
+    output_root = Path(args.output_root).resolve()
+    output_root.mkdir(parents=True, exist_ok=True)
+    run_name = args.run_name or f"rl_controlled_{run_id}"
+    run_dir = output_root / run_name
     run_dir.mkdir(parents=True, exist_ok=False)
 
     all_battles: list[dict] = []
@@ -375,6 +378,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         "generation": generation,
         "model_path": str(model_path),
         "model_metadata": model_meta.to_dict(),
+        "representation_version": model_meta.observation_schema_version,
         "opponent": args.opponent,
         "pairs": selected_pairs,
         "repeats_per_leg": args.repeats,
@@ -438,6 +442,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--stochastic", action="store_true")
     parser.add_argument("--no-action-log", action="store_true")
     parser.add_argument("--no-plots", action="store_true")
+    parser.add_argument(
+        "--output-root",
+        default=str(RESULTS_DIR),
+        help="Directory where this evaluation run is written.",
+    )
+    parser.add_argument(
+        "--run-name",
+        default=None,
+        help="Optional deterministic run directory name (used by multi-seed runner).",
+    )
     return parser
 
 

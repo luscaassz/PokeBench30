@@ -1,96 +1,52 @@
 {
   "project": "PokeBench30",
-  "version": "0.5.1",
-  "milestone": "UBR 1.2 battle-context ablation",
-  "representation": {
-    "schema_version": "ubr-1.2",
-    "schema_sha256": "d4b3858aab3a1c3bb1e17d9f34becf93814be05bfc949d52023651035f20e4c3",
-    "observation_dim": 518,
-    "action_dim": 10,
-    "ubr_1_1_prefix_dim": 472,
-    "context_extension_dim": 46,
-    "ubr_1_1_prefix_verified_exact": true
+  "version": "0.5.2",
+  "milestone": "Multi-seed UBR 1.1 vs UBR 1.2 MaskablePPO ablation",
+  "base": "v0.5.1",
+  "supported_representations": {
+    "ubr-1.1": {
+      "observation_dim": 472,
+      "action_dim": 10,
+      "sha256": "276327ddc0883116305f6d564cb34ba43d7cf2eff8294185aeb9587c4485a20e"
+    },
+    "ubr-1.2": {
+      "observation_dim": 518,
+      "action_dim": 10,
+      "sha256": "d4b3858aab3a1c3bb1e17d9f34becf93814be05bfc949d52023651035f20e4c3"
+    }
   },
-  "context_extension": {
-    "side_conditions_per_side": [
-      "stealth_rock",
-      "spikes",
-      "toxic_spikes",
-      "sticky_web",
-      "reflect",
-      "light_screen",
-      "aurora_veil",
-      "tailwind"
-    ],
-    "weather": [
-      "rain",
-      "sun",
-      "sandstorm",
-      "hail",
-      "snow",
-      "primordial_sea",
-      "desolate_land",
-      "delta_stream"
-    ],
-    "field": [
-      "electric_terrain",
-      "grassy_terrain",
-      "misty_terrain",
-      "psychic_terrain",
-      "trick_room",
-      "gravity"
-    ],
-    "active_effects_per_side": [
-      "taunt",
-      "encore",
-      "substitute",
-      "confusion",
-      "leech_seed",
-      "disable",
-      "yawn",
-      "protect"
-    ]
-  },
-  "v0_5_reference": {
+  "default_multiseed": {
     "generation": 9,
-    "algorithm": "MaskablePPO",
-    "requested_timesteps": 10000,
-    "seed": 42,
-    "opponent_training": "type_aware",
-    "ubr": "ubr-1.1",
-    "random_eval": {
-      "wins": 45,
-      "losses": 15,
-      "draws": 0,
-      "mirror_score": 0.75
-    },
-    "type_aware_eval": {
-      "wins": 5,
-      "losses": 55,
-      "draws": 0,
-      "mirror_score": 0.083
-    },
-    "note": "Single-seed reference, retained for the UBR 1.1 vs 1.2 ablation."
+    "seeds": [
+      42,
+      123,
+      456,
+      789,
+      2026
+    ],
+    "representations": [
+      "ubr-1.1",
+      "ubr-1.2"
+    ],
+    "timesteps_per_model": 10000,
+    "training_opponent": "type_aware",
+    "evaluation_opponents": [
+      "random",
+      "type_aware"
+    ],
+    "repeats_per_leg": 10,
+    "models": 10,
+    "controlled_evaluations": 20,
+    "controlled_battles": 1200
   },
   "validation": {
-    "python_files_checked": 54,
+    "python_files_checked": 57,
     "syntax_errors": 0,
-    "unit_tests": {
-      "passed": 34,
-      "failed": 0
-    },
-    "offline_representation_check": "PASS",
-    "live_showdown_validation": "PENDING_USER_ENVIRONMENT",
-    "reason": "Artifact build runtime does not provide poke-env/Gymnasium/SB3."
+    "unit_tests": "38/38 PASS",
+    "offline_ubr_1_1": "PASS",
+    "offline_ubr_1_2": "PASS",
+    "aggregate_writer_smoke_test": "PASS",
+    "live_showdown_multiseed": "not run in artifact build environment; must be executed on user setup"
   },
-  "dependency_changes": [
-    "tensorboard>=2.17 added after v0.5 live training exposed the missing dependency"
-  ],
-  "intended_next_gate": [
-    "Run fixed-team six-battle universal-state smoke test on Gen I/IV/IX.",
-    "Require strict UBR validation with zero structural/context errors.",
-    "Train Gen IX MaskablePPO for 10k requested timesteps with seed 42.",
-    "Evaluate 60 battles vs RandomAgent and 60 vs TypeAwareAgent.",
-    "Compare normalized mirrored score against the stored UBR 1.1 reference."
-  ]
+  "important_limitation": "PPO/model seeds are controlled, but Pokemon Showdown battle-event RNG is not paired/common-random-number controlled across representation arms."
 }

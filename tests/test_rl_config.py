@@ -3,37 +3,31 @@ from pathlib import Path
 
 import yaml
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class RLConfigTests(unittest.TestCase):
     def test_rl_baseline_contract(self):
         config = yaml.safe_load(
-            (ROOT / "config" / "rl_baseline.yaml").read_text(
-                encoding="utf-8"
-            )
+            (ROOT / "config" / "rl_baseline.yaml").read_text(encoding="utf-8")
         )
+        self.assertEqual(config["algorithm"]["name"], "MaskablePPO")
+        self.assertEqual(config["training"]["default_representation"], "ubr-1.2")
+        self.assertEqual(config["research_policy"]["universal_representation"], "ubr-1.2")
+        self.assertEqual(config["research_policy"]["observation_dim"], 518)
+        self.assertEqual(config["research_policy"]["action_dim"], 10)
+        self.assertTrue(config["evaluation"]["require_same_generation"])
 
-        self.assertEqual(
-            config["algorithm"]["name"],
-            "MaskablePPO",
+    def test_multiseed_defaults(self):
+        config = yaml.safe_load(
+            (ROOT / "config" / "rl_baseline.yaml").read_text(encoding="utf-8")
         )
-        self.assertEqual(
-            config["research_policy"]["universal_representation"],
-            "ubr-1.2",
-        )
-        self.assertEqual(
-            config["research_policy"]["observation_dim"],
-            518,
-        )
-        self.assertEqual(
-            config["research_policy"]["action_dim"],
-            10,
-        )
-        self.assertTrue(
-            config["evaluation"]["require_same_generation"]
-        )
+        block = config["multiseed"]
+        self.assertEqual(block["representations"], ["ubr-1.1", "ubr-1.2"])
+        self.assertEqual(block["seeds"], [42, 123, 456, 789, 2026])
+        self.assertEqual(block["timesteps"], 10000)
+        self.assertEqual(block["evaluation_opponents"], ["random", "type_aware"])
+        self.assertEqual(block["repeats_per_leg"], 10)
 
 
 if __name__ == "__main__":

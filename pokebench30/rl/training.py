@@ -14,7 +14,10 @@ from pokebench30.agents.max_damage_agent import MaxDamageAgent
 from pokebench30.agents.random_agent import RandomAgent
 from pokebench30.agents.switch_aware_agent import SwitchAwareAgent
 from pokebench30.agents.type_aware_agent import TypeAwareAgent
-from pokebench30.representation.schema import build_feature_schema
+from pokebench30.representation.schema import (
+    SUPPORTED_FEATURE_SCHEMA_VERSIONS,
+    build_feature_schema,
+)
 from .model_io import ModelMetadata
 from .reward import RewardConfig
 
@@ -82,10 +85,15 @@ def train(args: argparse.Namespace) -> Path:
 
     generation = int(args.generation)
     battle_format = f"gen{generation}randombattle"
+    representation_version = str(args.ubr)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    default_run_name = (
+        f"maskable_ppo_{representation_version.replace('-', '').replace('.', '_')}_"
+        f"gen{generation}_seed{int(args.seed)}_{run_id}"
+    )
     run_dir = Path(args.output_root).resolve() / (
-        f"maskable_ppo_gen{generation}_{run_id}"
+        args.run_name or default_run_name
     )
     run_dir.mkdir(parents=True, exist_ok=False)
     (run_dir / "checkpoints").mkdir(exist_ok=True)
@@ -94,6 +102,7 @@ def train(args: argparse.Namespace) -> Path:
     base_env = UniversalRLSinglesEnv(
         battle_format=battle_format,
         reward_config=reward,
+        representation_version=representation_version,
         log_level=args.log_level,
         open_timeout=None,
     )
@@ -153,7 +162,7 @@ def train(args: argparse.Namespace) -> Path:
     finally:
         env.close()
 
-    schema = build_feature_schema()
+    schema = build_feature_schema(representation_version)
 
     metadata = ModelMetadata(
         project_version=__version__,
@@ -178,7 +187,7 @@ def train(args: argparse.Namespace) -> Path:
         },
         notes=[
             "Training uses random battles for team diversity.",
-            "The policy receives only UBR 1.2 observation features.",
+            f"The policy receives only {representation_version} observation features.",
             "Illegal actions are excluded by MaskablePPO action masks.",
             "Generation-specific gimmicks are intentionally outside the v0.5 action space.",
             "Cross-generation evaluation is reserved for PokéBench30 v0.6.",
@@ -195,6 +204,7 @@ def train(args: argparse.Namespace) -> Path:
             {
                 "generation": generation,
                 "battle_format": battle_format,
+                "representation_version": representation_version,
                 "opponent": args.opponent,
                 "timesteps": int(args.timesteps),
                 "seed": int(args.seed),
@@ -212,7 +222,8 @@ def train(args: argparse.Namespace) -> Path:
         encoding="utf-8",
     )
 
-    print("\n=== PokéBench30 v0.5 training complete ===")
+    print("\n=== PokéBench30 v0.5.2 training complete ===")
+    print(f"Representation: {representation_version} ({schema.observation_dim} features)")
     print(f"Model: {run_dir / 'maskable_ppo.zip'}")
     print(f"Metadata: {run_dir / 'metadata.json'}")
     return run_dir
@@ -236,6 +247,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--opponent",
         choices=sorted(OPPONENTS),
         default=defaults.get("default_opponent", "type_aware"),
+    )
+    parser.add_argument(
+        "--ubr",
+        choices=list(SUPPORTED_FEATURE_SCHEMA_VERSIONS),
+        default=defaults.get("default_representation", "ubr-1.2"),
+        help="Representation profile used for training (v0.5.2 ablation support).",
     )
     parser.add_argument(
         "--timesteps",
@@ -283,6 +300,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-root",
         default=str(DEFAULT_MODELS_DIR),
+    )
+    parser.add_argument(
+        "--run-name",
+        default=None,
+        help="Optional deterministic output directory name (used by multi-seed runner).",
     )
     return parser
 

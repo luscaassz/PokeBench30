@@ -1,5 +1,4 @@
 import tempfile
-from dataclasses import replace
 import unittest
 from pathlib import Path
 import json
@@ -15,10 +14,10 @@ from pokebench30.rl.reward import RewardConfig
 
 
 class RLModelIOTests(unittest.TestCase):
-    def make_metadata(self, generation=9):
-        schema = build_feature_schema()
+    def make_metadata(self, generation=9, representation="ubr-1.2"):
+        schema = build_feature_schema(representation)
         return ModelMetadata(
-            project_version="0.5.1",
+            project_version="0.5.2",
             algorithm="MaskablePPO",
             training_generation=generation,
             training_battle_format=f"gen{generation}randombattle",
@@ -34,24 +33,18 @@ class RLModelIOTests(unittest.TestCase):
             notes=[],
         )
 
-    def test_current_schema_is_accepted(self):
-        validate_model_metadata(
-            self.make_metadata(9),
-            generation=9,
-        )
+    def test_ubr12_is_accepted(self):
+        validate_model_metadata(self.make_metadata(9, "ubr-1.2"), generation=9)
 
-    def test_legacy_ubr11_metadata_is_rejected(self):
-        legacy = replace(
-            self.make_metadata(9),
-            observation_schema_version="ubr-1.1",
-            observation_schema_sha256="legacy",
-            observation_dim=472,
-        )
+    def test_ubr11_is_accepted(self):
+        validate_model_metadata(self.make_metadata(9, "ubr-1.1"), generation=9)
+
+    def test_expected_profile_mismatch_is_rejected(self):
         with self.assertRaises(ValueError):
             validate_model_metadata(
-                legacy,
+                self.make_metadata(9, "ubr-1.1"),
                 generation=9,
-                require_same_generation=True,
+                expected_representation_version="ubr-1.2",
             )
 
     def test_cross_generation_is_rejected_in_v05(self):
@@ -63,36 +56,22 @@ class RLModelIOTests(unittest.TestCase):
             )
 
     def test_metadata_round_trip(self):
-        metadata = self.make_metadata(9)
-
+        metadata = self.make_metadata(9, "ubr-1.1")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "metadata.json").write_text(
-                json.dumps(metadata.to_dict()),
-                encoding="utf-8",
+                json.dumps(metadata.to_dict()), encoding="utf-8"
             )
-            loaded = load_model_metadata(
-                root / "maskable_ppo.zip"
-            )
-
-        self.assertEqual(
-            loaded.observation_schema_sha256,
-            metadata.observation_schema_sha256,
-        )
-        self.assertEqual(
-            loaded.training_generation,
-            9,
-        )
+            loaded = load_model_metadata(root / "maskable_ppo.zip")
+        self.assertEqual(loaded.observation_schema_sha256, metadata.observation_schema_sha256)
+        self.assertEqual(loaded.observation_schema_version, "ubr-1.1")
 
     def test_resolve_model_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             model = root / "maskable_ppo.zip"
             model.write_bytes(b"placeholder")
-            self.assertEqual(
-                resolve_model_file(root),
-                model.resolve(),
-            )
+            self.assertEqual(resolve_model_file(root), model.resolve())
 
     def test_reward_defaults(self):
         reward = RewardConfig()

@@ -77,10 +77,21 @@ def validate_model_metadata(
     *,
     generation: int | None = None,
     require_same_generation: bool = True,
+    expected_representation_version: str | None = None,
 ) -> None:
-    schema = build_feature_schema()
+    schema = build_feature_schema(metadata.observation_schema_version)
 
     errors: list[str] = []
+
+    if (
+        expected_representation_version is not None
+        and metadata.observation_schema_version != expected_representation_version
+    ):
+        errors.append(
+            "representation mismatch: "
+            f"model={metadata.observation_schema_version}, "
+            f"expected={expected_representation_version}"
+        )
 
     if metadata.observation_schema_version != schema.version:
         errors.append(

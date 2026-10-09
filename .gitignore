@@ -16,3 +16,6 @@ models/*
 !models/.gitkeep
 results/*
 !results/.gitkeep
+
+multiseed_results/*
+!multiseed_results/.gitkeep
