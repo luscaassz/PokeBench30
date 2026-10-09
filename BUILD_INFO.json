@@ -1,83 +1,85 @@
 {
   "project": "PokeBench30",
-  "version": "0.5.3",
-  "milestone": "Training Budget Study",
-  "base": "PokéBench30 v0.5.2",
-  "study": {
-    "representations": [
-      "ubr-1.1",
-      "ubr-1.2"
-    ],
-    "seeds": [
-      42,
-      123,
-      456,
-      789,
-      2026
-    ],
-    "requested_budgets": [
-      10000,
-      50000
-    ],
-    "default_n_steps": 2048,
-    "typical_effective_rollout_totals": {
-      "10000_requested": 10240,
-      "50000_requested": 51200
-    },
-    "training_opponent": "type_aware",
-    "evaluation_opponents": [
-      "random",
-      "type_aware"
-    ],
-    "repeats_per_leg": 10
-  },
-  "python_files_checked": 61,
-  "syntax_errors": [],
-  "dependency_light_tests": [
-    {
-      "file": "test_budget_study.py",
-      "returncode": 0,
-      "stdout": "",
-      "stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n.\n----------------------------------------------------------------------\nRan 1 test in 0.487s\n\nOK\n"
-    },
-    {
-      "file": "test_rl_config.py",
-      "returncode": 0,
-      "stdout": "",
-      "stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n...\n----------------------------------------------------------------------\nRan 3 tests in 0.008s\n\nOK\n"
-    },
-    {
-      "file": "test_representation_schema.py",
-      "returncode": 0,
-      "stdout": "",
-      "stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n...\n----------------------------------------------------------------------\nRan 3 tests in 0.001s\n\nOK\n"
-    },
-    {
-      "file": "test_mirrored_metrics.py",
-      "returncode": 0,
-      "stdout": "",
-      "stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n...\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n"
-    },
-    {
-      "file": "test_metrics.py",
-      "returncode": 0,
-      "stdout": "",
-      "stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n....\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\nOK\n"
-    }
+  "version": "0.5.4",
+  "milestone": "Curriculum Training Study",
+  "base": "PokéBench30 v0.5.3",
+  "scientific_question": "At equal 300k nominal budget, does training-opponent curriculum improve final policy performance relative to direct TypeAware training?",
+  "representation": "ubr-1.2",
+  "observation_dim": 518,
+  "action_dim": 10,
+  "seeds": [
+    42,
+    123,
+    456,
+    789,
+    2026
   ],
+  "total_timesteps_per_track_nominal": 300000,
+  "checkpoint_interval_nominal": 50000,
+  "typical_actual_timesteps_per_track_with_default_n_steps": 307200,
+  "evaluation_opponents": [
+    "random",
+    "max_damage",
+    "type_aware"
+  ],
+  "regimes": {
+    "direct_type_aware": [
+      {
+        "opponent": "type_aware",
+        "timesteps": 300000
+      }
+    ],
+    "random_to_type_aware": [
+      {
+        "opponent": "random",
+        "timesteps": 100000
+      },
+      {
+        "opponent": "type_aware",
+        "timesteps": 200000
+      }
+    ],
+    "progressive": [
+      {
+        "opponent": "random",
+        "timesteps": 100000
+      },
+      {
+        "opponent": "max_damage",
+        "timesteps": 100000
+      },
+      {
+        "opponent": "type_aware",
+        "timesteps": 100000
+      }
+    ],
+    "random_only": [
+      {
+        "opponent": "random",
+        "timesteps": 300000
+      }
+    ]
+  },
+  "regime_totals": {
+    "direct_type_aware": 300000,
+    "random_to_type_aware": 300000,
+    "progressive": 300000,
+    "random_only": 300000
+  },
+  "checkpoint_repeats_per_leg": 1,
+  "final_repeats_per_leg": 10,
+  "python_files_checked": 65,
+  "syntax_errors": [],
+  "dependency_light_test_returncode": 0,
+  "dependency_light_test_stdout": "",
+  "dependency_light_test_stderr": "..................\n----------------------------------------------------------------------\nRan 18 tests in 0.258s\n\nOK\n",
   "schema_check_returncode": 0,
-  "schema_check_stdout": "ubr-1.1 472 10 276327ddc0883116305f6d564cb34ba43d7cf2eff8294185aeb9587c4485a20e\nubr-1.2 518 10 d4b3858aab3a1c3bb1e17d9f34becf93814be05bfc949d52023651035f20e4c3\n",
-  "schema_check_stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n",
-  "live_validation_status": "Not run in the artifact build runtime. Full PPO + Pokémon Showdown validation must be performed in the user's Windows environment.",
-  "new_features": [
-    "10k vs 50k budget-study automation",
-    "optional import of compatible completed v0.5.2 10k baseline",
-    "fresh-from-scratch 50k training condition",
-    "safe resume",
-    "budget-level aggregation",
-    "seed-level budget gains",
-    "representation comparison within each budget",
-    "descriptive representation-by-budget interaction",
-    "budget performance plots"
+  "schema_check_stdout": "ubr-1.2 518 10 d4b3858aab3a1c3bb1e17d9f34becf93814be05bfc949d52023651035f20e4c3\n",
+  "live_validation_status": "Not run in the artifact build runtime because poke-env/Pokémon Showdown are unavailable here. Run --smoke in the user environment first.",
+  "design_notes": [
+    "UBR 1.2, reward, PPO architecture and constant learning rate are held fixed.",
+    "Only the training-opponent sequence changes across regimes.",
+    "Intermediate checkpoint evaluations are diagnostic; final 300k evaluations are primary.",
+    "Resume preserves saved PPO model/optimizer state but Showdown RNG is not common-random-number controlled."
   ]
 }

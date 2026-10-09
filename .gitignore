@@ -21,3 +21,5 @@ multiseed_results/*
 !multiseed_results/.gitkeep
 budget_results/*
 !budget_results/.gitkeep
+curriculum_results/*
+!curriculum_results/.gitkeep

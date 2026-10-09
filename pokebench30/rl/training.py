@@ -222,7 +222,7 @@ def train(args: argparse.Namespace) -> Path:
         encoding="utf-8",
     )
 
-    print("\n=== PokéBench30 v0.5.2 training complete ===")
+    print("\n=== PokéBench30 RL training complete ===")
     print(f"Representation: {representation_version} ({schema.observation_dim} features)")
     print(f"Model: {run_dir / 'maskable_ppo.zip'}")
     print(f"Metadata: {run_dir / 'metadata.json'}")
@@ -235,7 +235,7 @@ def build_parser() -> argparse.ArgumentParser:
     algo = config["algorithm"]
 
     parser = argparse.ArgumentParser(
-        description="Train the PokéBench30 v0.5 MaskablePPO baseline."
+        description="Train a PokéBench30 MaskablePPO policy."
     )
     parser.add_argument(
         "--generation",

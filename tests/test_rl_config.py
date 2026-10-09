@@ -42,6 +42,29 @@ class RLConfigTests(unittest.TestCase):
         self.assertEqual(block["evaluation_opponents"], ["random", "type_aware"])
         self.assertEqual(block["repeats_per_leg"], 10)
 
+    def test_curriculum_study_defaults(self):
+        config = yaml.safe_load(
+            (ROOT / "config" / "rl_baseline.yaml").read_text(encoding="utf-8")
+        )
+        block = config["curriculum_study"]
+        self.assertEqual(block["representation"], "ubr-1.2")
+        self.assertEqual(block["seeds"], [42, 123, 456, 789, 2026])
+        self.assertEqual(block["total_timesteps"], 300000)
+        self.assertEqual(block["checkpoint_interval"], 50000)
+        self.assertEqual(
+            block["evaluation_opponents"],
+            ["random", "max_damage", "type_aware"],
+        )
+        self.assertEqual(
+            list(block["regimes"]),
+            [
+                "direct_type_aware",
+                "random_to_type_aware",
+                "progressive",
+                "random_only",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

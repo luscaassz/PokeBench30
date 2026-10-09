@@ -58,3 +58,24 @@ budget_study:
   training_opponent: "type_aware"
   evaluation_opponents: ["random", "type_aware"]
   repeats_per_leg: 10
+
+curriculum_study:
+  representation: "ubr-1.2"
+  seeds: [42, 123, 456, 789, 2026]
+  total_timesteps: 300000
+  checkpoint_interval: 50000
+  checkpoint_repeats_per_leg: 1
+  final_repeats_per_leg: 10
+  evaluation_opponents: ["random", "max_damage", "type_aware"]
+  regimes:
+    direct_type_aware:
+      - {opponent: "type_aware", timesteps: 300000}
+    random_to_type_aware:
+      - {opponent: "random", timesteps: 100000}
+      - {opponent: "type_aware", timesteps: 200000}
+    progressive:
+      - {opponent: "random", timesteps: 100000}
+      - {opponent: "max_damage", timesteps: 100000}
+      - {opponent: "type_aware", timesteps: 100000}
+    random_only:
+      - {opponent: "random", timesteps: 300000}

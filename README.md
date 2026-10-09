@@ -1,211 +1,291 @@
-# PokéBench30 v0.5.3 — Training Budget Study
+# PokéBench30 v0.5.4 — Curriculum Training Study
 
-A v0.5.3 mantém as representações e o algoritmo da v0.5.2 e muda apenas a
-pergunta experimental.
-
-Na v0.5.2, com cinco seeds e 10k timesteps, obtivemos:
+A v0.5.4 parte dos resultados das versões anteriores:
 
 ```text
-                    Random      TypeAware
-UBR 1.1             0.7033        0.0600
-UBR 1.2             0.7033        0.0600
+v0.5      PPO baseline
+v0.5.1    UBR 1.2 + battle context
+v0.5.2    5-seed UBR 1.1 × UBR 1.2 at 10k
+v0.5.3    10k × 50k training-budget study
+v0.5.4    curriculum-training study at 300k
 ```
 
-A v0.5.3 pergunta se a UBR 1.2 precisa de mais experiência para aproveitar o
-battle context adicional.
+Na v0.5.3, aumentar apenas o budget de 10k para 50k melhorou o reward interno, mas não produziu melhora consistente no benchmark externo. Trabalhos anteriores de RL em Pokémon usam escalas maiores e/ou adversários de treinamento mais simples, self-play ou curriculum.
 
-## Representações
+A v0.5.4 testa uma única pergunta:
+
+> **Com o mesmo budget total de 300k, a sequência dos adversários de treinamento muda a qualidade da policy final?**
+
+## O que permanece fixo
 
 ```text
-UBR 1.1: 472 observações, 10 ações
-UBR 1.2: 518 observações, 10 ações
+Generation:       IX
+Representation:   UBR 1.2
+Observation dim:  518
+Action dim:       10
+Algorithm:        MaskablePPO
+Reward:           igual à v0.5-v0.5.3
+Learning rate:    3e-4 constante
+PPO architecture: igual à v0.5-v0.5.3
+Seeds:            42, 123, 456, 789, 2026
 ```
 
-Nenhuma feature ou ação foi alterada nesta versão.
+Não alteramos reward, UBR ou arquitetura nesta versão para não confundir o efeito do curriculum.
 
-Com o default `n_steps=2048`, os budgets são valores solicitados ao PPO.
-O Stable-Baselines3 encerra após rollouts completos, então normalmente:
+## Regimes padrão
+
+### A — Direct
 
 ```text
-10.000 solicitados → 10.240 executados
-50.000 solicitados → 51.200 executados
+300k TypeAware
 ```
 
-O `metadata.json` e as tabelas registram o **budget solicitado**, enquanto os
-logs do PPO mostram o total efetivamente coletado.
-
-## Estudo padrão
+### B — Simple curriculum
 
 ```text
-Budgets:
-10k
+100k Random
+200k TypeAware
+```
+
+### C — Progressive curriculum
+
+```text
+100k Random
+100k MaxDamage
+100k TypeAware
+```
+
+### D — Random-only control
+
+```text
+300k Random
+```
+
+## Checkpoints
+
+Cada trajetória salva modelos em:
+
+```text
 50k
-
-Representações:
-UBR 1.1
-UBR 1.2
-
-Seeds:
-42
-123
-456
-789
-2026
-
-Treino:
-Gen IX
-MaskablePPO
-vs TypeAware
-
-Avaliação:
-vs Random
-vs TypeAware
-3 fixed pairs
-AB/BA mirrored
-10 repeats por leg
+100k
+150k
+200k
+250k
+300k
 ```
 
-## Novos arquivos
+Os checkpoints intermediários são avaliados de forma diagnóstica contra:
 
 ```text
-run_budget_study.py
-pokebench30/rl/budget_study.py
-scripts/check_budget_study_setup.py
-docs/TRAINING_BUDGET_v0.5.3.md
-docs/V0_5_2_RESULTS.md
+Random
+MaxDamage
+TypeAware
 ```
+
+Por padrão, cada avaliação intermediária usa apenas 1 repetição por leg:
+
+```text
+3 pares × AB/BA × 1 = 6 batalhas/adversário
+```
+
+O checkpoint final de 300k usa o protocolo completo:
+
+```text
+3 pares × AB/BA × 10 = 60 batalhas/adversário
+```
+
+Assim, a curva intermediária serve para visualizar aprendizado; a comparação principal entre regimes deve usar a avaliação final.
 
 ## Instalação
 
 ```powershell
+cd C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.4
 python -m pip install -r requirements.txt
 ```
 
-Prepare o fixed-team pool, se necessário:
+Se o fixed-team pool ainda não existir nessa pasta:
 
 ```powershell
 python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
 ```
 
-## Reutilizar seu experimento v0.5.2
-
-Essa é a opção recomendada, pois você já executou os 10 modelos de 10k.
-
-No seu caso, o experimento anterior foi:
-
-```text
-PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322
-```
-
-Primeiro valide a compatibilidade:
+Confira o setup:
 
 ```powershell
-python scripts\check_budget_study_setup.py --baseline-experiment-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322"
+python scripts\check_curriculum_setup.py
 ```
 
-Depois execute:
-
-```powershell
-python run_budget_study.py --baseline-experiment-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322"
-```
-
-Isso importa os resultados de 10k e executa somente os dez modelos novos de
-50k.
-
-## Carga nova de trabalho
-
-Com baseline 10k importada:
+O esperado inclui:
 
 ```text
-10 modelos novos
-500.000 timesteps novos no total
+[OK] PokéBench30 version: 0.5.4
+[OK] Representation: ubr-1.2 | obs=518 | actions=10
+[OK] Total timesteps/regime: 300000
+[OK] Checkpoint interval: 50000
+[OK] Curriculum-study setup is ready.
+```
 
-10 modelos
-× 2 adversários
-× 60 batalhas
+## Primeiro: smoke test
+
+Antes das milhões de interações do estudo completo:
+
+```powershell
+python run_curriculum_study.py --smoke
+```
+
+O smoke executa os quatro regimes com:
+
+```text
+1 seed
+6,144 timesteps/regime
+2,048-step checkpoints
+1 repeat/leg
+```
+
+Ele serve apenas para validar treinamento, troca de adversário, salvamento, resume, avaliação e agregação. **Não interprete seus scores cientificamente.**
+
+## Estudo completo
+
+```powershell
+python run_curriculum_study.py
+```
+
+Carga padrão:
+
+```text
+4 regimes
+× 5 seeds
+× 300k nominal timesteps
 =
-1.200 novas batalhas de avaliação
+20 trajetórias de PPO
+6.0M nominal training steps
 ```
 
-## Smoke test
+Como PPO usa rollouts completos de `n_steps=2048`, cada segmento nominal de 50k normalmente executa 51,200 steps. Portanto cada trajetória tende a terminar perto de 307,200 steps reais.
 
-Antes do estudo completo, você pode testar a automação sem importar baseline:
-
-```powershell
-python run_budget_study.py --budgets 1024 2048 --seeds 42 123 --repeats 1 --n-steps 256 --batch-size 64
-```
-
-Não use esse smoke como resultado científico.
-
-## Estrutura de saída
+Avaliação aproximada:
 
 ```text
-budget_results/
-└── budget_gen9_YYYYMMDD_HHMMSS/
+por modelo:
+5 checkpoints intermediários × 3 adversários × 6 batalhas = 90
+checkpoint final × 3 adversários × 60 batalhas             = 180
+                                                          -------
+                                                            270
+
+20 modelos × 270 = 5,400 batalhas de avaliação
+```
+
+Além disso há as batalhas usadas para gerar experiência durante o treinamento.
+
+## Rodar somente os três regimes principais
+
+Se quiser deixar o `random_only` para depois:
+
+```powershell
+python run_curriculum_study.py --regimes direct_type_aware random_to_type_aware progressive
+```
+
+## Estrutura de resultados
+
+```text
+curriculum_results/
+└── curriculum_gen9_YYYYMMDD_HHMMSS/
     ├── study_manifest.json
-    ├── imported_baseline/
-    ├── budget_50000/
-    │   ├── models/
-    │   └── evaluations/
+    ├── runs/
+    │   ├── direct_type_aware/
+    │   │   └── seed_42/
+    │   │       ├── checkpoints/
+    │   │       │   ├── step_050000/
+    │   │       │   ├── ...
+    │   │       │   └── step_300000/
+    │   │       ├── evaluations/
+    │   │       ├── training_logs/
+    │   │       └── tensorboard/
+    │   └── ...
     └── aggregate/
-        ├── training_summary.csv
-        ├── per_model_budget_results.csv
-        ├── aggregate_summary.csv
-        ├── representation_paired_differences.csv
-        ├── representation_comparison_by_budget.csv
-        ├── budget_gain_by_seed.csv
-        ├── budget_comparison.csv
-        ├── budget_representation_interaction.csv
+        ├── learning_curve.csv
+        ├── aggregate_learning_curve.csv
+        ├── training_progress.csv
+        ├── final_summary.csv
+        ├── paired_regime_differences.csv
+        ├── curriculum_comparison.csv
         └── figures/
 ```
 
-## Arquivo principal para a pergunta da v0.5.3
+## Arquivos mais importantes
+
+### `final_summary.csv`
+
+Performance final média de cada regime em 300k.
+
+### `paired_regime_differences.csv`
+
+Para cada seed:
 
 ```text
-budget_representation_interaction.csv
+score curriculum - score direct_type_aware
 ```
 
-Ele calcula descritivamente:
+### `curriculum_comparison.csv`
+
+Principal tabela de comparação:
 
 ```text
-ganho UBR 1.2 de 10k → 50k
--
-ganho UBR 1.1 de 10k → 50k
+regime
+opponent
+paired_seeds
+mean_direct
+mean_regime
+mean_difference_vs_direct
+sample_sd_difference
 ```
 
-Se for positivo, a UBR 1.2 melhorou mais com orçamento adicional; se for
-negativo, a UBR 1.1 melhorou mais.
+### `aggregate_learning_curve.csv`
 
-Com cinco seeds, isso deve ser interpretado como evidência descritiva, não como
-teste definitivo de equivalência ou superioridade.
+Mostra como Random/MaxDamage/TypeAware evoluem ao longo dos checkpoints.
 
 ## Resume
 
-O estudo é retomável.
-
-Quando o programa informar:
+Quando o runner iniciar, guarde o caminho mostrado em:
 
 ```text
-[INFO] Budget-study directory:
-...\budget_results\budget_gen9_YYYYMMDD_HHMMSS
+curriculum_results\curriculum_gen9_YYYYMMDD_HHMMSS
 ```
-
-guarde esse caminho.
 
 Se houver interrupção:
 
 ```powershell
-python run_budget_study.py --study-dir "budget_results\budget_gen9_YYYYMMDD_HHMMSS" --baseline-experiment-dir "C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5.2\multiseed_results\multiseed_gen9_20260929_200322"
+python run_curriculum_study.py --study-dir "curriculum_results\curriculum_gen9_YYYYMMDD_HHMMSS"
 ```
 
-Use sempre os mesmos parâmetros ao retomar.
+O programa:
 
-## Continuidade do projeto
+- reutiliza checkpoints completos;
+- recria avaliações ausentes;
+- continua o PPO do último checkpoint completo;
+- rejeita um `study_dir` criado com configuração diferente.
+
+## Observação sobre resume
+
+A policy e o estado do otimizador do PPO são preservados pelo checkpoint. Porém, a aleatoriedade interna das batalhas do Pokémon Showdown não usa common random numbers entre regimes e uma execução retomada não é garantida como bit-a-bit idêntica a uma execução sem interrupção.
+
+## Próximas ablações possíveis
+
+A v0.5.4 **não** mistura estas mudanças no mesmo experimento:
 
 ```text
-v0.5     RL baseline
-v0.5.1   battle-context representation
-v0.5.2   5-seed UBR ablation at 10k
-v0.5.3   10k vs 50k training-budget study
-v0.6     cross-generation transfer
+learning-rate annealing
+self-play
+recurrent policy
+reward v2
+state representation v2
+MCTS / search
 ```
+
+Se curriculum não resolver o gap contra TypeAware, esses fatores podem ser avaliados separadamente em versões posteriores.
+
+Veja também:
+
+- `docs/CURRICULUM_v0.5.4.md`
+- `docs/LITERATURE_RATIONALE_v0.5.4.md`
+- `CHANGELOG_v0.5.4.md`
