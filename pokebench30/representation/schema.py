@@ -5,7 +5,7 @@ import hashlib
 import json
 
 
-FEATURE_SCHEMA_VERSION = "ubr-1.0"
+FEATURE_SCHEMA_VERSION = "ubr-1.1"
 
 TYPE_NAMES = (
     "NORMAL", "FIRE", "WATER", "ELECTRIC", "GRASS", "ICE",

@@ -14,6 +14,13 @@ class IllegalActionError(ValueError):
     pass
 
 
+def _safe_attr(obj: Any, name: str, default: Any = None) -> Any:
+    try:
+        return getattr(obj, name)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return default
+
+
 def _force_switch(battle: Any) -> bool:
     value = getattr(battle, "force_switch", False)
     if isinstance(value, (list, tuple)):
@@ -25,8 +32,8 @@ def _move_id(move: Any) -> str:
     if move is None:
         return ""
     return str(
-        getattr(move, "id", None)
-        or getattr(move, "name", None)
+        _safe_attr(move, "id", None)
+        or _safe_attr(move, "name", None)
         or move
     ).lower()
 
@@ -84,8 +91,13 @@ class UniversalActionSpace:
     The six team slots stay stable within one battle. The slot containing the
     active Pokémon is simply masked as illegal.
 
-    Generation-specific gimmicks are intentionally outside v0.4's core action
-    space because the scripted benchmark currently disables them.
+    Generation-specific gimmicks are intentionally outside v0.4.1's core
+    action space because the scripted benchmark currently disables them.
+
+    UBR 1.1 guarantees that every simulator-provided legal move is represented
+    in one of the four move slots. If Showdown exposes a transient command such
+    as Gen I ``recharge`` or ``fight`` that is not in ``active.moves``, it
+    temporarily replaces an otherwise unavailable known move slot.
     """
 
     action_labels = ACTION_LABELS
@@ -125,6 +137,17 @@ class UniversalActionSpace:
 
     @staticmethod
     def move_slots(battle: Any) -> list[Any | None]:
+        """Build four action slots while preserving legal transient moves.
+
+        Normal states keep the ordering supplied by ``active.moves``. When
+        Showdown exposes a legal move that is not part of that dictionary
+        (e.g. Gen I ``recharge`` or ``fight``), UBR 1.1 inserts the transient
+        move into a slot occupied by a currently unavailable known move.
+
+        This keeps ordinary move-slot semantics as stable as possible while
+        guaranteeing that every legal move in ``battle.available_moves`` can
+        be selected through the universal action space.
+        """
         active = getattr(battle, "active_pokemon", None)
         known_moves: list[Any] = []
 
@@ -136,17 +159,68 @@ class UniversalActionSpace:
                 else list(moves)
             )
 
-        available = list(getattr(battle, "available_moves", []) or [])
+        # Preserve order, but remove duplicate move IDs defensively.
+        slots: list[Any] = []
+        slot_ids: set[str] = set()
+        for move in known_moves:
+            move_id = _move_id(move)
+            if move_id in slot_ids:
+                continue
+            slots.append(move)
+            slot_ids.add(move_id)
 
-        # Add simulator-provided legal moves that are not currently present in
-        # active.moves (for example special fallback moves).
-        known_ids = {_move_id(move) for move in known_moves}
+        available_raw = list(getattr(battle, "available_moves", []) or [])
+        available: list[Any] = []
+        available_ids: set[str] = set()
+        for move in available_raw:
+            move_id = _move_id(move)
+            if move_id in available_ids:
+                continue
+            available.append(move)
+            available_ids.add(move_id)
+
+        if len(available) > MAX_MOVES:
+            raise RuntimeError(
+                "Universal action-space overflow: "
+                f"Showdown exposed {len(available)} legal moves, "
+                f"but UBR supports only {MAX_MOVES}."
+            )
+
         for move in available:
-            if _move_id(move) not in known_ids:
-                known_moves.append(move)
-                known_ids.add(_move_id(move))
+            move_id = _move_id(move)
+            if move_id in slot_ids:
+                continue
 
-        return (known_moves[:MAX_MOVES] + [None] * MAX_MOVES)[:MAX_MOVES]
+            if len(slots) < MAX_MOVES:
+                slots.append(move)
+                slot_ids.add(move_id)
+                continue
+
+            # A transient legal move must replace a known move that is not
+            # currently legal. Replacing only an unavailable slot preserves
+            # all existing legal actions and avoids unnecessary slot churn.
+            replace_index = next(
+                (
+                    index
+                    for index, current in enumerate(slots[:MAX_MOVES])
+                    if _move_id(current) not in available_ids
+                ),
+                None,
+            )
+
+            if replace_index is None:
+                raise RuntimeError(
+                    "Cannot represent transient legal move "
+                    f"{move_id!r}: all {MAX_MOVES} move slots already "
+                    "contain legal moves."
+                )
+
+            replaced_id = _move_id(slots[replace_index])
+            slots[replace_index] = move
+            slot_ids.discard(replaced_id)
+            slot_ids.add(move_id)
+
+        return (slots[:MAX_MOVES] + [None] * MAX_MOVES)[:MAX_MOVES]
 
     def legal_mask(self, battle: Any) -> np.ndarray:
         mask = np.zeros(self.action_dim, dtype=np.int8)
@@ -209,17 +283,20 @@ class UniversalActionSpace:
         if selected is None:
             return None
 
+        # Match moves without probing optional metadata fields. Gen I
+        # transient commands such as recharge/fight may not expose them.
         selected_move_id = _move_id(selected)
-        if getattr(selected, "base_power", None) is not None or hasattr(
-            selected, "category"
-        ):
-            for index, move in enumerate(self.move_slots(battle)):
-                if move is selected:
-                    return index
-                if move is not None and _move_id(move) == selected_move_id:
-                    return index
+        for index, move in enumerate(self.move_slots(battle)):
+            if move is selected:
+                return index
+            if (
+                move is not None
+                and selected_move_id
+                and _move_id(move) == selected_move_id
+            ):
+                return index
 
-        if getattr(selected, "species", None) is not None:
+        if _safe_attr(selected, "species", None) is not None:
             for slot_index, pokemon in enumerate(self.own_team_slots(battle)):
                 if _same_pokemon(pokemon, selected):
                     return MAX_MOVES + slot_index

@@ -66,7 +66,7 @@ def main() -> int:
     finally:
         sock.close()
 
-    print("\nEnvironment ready for PokéBench30 v0.4." if status == 0 else "\nFix the [FAIL] items before running v0.4 experiments.")
+    print("\nEnvironment ready for PokéBench30 v0.4.1." if status == 0 else "\nFix the [FAIL] items before running v0.4.1 experiments.")
     return status
 
 

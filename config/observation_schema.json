@@ -1,8 +1,8 @@
 {
-  "schema_version": "ubr-1.0",
+  "schema_version": "ubr-1.1",
   "observation_dim": 472,
   "action_dim": 10,
-  "sha256": "7af9ab22ea8d8ce77d87904644eb246d059b9084957bed895b6d0de2f4b9b51b",
+  "sha256": "276327ddc0883116305f6d564cb34ba43d7cf2eff8294185aeb9587c4485a20e",
   "feature_names": [
     "global.generation_norm",
     "global.turn_norm",

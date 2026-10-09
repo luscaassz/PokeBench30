@@ -1,9 +1,9 @@
 {
   "project": "PokeBench30",
-  "version": "0.4.0",
-  "run_id": "20260927_211716",
+  "version": "0.4.1",
+  "run_id": "20260927_221226",
   "experiment_mode": "fixed_mirrored",
-  "created_at_local": "2026-09-27T21:17:34",
+  "created_at_local": "2026-09-27T22:12:43",
   "python": "3.12.12 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 20:05:38) [MSC v.1929 64 bit (AMD64)]",
   "platform": "Windows-11-10.0.26200-SP0",
   "poke_env": "0.16.1",
@@ -27,13 +27,15 @@
   "action_log": true,
   "universal_state_log": true,
   "universal_representation": {
-    "schema_version": "ubr-1.0",
-    "schema_sha256": "7af9ab22ea8d8ce77d87904644eb246d059b9084957bed895b6d0de2f4b9b51b",
+    "schema_version": "ubr-1.1",
+    "schema_sha256": "276327ddc0883116305f6d564cb34ba43d7cf2eff8294185aeb9587c4485a20e",
     "observation_dim": 472,
     "action_dim": 10,
     "species_identity_encoded": false,
     "hidden_opponent_slots_zero_padded": true,
-    "generation_specific_gimmicks_in_action_space": false
+    "generation_specific_gimmicks_in_action_space": false,
+    "transient_legal_moves_supported": true,
+    "move_slot_policy": "Preserve known move order; inject simulator-provided transient legal moves into currently unavailable slots."
   },
   "fixed_team_pool": {
     "config_sha256": "31d984cbb050923e60b86902f3dcf4ac8fba9a9e01fe449bcbcc1627cea98950",

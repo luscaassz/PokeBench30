@@ -7,6 +7,7 @@ class RepresentationSchemaTests(unittest.TestCase):
     def test_schema_shape_is_fixed(self):
         schema = build_feature_schema()
 
+        self.assertEqual(schema.version, "ubr-1.1")
         self.assertEqual(schema.observation_dim, 472)
         self.assertEqual(schema.action_dim, 10)
         self.assertEqual(

@@ -1,0 +1,4 @@
+generation,pair_id,agent_1,agent_2,repeat_index,leg_ab_result_agent_1,leg_ba_result_agent_1,agent_1_points,agent_2_points,normalized_agent_1_score,cycle_outcome
+1,pair01,TypeAwareAgent,SwitchAwareAgent,1,loss,loss,0.0,2.0,0.0,agent_2_advantage
+4,pair01,TypeAwareAgent,SwitchAwareAgent,1,win,loss,1.0,1.0,0.5,balanced
+9,pair01,TypeAwareAgent,SwitchAwareAgent,1,loss,loss,0.0,2.0,0.0,agent_2_advantage

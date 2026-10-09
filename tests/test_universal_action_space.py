@@ -85,5 +85,63 @@ class UniversalActionSpaceTests(unittest.TestCase):
             space.object_for_action(battle, 1)
 
 
+    def test_transient_move_replaces_unavailable_known_slot(self):
+        battle = DummyBattle(force_switch=False)
+        space = UniversalActionSpace()
+
+        known = [
+            DummyMove("hyperbeam"),
+            DummyMove("rest", base_power=0),
+            DummyMove("earthquake"),
+            DummyMove("bodyslam"),
+        ]
+        battle.active_pokemon.moves = {move.id: move for move in known}
+        recharge = DummyMove("recharge", base_power=0)
+        battle.available_moves = [recharge]
+
+        slots = space.move_slots(battle)
+        mask = space.legal_mask(battle)
+
+        self.assertEqual(slots[0].id, "recharge")
+        self.assertEqual(mask[:4].tolist(), [1, 0, 0, 0])
+        self.assertEqual(space.index_for_selected(battle, recharge), 0)
+
+    def test_transient_fight_is_mappable_with_four_known_moves(self):
+        battle = DummyBattle(force_switch=False)
+        space = UniversalActionSpace()
+
+        known = [
+            DummyMove("psychic"),
+            DummyMove("recover", base_power=0),
+            DummyMove("seismictoss"),
+            DummyMove("thunderwave", base_power=0),
+        ]
+        battle.active_pokemon.moves = {move.id: move for move in known}
+        fight = DummyMove("fight", base_power=0)
+        battle.available_moves = [fight]
+
+        slots = space.move_slots(battle)
+        mask = space.legal_mask(battle)
+
+        self.assertIn("fight", [move.id for move in slots if move is not None])
+        index = space.index_for_selected(battle, fight)
+        self.assertIsNotNone(index)
+        self.assertEqual(mask[index], 1)
+
+    def test_normal_known_move_order_is_preserved(self):
+        battle = DummyBattle(force_switch=False)
+        space = UniversalActionSpace()
+
+        moves = [
+            DummyMove("a"), DummyMove("b"),
+            DummyMove("c"), DummyMove("d"),
+        ]
+        battle.active_pokemon.moves = {move.id: move for move in moves}
+        battle.available_moves = [moves[0], moves[2]]
+
+        slots = space.move_slots(battle)
+        self.assertEqual([move.id for move in slots], ["a", "b", "c", "d"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,8 @@
 {
   "source_pool": {
     "schema_version": 1,
-    "created_at_local": "2026-09-27T21:16:40",
-    "config_path": "C:\\Users\\lucas\\OneDrive\\Desktop\\PokeBench_versions\\PokeBench30_v0.4\\config\\fixed_teams.yaml",
+    "created_at_local": "2026-09-27T22:11:49",
+    "config_path": "C:\\Users\\lucas\\OneDrive\\Desktop\\PokeBench_versions\\PokeBench30_v0.4.1\\config\\fixed_teams.yaml",
     "config_sha256": "31d984cbb050923e60b86902f3dcf4ac8fba9a9e01fe449bcbcc1627cea98950",
     "showdown_dir": "C:\\Users\\lucas\\OneDrive\\Desktop\\pokemon-showdown",
     "showdown_commit": "a5df8274e85b0889bf2a9b3422a08b39732374fc",

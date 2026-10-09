@@ -19,6 +19,20 @@ from .schema import (
 )
 
 
+def _safe_attr(obj: Any, name: str, default: Any = None) -> Any:
+    """Read a poke-env property that may be absent from transient commands.
+
+    Gen I pseudo-moves such as ``recharge`` / ``fight`` can be represented by
+    Move objects whose data entry omits ordinary keys such as ``priority``.
+    Some poke-env properties raise KeyError instead of AttributeError in that
+    situation, so plain getattr(..., default) is not sufficient.
+    """
+    try:
+        return getattr(obj, name)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return default
+
+
 def _enum_name(value: Any) -> str:
     if value is None:
         return ""
@@ -118,10 +132,10 @@ class UniversalStateEncoder:
     - normalized numeric features;
     - legal-action mask paired with every observation.
 
-    Deliberately omitted from UBR 1.0:
+    Deliberately omitted from UBR 1.1:
     weather, terrain, hazards, volatile effects, abilities/items and
     generation-specific gimmicks. Those can be layered onto future schema
-    versions without silently changing UBR 1.0.
+    versions without silently changing UBR 1.1.
     """
 
     def __init__(
@@ -214,12 +228,12 @@ class UniversalStateEncoder:
             ]
 
         try:
-            base_power = float(getattr(move, "base_power", 0.0) or 0.0)
+            base_power = float(_safe_attr(move, "base_power", 0.0) or 0.0)
         except (TypeError, ValueError):
             base_power = 0.0
 
         try:
-            priority = float(getattr(move, "priority", 0.0) or 0.0)
+            priority = float(_safe_attr(move, "priority", 0.0) or 0.0)
         except (TypeError, ValueError):
             priority = 0.0
 
@@ -227,17 +241,17 @@ class UniversalStateEncoder:
             1.0,
             1.0 if legal else 0.0,
             _clip(base_power / 250.0, 0.0, 1.0),
-            _accuracy_fraction(getattr(move, "accuracy", 1.0)),
+            _accuracy_fraction(_safe_attr(move, "accuracy", 1.0)),
             _clip(priority / 7.0, -1.0, 1.0),
         ]
 
-        move_type = _enum_name(getattr(move, "type", None))
+        move_type = _enum_name(_safe_attr(move, "type", None))
         values.extend(
             1.0 if move_type == type_name else 0.0
             for type_name in TYPE_NAMES
         )
 
-        category = _enum_name(getattr(move, "category", None))
+        category = _enum_name(_safe_attr(move, "category", None))
         values.extend(
             1.0 if category == name else 0.0
             for name in MOVE_CATEGORY_NAMES

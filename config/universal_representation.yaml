@@ -1,4 +1,4 @@
-schema_version: "ubr-1.0"
+schema_version: "ubr-1.1"
 
 purpose:
   - fixed-dimensional battle observation across Gen I, IV and IX
@@ -69,10 +69,16 @@ action_space:
     9: switch_team_slot_6
 
   note: >
-    Generation-specific gimmicks are intentionally excluded from UBR 1.0
+    Generation-specific gimmicks are intentionally excluded from UBR 1.1
     because the scripted benchmark currently disables them.
 
-not_encoded_in_ubr_1_0:
+  move_slot_policy: >
+    Preserve active.moves ordering in ordinary states. If Showdown exposes a
+    transient legal move not present in active.moves (such as Gen I recharge
+    or fight), inject it into a currently unavailable move slot so every legal
+    move remains representable without changing the 10-action space.
+
+not_encoded_in_ubr_1_1:
   - species identity
   - hidden opponent slots
   - items

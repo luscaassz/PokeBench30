@@ -4,7 +4,7 @@ import random
 
 from poke_env.battle import AbstractBattle
 
-from .base_agent import InstrumentedPlayer, is_force_switch
+from .base_agent import InstrumentedPlayer, is_force_switch, safe_attr
 
 
 class TypeAwareAgent(InstrumentedPlayer):
@@ -34,8 +34,8 @@ class TypeAwareAgent(InstrumentedPlayer):
 
     @classmethod
     def score_move_components(cls, battle: AbstractBattle, move) -> dict[str, float]:
-        base_power = float(move.base_power or 0)
-        accuracy = cls._accuracy_fraction(getattr(move, "accuracy", 1.0))
+        base_power = float(safe_attr(move, "base_power", 0.0) or 0.0)
+        accuracy = cls._accuracy_fraction(safe_attr(move, "accuracy", 1.0))
 
         stab = 1.0
         active = battle.active_pokemon
@@ -48,7 +48,7 @@ class TypeAwareAgent(InstrumentedPlayer):
                 )
                 if type_ is not None
             }
-            if getattr(move, "type", None) in active_types:
+            if safe_attr(move, "type", None) in active_types:
                 stab = 1.5
 
         effectiveness = 1.0
@@ -56,7 +56,7 @@ class TypeAwareAgent(InstrumentedPlayer):
         if opponent is not None:
             try:
                 effectiveness = float(opponent.damage_multiplier(move))
-            except (AttributeError, TypeError, ValueError):
+            except (AttributeError, KeyError, TypeError, ValueError):
                 effectiveness = 1.0
 
         score = base_power * accuracy * stab * effectiveness

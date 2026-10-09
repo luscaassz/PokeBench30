@@ -686,6 +686,11 @@ async def run_experiment(args: argparse.Namespace) -> Path:
                 "species_identity_encoded": False,
                 "hidden_opponent_slots_zero_padded": True,
                 "generation_specific_gimmicks_in_action_space": False,
+                "transient_legal_moves_supported": True,
+                "move_slot_policy": (
+                    "Preserve known move order; inject simulator-provided "
+                    "transient legal moves into currently unavailable slots."
+                ),
             }
             if args.log_universal_state
             else None
@@ -746,7 +751,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run PokéBench30 v0.4 fixed-team mirrored experiments."
+        description="Run PokéBench30 v0.4.1 fixed-team mirrored experiments."
     )
     parser.add_argument(
         "--generations",

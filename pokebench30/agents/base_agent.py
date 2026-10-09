@@ -15,6 +15,14 @@ from poke_env.teambuilder.constant_teambuilder import ConstantTeambuilder
 from pokebench30.representation.encoder import UniversalStateEncoder
 
 
+def safe_attr(obj: Any, name: str, default: Any = None) -> Any:
+    """Version-tolerant attribute access for incomplete simulator objects."""
+    try:
+        return getattr(obj, name)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return default
+
+
 def enum_name(value: Any) -> str:
     if value is None:
         return ""
@@ -135,7 +143,7 @@ class InstrumentedPlayer(Player):
     - hidden opponent slots are never reconstructed;
     - evaluator-only ground truth is computed elsewhere, after battle end.
 
-    v0.4 also includes a local workaround for poke-env custom-rule battle
+    v0.4.1 also includes a local workaround for poke-env custom-rule battle
     formats. Pokémon Showdown names a room with the base format
     (e.g. ``gen9customgame``) while the player can be configured with
     ``gen9customgame@@@!teampreview``.
@@ -663,25 +671,25 @@ class InstrumentedPlayer(Player):
             action_type == "move"
             and selected is not None
         ):
-            row["move_base_power"] = getattr(
+            row["move_base_power"] = safe_attr(
                 selected,
                 "base_power",
                 None,
             )
-            row["move_accuracy"] = getattr(
+            row["move_accuracy"] = safe_attr(
                 selected,
                 "accuracy",
                 None,
             )
             row["move_type"] = enum_name(
-                getattr(
+                safe_attr(
                     selected,
                     "type",
                     None,
                 )
             )
             row["move_category"] = enum_name(
-                getattr(
+                safe_attr(
                     selected,
                     "category",
                     None,
@@ -708,7 +716,7 @@ class InstrumentedPlayer(Player):
 
                 row["move_stab"] = (
                     1.5
-                    if getattr(
+                    if safe_attr(
                         selected,
                         "type",
                         None,
@@ -728,6 +736,7 @@ class InstrumentedPlayer(Player):
                     )
                 except (
                     AttributeError,
+                    KeyError,
                     TypeError,
                     ValueError,
                 ):

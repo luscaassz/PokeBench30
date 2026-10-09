@@ -29,6 +29,32 @@ class DummyMove:
         self.priority = priority
 
 
+class FragileTransientMove:
+    """Mimics Gen I pseudo-moves with incomplete poke-env metadata."""
+
+    id = "recharge"
+
+    @property
+    def base_power(self):
+        raise KeyError("basePower")
+
+    @property
+    def accuracy(self):
+        raise KeyError("accuracy")
+
+    @property
+    def priority(self):
+        raise KeyError("priority")
+
+    @property
+    def type(self):
+        raise KeyError("type")
+
+    @property
+    def category(self):
+        raise KeyError("category")
+
+
 class DummyPokemon:
     def __init__(
         self,
@@ -168,6 +194,42 @@ class UniversalEncoderTests(unittest.TestCase):
             observation.legal_action_mask.shape,
             (10,),
         )
+
+    def test_transient_move_with_missing_metadata_is_encoded(self):
+        battle = DummyBattle(1)
+        transient = FragileTransientMove()
+
+        # Keep four persistent moves so the transient command must replace
+        # an unavailable move slot exactly like Gen I recharge/fight.
+        persistent = [
+            DummyMove("m1"),
+            DummyMove("m2"),
+            DummyMove("m3"),
+            DummyMove("m4"),
+        ]
+        battle.active_pokemon.moves = {
+            move.id: move for move in persistent
+        }
+        battle.available_moves = [transient]
+
+        encoder = UniversalStateEncoder()
+        observation = encoder.encode(battle)
+
+        self.assertEqual(observation.vector.shape, (472,))
+        self.assertEqual(int(observation.legal_action_mask.sum()), 2)
+
+        index = encoder.action_space.index_for_selected(
+            battle,
+            transient,
+        )
+        self.assertIsNotNone(index)
+        self.assertEqual(observation.legal_action_mask[index], 1)
+
+        report = ObservationValidator().validate(
+            observation,
+            battle=battle,
+        )
+        self.assertTrue(report.ok, report.errors)
 
 
 if __name__ == "__main__":
