@@ -1,242 +1,334 @@
-# PokéBench30 v0.4.1 — UBR 1.1
+# PokéBench30 v0.5 — MaskablePPO RL Baseline
 
-PokéBench30 v0.4.1 is a corrective release of the Universal Battle
-Representation introduced in v0.4.
+A v0.5 adiciona o primeiro agente de Reinforcement Learning ao PokéBench30,
+mantendo congelada a representação validada na v0.4.1:
 
-The experimental design from v0.3/v0.4 is preserved:
+```text
+UBR 1.1
+observation = 472
+action space = 10
+```
+
+O objetivo desta versão não é ainda estudar transferência entre gerações.
+Primeiro queremos provar que uma política aprendida consegue:
+
+```text
+UBR 1.1
+   ↓
+MaskablePPO
+   ↓
+ação entre 10 possibilidades
+   ↓
+legal-action mask
+   ↓
+Pokémon Showdown
+```
+
+e depois participar do mesmo benchmark controlado de fixed teams + mirrored
+matches criado na v0.3.
+
+---
+
+## O que há de novo
+
+```text
+pokebench30/
+└── rl/
+    ├── env.py
+    ├── mask_adapter.py
+    ├── model_io.py
+    ├── policy_agent.py
+    ├── reward.py
+    ├── training.py
+    └── analysis.py
+```
+
+Novos comandos:
+
+```text
+train_rl.py
+run_rl_controlled.py
+analyze_rl_training.py
+scripts/check_rl_setup.py
+```
+
+Documentação técnica:
+
+```text
+docs/RL_BASELINE_v0.5.md
+```
+
+---
+
+# 1. Algoritmo
+
+A baseline é:
+
+```text
+MaskablePPO
+```
+
+via `sb3-contrib`.
+
+Por que usar action masking?
+
+Em um turno, várias ações da UBR não são legais. Exemplos:
+
+```text
+move desabilitado
+Pokémon desmaiado
+slot do Pokémon atualmente ativo
+forced switch
+```
+
+A máscara garante que a política escolha apenas entre ações válidas.
+
+---
+
+# 2. Representação congelada
+
+A v0.5 não altera a UBR.
+
+```text
+UBR 1.1
+472 features
+10 actions
+```
+
+O modelo salva no `metadata.json`:
+
+```text
+schema version
+schema SHA-256
+observation dimension
+action dimension
+```
+
+Se o código atual não corresponder ao schema usado no treinamento, o modelo é
+recusado.
+
+---
+
+# 3. Treino e avaliação usam distribuições diferentes
+
+## Treinamento
+
+A política aprende em:
+
+```text
+gen1randombattle
+gen4randombattle
+ou
+gen9randombattle
+```
+
+Isso fornece diversidade de times.
+
+## Avaliação
+
+A avaliação usa:
 
 ```text
 fixed teams
-+ mirrored team assignment
-+ partial information
-+ TypeAwareAgent / SwitchAwareAgent baselines
-+ Gen I / Gen IV / Gen IX
++
+mirrored assignments
 ```
 
-The change is focused on one issue discovered by the first real UBR smoke test:
-**Gen I can expose transient legal commands such as `recharge` and `fight` that
-are not part of the Pokémon's persistent four-move dictionary.**
+da v0.3.
 
-UBR 1.0 could therefore produce an observation where the action selected by the
-agent had no universal action index. UBR 1.1 fixes that while keeping the same
-fixed interface:
+Assim:
 
 ```text
-observation_dim = 472
-action_dim      = 10
+Random Battle = distribuição de treino
+
+Fixed/Mirrored = benchmark controlado
 ```
 
 ---
 
-## 1. What changed from v0.4
+# 4. Reward da baseline
 
-The original smoke test produced:
-
-```text
-Records: 261
-Chosen actions mapped into UBR: 253/261
-```
-
-The eight unmapped Gen I actions were:
+O reward inicial é deliberadamente simples:
 
 ```text
-5 × fight
-3 × recharge
+vitória               30.0
+Pokémon desmaiado      2.0
+HP                      1.0
+status                  0.5
 ```
 
-The core problem was that UBR 1.0 started with the four persistent moves from
-`active_pokemon.moves`, appended transient moves afterward, and then truncated
-the list back to four slots.
+Ele utiliza o `reward_computing_helper` do `poke-env`, que retorna a diferença
+de valor entre estados consecutivos.
 
-In UBR 1.1, ordinary states keep the persistent move order, but any legal move
-reported by Showdown is guaranteed to receive one of the four universal move
-slots.
+O objetivo da v0.5 é validar o pipeline, não fazer reward engineering.
 
 ---
 
-## 2. UBR 1.1 move-slot policy
+# 5. Instalação
 
-For a normal state:
-
-```text
-slot 1 = persistent move 1
-slot 2 = persistent move 2
-slot 3 = persistent move 3
-slot 4 = persistent move 4
-```
-
-If Showdown provides a transient legal move that is absent from those four:
-
-```text
-available_moves = [recharge]
-```
-
-UBR 1.1 replaces a persistent move that is currently unavailable:
-
-```text
-slot 1 = recharge      legal = 1
-slot 2 = Rest          legal = 0
-slot 3 = Earthquake    legal = 0
-slot 4 = Body Slam     legal = 0
-```
-
-The important properties are:
-
-```text
-- every legal move is representable;
-- legal persistent moves are never discarded;
-- ordinary move ordering is preserved whenever possible;
-- the action space remains 10-dimensional;
-- no special Gen I-only action index is introduced.
-```
-
-If Showdown ever exposes more than four simultaneous legal moves, the encoder
-now raises an explicit error instead of silently dropping one.
-
----
-
-## 3. Universal observation
-
-UBR 1.1 still produces 472 normalized features for Gen I, IV and IX.
-
-```text
-Global state                 6
-Active Pokémon boosts       14
-Own team: 6 × 29           174
-Opponent: 6 × 29           174
-Active moves: 4 × 26       104
-──────────────────────────────
-TOTAL                       472
-```
-
-Unknown opponent slots remain exactly zero-filled.
-
-Species identity remains excluded.
-
-The representation still does not reconstruct hidden opponent information.
-
----
-
-## 4. Universal action space
-
-The action space is unchanged:
-
-```text
-0 → move_slot_1
-1 → move_slot_2
-2 → move_slot_3
-3 → move_slot_4
-
-4 → switch_team_slot_1
-5 → switch_team_slot_2
-6 → switch_team_slot_3
-7 → switch_team_slot_4
-8 → switch_team_slot_5
-9 → switch_team_slot_6
-```
-
-During forced switch:
-
-```text
-mask[0:4] = 0
-```
-
-The currently active team slot is also masked from the switch actions.
-
----
-
-## 5. Schema version
-
-Because move-slot semantics changed, the schema was intentionally bumped:
-
-```text
-UBR 1.0 → UBR 1.1
-```
-
-Current schema:
-
-```text
-schema_version  = ubr-1.1
-observation_dim = 472
-action_dim      = 10
-```
-
-The exact SHA-256 is stored in:
-
-```text
-config/observation_schema.json
-```
-
-Do not mix UBR 1.0 and UBR 1.1 datasets silently, even though both have the
-same tensor dimensions.
-
----
-
-## 6. Strict dataset validation
-
-The v0.4 validator accepted `253/261` mapped actions because unmapped actions
-were only reported informationally.
-
-The v0.4.1 validator is strict.
-
-It now fails if any of these are nonzero:
-
-```text
-schema mismatches
-vector dimension errors
-mask dimension errors
-non-finite vectors
-empty legal-action masks
-unmapped chosen actions
-chosen actions marked illegal
-```
-
-A successful dataset must therefore contain:
-
-```text
-Chosen actions mapped into UBR: X/X
-```
-
-for every generation.
-
-If an unmapped action exists and `actions.csv` is present, the validator also
-prints diagnostic examples with generation, turn, battle tag and the original
-action name.
-
----
-
-## 7. Installation
-
-On Windows + VS Code:
+No VS Code / PowerShell:
 
 ```powershell
-cd C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.4.1
+cd C:\Users\lucas\OneDrive\Desktop\PokeBench_versions\PokeBench30_v0.5
+```
+
+Instale:
+
+```powershell
 python -m pip install -r requirements.txt
 ```
 
-Then verify the environment:
+As dependências novas principais são:
+
+```text
+gymnasium
+stable-baselines3
+sb3-contrib
+```
+
+Depois:
 
 ```powershell
-python scripts\check_setup.py
+python scripts\check_rl_setup.py
+```
+
+Queremos:
+
+```text
+[OK] poke-env imported
+[OK] gymnasium imported
+[OK] stable-baselines3 imported
+[OK] sb3-contrib imported
+[OK] torch imported
+[OK] UBR schema: ubr-1.1
+[OK] Observation dimension: 472
+[OK] Action dimension: 10
+
+[OK] PokéBench30 v0.5 RL setup is ready.
 ```
 
 ---
 
-## 8. Fixed teams
+# 6. Pokémon Showdown
 
-You can reuse the same fixed-team pool from v0.4/v0.3 by copying:
+Deixe seu servidor local rodando como nas versões anteriores.
 
-```text
-teams\fixed
+O treinamento usa o servidor porque cada episódio é uma batalha real simulada
+pelo Pokémon Showdown.
+
+Os fixed teams não são necessários para TREINAR.
+
+Eles só serão necessários para a avaliação controlada posterior.
+
+---
+
+# 7. Primeiro smoke training
+
+Comece pequeno.
+
+```powershell
+python train_rl.py --generation 9 --opponent type_aware --timesteps 1024 --n-steps 256 --batch-size 64
 ```
 
-or regenerate it:
+Esse comando serve apenas para verificar:
+
+```text
+ambiente abre
+batalhas acontecem
+MaskablePPO coleta experiências
+gradientes são calculados
+modelo é salvo
+```
+
+Não interprete o desempenho científico desse treinamento curto.
+
+A saída será algo como:
+
+```text
+models/
+└── maskable_ppo_gen9_YYYYMMDD_HHMMSS/
+    ├── maskable_ppo.zip
+    ├── metadata.json
+    ├── training_config.json
+    ├── monitor.csv.monitor.csv
+    ├── checkpoints/
+    └── tensorboard/
+```
+
+---
+
+# 8. Primeiro treinamento real
+
+Depois que o smoke training funcionar:
+
+```powershell
+python train_rl.py --generation 9 --opponent type_aware --timesteps 10000
+```
+
+Depois podemos aumentar progressivamente:
+
+```text
+10k
+50k
+100k
+```
+
+mas não recomendo começar com 100k antes de validar o aprendizado.
+
+---
+
+# 9. O que é um timestep aqui?
+
+Um timestep de PPO não significa uma batalha.
+
+Ele corresponde a uma decisão do agente:
+
+```text
+estado
+→ ação
+→ novo estado
+```
+
+Logo:
+
+```text
+10.000 timesteps
+```
+
+representam milhares de decisões distribuídas entre várias batalhas.
+
+---
+
+# 10. Analisar o treinamento
+
+Depois:
+
+```powershell
+python analyze_rl_training.py "models\maskable_ppo_gen9_YYYYMMDD_HHMMSS"
+```
+
+Isso cria:
+
+```text
+figures/
+├── training_reward.png
+└── training_episode_length.png
+```
+
+Não use apenas a curva de reward para afirmar que o agente ficou melhor.
+A avaliação contra agentes externos continua sendo necessária.
+
+---
+
+# 11. Preparar o benchmark fixo
+
+Se `teams/fixed/manifest.json` não existir na v0.5:
 
 ```powershell
 python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
 ```
 
-Then:
+Depois:
 
 ```powershell
 python scripts\check_fixed_pool.py
@@ -244,178 +336,264 @@ python scripts\check_fixed_pool.py
 
 ---
 
-## 9. Offline UBR test
+# 12. Primeiro teste controlado do RL
 
-Before starting Showdown:
+Suponha que seu modelo esteja em:
+
+```text
+models\maskable_ppo_gen9_20260928_120000\maskable_ppo.zip
+```
+
+Rode:
 
 ```powershell
-python scripts\check_representation.py
+python run_rl_controlled.py ^
+  --model "models\maskable_ppo_gen9_20260928_120000\maskable_ppo.zip" ^
+  --generation 9 ^
+  --opponent type_aware ^
+  --pairs pair01 ^
+  --repeats 1
 ```
 
-Expected structure:
-
-```text
-[OK] UBR schema: ubr-1.1
-[OK] Observation dimension: 472
-[OK] Action dimension: 10
-[OK] Gen 1: shape=(472,), ...
-[OK] Gen 4: shape=(472,), ...
-[OK] Gen 9: shape=(472,), ...
-
-[OK] Universal representation offline checks passed.
-```
-
----
-
-## 10. Unit tests
-
-Run:
+No PowerShell você também pode colocar tudo em uma linha:
 
 ```powershell
-python -m unittest discover tests -v
+python run_rl_controlled.py --model "models\maskable_ppo_gen9_20260928_120000\maskable_ppo.zip" --generation 9 --opponent type_aware --pairs pair01 --repeats 1
 ```
 
-The v0.4.1 suite adds explicit tests for:
+Isso gera exatamente:
 
 ```text
-recharge with four persistent moves
-fight with four persistent moves
-normal move-order preservation
-```
+LEG AB
+RL + Team A
+vs
+TypeAware + Team B
 
-alongside the existing tests for:
-
-```text
-fixed-team configuration
-mirrored metrics
-partial observability
-zero-filled hidden opponent slots
-forced switch masking
-schema dimensions
-representation determinism
+LEG BA
+RL + Team B
+vs
+TypeAware + Team A
 ```
 
 ---
 
-## 11. Real smoke test
+# 13. Avaliação maior
 
-With the local Pokémon Showdown server running:
+Depois:
 
 ```powershell
-python run_controlled.py --generations 1 4 9 --matchup type_aware switch_aware --pairs pair01 --repeats 1 --log-universal-state
+python run_rl_controlled.py --model "CAMINHO_DO_MODELO" --generation 9 --opponent type_aware --repeats 10
 ```
 
-This creates six battles:
+Sem `--pairs`, usa:
 
 ```text
-3 generations × 1 team pair × 2 mirrored legs = 6 battles
+pair01
+pair02
+pair03
 ```
 
-The result directory should include:
+Total:
 
 ```text
-actions.csv
-agent_summary.csv
-battles.csv
-controlled_summary.csv
-metadata.json
-mirror_cycles.csv
-observation_schema.json
-pair_summary.csv
-summary.csv
-universal_states.jsonl
+3 pares
+×
+2 mirror legs
+×
+10 repetições
+=
+60 batalhas
 ```
+
+A principal métrica continua sendo:
+
+```text
+normalized_mirror_score_agent_1
+```
+
+Na avaliação v0.5:
+
+```text
+Agent 1 = RLPolicyAgent
+```
+
+portanto:
+
+```text
+> 0.5 → RL obteve mais pontos
+≈ 0.5 → equilíbrio
+< 0.5 → baseline obteve mais pontos
+```
+
+sempre considerando tamanho de amostra e variação entre pares.
 
 ---
 
-## 12. Validate the new smoke test
+# 14. Opponents disponíveis
 
-After the run finishes:
+Treino e avaliação aceitam:
+
+```text
+random
+max_damage
+type_aware
+switch_aware
+```
+
+O default de treino é:
+
+```text
+type_aware
+```
+
+Uma progressão razoável para experimentos futuros seria:
+
+```text
+Random
+  ↓
+TypeAware
+  ↓
+SwitchAware
+```
+
+Mas a v0.5 usa um oponente fixo por treinamento.
+
+---
+
+# 15. Gen I e Gen IV
+
+A arquitetura funciona para:
 
 ```powershell
-python scripts\validate_universal_states.py "results\controlled_YYYYMMDD_HHMMSS"
+python train_rl.py --generation 1 --opponent type_aware --timesteps 10000
 ```
 
-The target is now strictly:
+e:
 
-```text
-[INFO] Chosen actions mapped into UBR: X/X
-[INFO] Gen 1: X/X actions mapped
-[INFO] Gen 4: X/X actions mapped
-[INFO] Gen 9: X/X actions mapped
-
-[OK] schema mismatches: 0
-[OK] dimension errors: 0
-[OK] mask errors: 0
-[OK] non-finite vectors: 0
-[OK] empty legal-action masks: 0
-[OK] unmapped chosen actions: 0
-[OK] chosen actions marked illegal: 0
-
-[OK] Universal-state dataset passed strict UBR validation.
+```powershell
+python train_rl.py --generation 4 --opponent type_aware --timesteps 10000
 ```
 
-Only after this passes should UBR 1.1 be frozen for the RL phase.
+Cada modelo, porém, deve ser avaliado na mesma geração em que foi treinado.
 
----
-
-## 13. Project structure
+Exemplo aceito:
 
 ```text
-PokeBench30_v0.4.1/
-│
-├── pokebench30/
-│   ├── agents/
-│   ├── evaluation/
-│   ├── experiments/
-│   ├── representation/
-│   │   ├── action_space.py
-│   │   ├── encoder.py
-│   │   ├── schema.py
-│   │   └── validator.py
-│   └── teams/
-│
-├── config/
-│   ├── generations.yaml
-│   ├── fixed_teams.yaml
-│   ├── universal_representation.yaml
-│   └── observation_schema.json
-│
-├── docs/
-│   ├── UBR_1_0.md
-│   └── UBR_1_1.md
-│
-├── scripts/
-│   ├── check_setup.py
-│   ├── check_fixed_pool.py
-│   ├── check_representation.py
-│   └── validate_universal_states.py
-│
-├── tests/
-├── prepare_fixed_teams.py
-├── run_controlled.py
-└── run_pilot.py
+train Gen IV
+test Gen IV
+```
+
+Exemplo rejeitado na v0.5:
+
+```text
+train Gen I
+test Gen IX
+```
+
+Esse experimento é propositalmente reservado para:
+
+```text
+PokéBench30 v0.6
+Cross-Generation Transfer
 ```
 
 ---
 
-## 14. Gate before v0.5
+# 16. Por que bloquear transferência agora?
 
-Do not begin the RL baseline until the following checklist is satisfied:
+Porque queremos separar:
 
 ```text
-[ ] offline representation test passes
-[ ] all unit tests pass
-[ ] live Gen I / IV / IX smoke test completes
-[ ] all vectors have shape (472,)
-[ ] all masks have shape (10,)
-[ ] zero NaN / inf
-[ ] zero hidden-opponent leakage
-[ ] zero empty legal-action masks
-[ ] zero unmapped chosen actions
-[ ] zero chosen actions marked illegal
-[ ] every generation reports mapped_actions == records
+v0.5
+o RL funciona?
 ```
 
-When these pass, UBR 1.1 is ready to be frozen and used as the input/action
-interface for PokéBench30 v0.5.
+de:
+
+```text
+v0.6
+o conhecimento aprendido transfere entre gerações?
+```
+
+Se misturarmos as duas perguntas agora, fica difícil saber se uma falha veio do
+pipeline de RL ou da transferência.
+
+---
+
+# 17. Arquitetura
+
+```text
+              TRAINING
+                 │
+                 ▼
+        Random Battle Gen IX
+                 │
+                 ▼
+              UBR 1.1
+        observation[472]
+        legal mask[10]
+                 │
+                 ▼
+            MaskablePPO
+                 │
+                 ▼
+         maskable_ppo.zip
+
+
+              EVALUATION
+                 │
+                 ▼
+         maskable_ppo.zip
+                 │
+                 ▼
+           RLPolicyAgent
+                 │
+                 ▼
+       Fixed + Mirrored Teams
+                 │
+                 ▼
+    RL vs TypeAware / SwitchAware
+```
+
+---
+
+# 18. Critério para considerar a v0.5 validada
+
+A v0.5 não exige que o RL já seja campeão.
+
+Ela está validada quando:
+
+```text
+[ ] check_rl_setup passa
+[ ] smoke training termina
+[ ] model.zip é salvo
+[ ] metadata.json é salvo
+[ ] schema UBR 1.1 é validado ao carregar
+[ ] policy nunca seleciona ação mascarada
+[ ] modelo pode ser recarregado
+[ ] RLPolicyAgent completa batalhas
+[ ] avaliação mirrored funciona
+[ ] training curves são geradas
+```
+
+Depois disso, fazemos múltiplas seeds e um experimento de baseline mais sério.
+
+Só então passamos para:
+
+```text
+v0.6 — Cross-Generation Transfer
+```
+
+---
+
+## Organização científica até aqui
+
+```text
+v0.1   infraestrutura
+v0.2   scripted baselines + logging
+v0.2.2 strategic switching estável
+v0.3   fixed teams + mirrored matches
+v0.4.1 UBR 1.1 validada
+v0.5   MaskablePPO baseline
+v0.6   cross-generation transfer
+```

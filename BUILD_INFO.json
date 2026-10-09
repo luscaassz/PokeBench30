@@ -1,61 +1,37 @@
 {
   "project": "PokeBench30",
-  "version": "0.4.1",
-  "milestone": "UBR transient-action correction and strict validation",
-  "schema": {
-    "version": "ubr-1.1",
-    "observation_dim": 472,
-    "action_dim": 10,
-    "sha256": "276327ddc0883116305f6d564cb34ba43d7cf2eff8294185aeb9587c4485a20e"
-  },
-  "python_files_checked": 39,
+  "version": "0.5.0",
+  "milestone": "MaskablePPO Reinforcement Learning Baseline",
+  "base": "PokéBench30 v0.4.1 + UBR 1.1 transient-move hotfix",
+  "python_files_checked": 54,
   "syntax_errors": [],
-  "unit_tests": {
-    "returncode": 0,
-    "count": 24,
-    "stdout": "",
-    "stderr": "test_voluntary_and_forced_switch_rates_are_separate (test_analysis_rates.AgentSummaryRateTests.test_voluntary_and_forced_switch_rates_are_separate) ... ok\ntest_expected_generations_and_unique_pairs (test_fixed_team_config.FixedTeamConfigTests.test_expected_generations_and_unique_pairs) ... ok\ntest_seeds_are_explicit (test_fixed_team_config.FixedTeamConfigTests.test_seeds_are_explicit) ... ok\ntest_hidden_opponent_slots_stay_hidden_in_observation (test_information_policy.InformationPolicyTests.test_hidden_opponent_slots_stay_hidden_in_observation) ... ok\ntest_binomial_balanced (test_metrics.MetricsTests.test_binomial_balanced) ... ok\ntest_binomial_extreme (test_metrics.MetricsTests.test_binomial_extreme) ... ok\ntest_interval_contains_half (test_metrics.MetricsTests.test_interval_contains_half) ... ok\ntest_no_trials (test_metrics.MetricsTests.test_no_trials) ... ok\ntest_missing_leg_raises (test_mirrored_metrics.MirroredMetricsTests.test_missing_leg_raises) ... ok\ntest_split_mirror_is_neutral_cycle (test_mirrored_metrics.MirroredMetricsTests.test_split_mirror_is_neutral_cycle) ... ok\ntest_two_wins_is_full_mirror_score (test_mirrored_metrics.MirroredMetricsTests.test_two_wins_is_full_mirror_score) ... ok\ntest_schema_hash_is_stable_for_same_schema (test_representation_schema.RepresentationSchemaTests.test_schema_hash_is_stable_for_same_schema) ... ok\ntest_schema_shape_is_fixed (test_representation_schema.RepresentationSchemaTests.test_schema_shape_is_fixed) ... ok\ntest_snapshot_counts_only_objects_present_in_view (test_team_snapshot.TeamSnapshotTests.test_snapshot_counts_only_objects_present_in_view) ... ok\ntest_forced_switch_masks_all_moves (test_universal_action_space.UniversalActionSpaceTests.test_forced_switch_masks_all_moves) ... ok\ntest_illegal_action_is_rejected (test_universal_action_space.UniversalActionSpaceTests.test_illegal_action_is_rejected) ... ok\ntest_move_and_switch_mask (test_universal_action_space.UniversalActionSpaceTests.test_move_and_switch_mask) ... ok\ntest_normal_known_move_order_is_preserved (test_universal_action_space.UniversalActionSpaceTests.test_normal_known_move_order_is_preserved) ... ok\ntest_transient_fight_is_mappable_with_four_known_moves (test_universal_action_space.UniversalActionSpaceTests.test_transient_fight_is_mappable_with_four_known_moves) ... ok\ntest_transient_move_replaces_unavailable_known_slot (test_universal_action_space.UniversalActionSpaceTests.test_transient_move_replaces_unavailable_known_slot) ... ok\ntest_encoding_is_deterministic (test_universal_encoder.UniversalEncoderTests.test_encoding_is_deterministic) ... ok\ntest_hidden_opponent_slots_are_zero (test_universal_encoder.UniversalEncoderTests.test_hidden_opponent_slots_are_zero) ... ok\ntest_same_shape_across_generations (test_universal_encoder.UniversalEncoderTests.test_same_shape_across_generations) ... ok\ntest_vector_range_and_mask (test_universal_encoder.UniversalEncoderTests.test_vector_range_and_mask) ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 0.012s\n\nOK\n"
-  },
-  "offline_representation_check": {
-    "returncode": 0,
-    "stdout": "[OK] UBR schema: ubr-1.1\n[OK] Observation dimension: 472\n[OK] Action dimension: 10\n[OK] Schema SHA-256: 276327ddc0883116305f6d564cb34ba43d7cf2eff8294185aeb9587c4485a20e\n[OK] Gen 1: shape=(472,), legal_actions=2, opponent_revealed=1\n[OK] Gen 4: shape=(472,), legal_actions=2, opponent_revealed=1\n[OK] Gen 9: shape=(472,), legal_actions=2, opponent_revealed=1\n\n[OK] Universal representation offline checks passed.\n",
-    "stderr": ""
-  },
-  "regression_audit_against_v0_4_smoke_test": {
-    "expected_to_fail_strict_validator": true,
-    "returncode": 1,
-    "detected_unmapped_actions": 8,
-    "detected_empty_legal_masks": 3,
-    "stdout": "[INFO] Records: 261\n[INFO] Generations: [1, 4, 9]\n[INFO] Chosen actions mapped into UBR: 253/261\n[INFO] Gen 1: 90/98 actions mapped\n[INFO] Gen 4: 71/71 actions mapped\n[INFO] Gen 9: 92/92 actions mapped\n[OK] schema mismatches: 0\n[OK] dimension errors: 0\n[OK] mask errors: 0\n[OK] non-finite vectors: 0\n[FAIL] empty legal-action masks: 3\n[FAIL] unmapped chosen actions: 8\n[OK] chosen actions marked illegal: 0\n\n[INFO] Unmapped-action examples:\n  Gen 1 | TypeAwareAgent | turn=16 | request=18 | move=recharge | battle-gen1customgame-1303\n  Gen 1 | SwitchAwareAgent | turn=8 | request=8 | move=fight | battle-gen1customgame-1303\n  Gen 1 | SwitchAwareAgent | turn=9 | request=9 | move=fight | battle-gen1customgame-1303\n  Gen 1 | SwitchAwareAgent | turn=16 | request=19 | move=recharge | battle-gen1customgame-1303\n  Gen 1 | TypeAwareAgent | turn=13 | request=15 | move=fight | battle-gen1customgame-1304\n  Gen 1 | TypeAwareAgent | turn=14 | request=16 | move=fight | battle-gen1customgame-1304\n  Gen 1 | TypeAwareAgent | turn=15 | request=17 | move=fight | battle-gen1customgame-1304\n  Gen 1 | SwitchAwareAgent | turn=18 | request=21 | move=recharge | battle-gen1customgame-1304\n",
-    "stderr": ""
-  },
-  "live_showdown_validation_status": "Pending user rerun on local Pokemon Showdown server.",
-  "v0_4_1_changes": [
-    "UBR schema bumped from ubr-1.0 to ubr-1.1",
-    "472-dimensional observation retained",
-    "10-action universal action space retained",
-    "Transient legal Gen I moves such as recharge and fight are mapped",
-    "Persistent move ordering preserved in ordinary states",
-    "Transient moves replace only unavailable known move slots",
-    "Action-space overflow fails loudly instead of dropping legal actions",
-    "Validator fails on unmapped chosen actions",
-    "Validator fails on empty legal-action masks",
-    "Validator reports per-generation mapping coverage and action diagnostics",
-    "Regression tests added for recharge, fight, and normal slot stability"
+  "dependency_light_test_returncodes": [
+    0,
+    0
   ],
-  "build_revision": "v0.4.1-hotfix-transient-metadata",
-  "unit_test_returncode": 0,
-  "unit_test_stdout": "",
-  "unit_test_stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\ntest_voluntary_and_forced_switch_rates_are_separate (test_analysis_rates.AgentSummaryRateTests.test_voluntary_and_forced_switch_rates_are_separate) ... ok\ntest_expected_generations_and_unique_pairs (test_fixed_team_config.FixedTeamConfigTests.test_expected_generations_and_unique_pairs) ... ok\ntest_seeds_are_explicit (test_fixed_team_config.FixedTeamConfigTests.test_seeds_are_explicit) ... ok\ntest_hidden_opponent_slots_stay_hidden_in_observation (test_information_policy.InformationPolicyTests.test_hidden_opponent_slots_stay_hidden_in_observation) ... ok\ntest_binomial_balanced (test_metrics.MetricsTests.test_binomial_balanced) ... ok\ntest_binomial_extreme (test_metrics.MetricsTests.test_binomial_extreme) ... ok\ntest_interval_contains_half (test_metrics.MetricsTests.test_interval_contains_half) ... ok\ntest_no_trials (test_metrics.MetricsTests.test_no_trials) ... ok\ntest_missing_leg_raises (test_mirrored_metrics.MirroredMetricsTests.test_missing_leg_raises) ... ok\ntest_split_mirror_is_neutral_cycle (test_mirrored_metrics.MirroredMetricsTests.test_split_mirror_is_neutral_cycle) ... ok\ntest_two_wins_is_full_mirror_score (test_mirrored_metrics.MirroredMetricsTests.test_two_wins_is_full_mirror_score) ... ok\ntest_schema_hash_is_stable_for_same_schema (test_representation_schema.RepresentationSchemaTests.test_schema_hash_is_stable_for_same_schema) ... ok\ntest_schema_shape_is_fixed (test_representation_schema.RepresentationSchemaTests.test_schema_shape_is_fixed) ... ok\ntest_snapshot_counts_only_objects_present_in_view (test_team_snapshot.TeamSnapshotTests.test_snapshot_counts_only_objects_present_in_view) ... ok\ntest_forced_switch_masks_all_moves (test_universal_action_space.UniversalActionSpaceTests.test_forced_switch_masks_all_moves) ... ok\ntest_illegal_action_is_rejected (test_universal_action_space.UniversalActionSpaceTests.test_illegal_action_is_rejected) ... ok\ntest_move_and_switch_mask (test_universal_action_space.UniversalActionSpaceTests.test_move_and_switch_mask) ... ok\ntest_normal_known_move_order_is_preserved (test_universal_action_space.UniversalActionSpaceTests.test_normal_known_move_order_is_preserved) ... ok\ntest_transient_fight_is_mappable_with_four_known_moves (test_universal_action_space.UniversalActionSpaceTests.test_transient_fight_is_mappable_with_four_known_moves) ... ok\ntest_transient_move_replaces_unavailable_known_slot (test_universal_action_space.UniversalActionSpaceTests.test_transient_move_replaces_unavailable_known_slot) ... ok\ntest_encoding_is_deterministic (test_universal_encoder.UniversalEncoderTests.test_encoding_is_deterministic) ... ok\ntest_hidden_opponent_slots_are_zero (test_universal_encoder.UniversalEncoderTests.test_hidden_opponent_slots_are_zero) ... ok\ntest_same_shape_across_generations (test_universal_encoder.UniversalEncoderTests.test_same_shape_across_generations) ... ok\ntest_transient_move_with_missing_metadata_is_encoded (test_universal_encoder.UniversalEncoderTests.test_transient_move_with_missing_metadata_is_encoded) ... ok\ntest_vector_range_and_mask (test_universal_encoder.UniversalEncoderTests.test_vector_range_and_mask) ... ok\n\n----------------------------------------------------------------------\nRan 25 tests in 0.013s\n\nOK\n",
-  "offline_representation_check_returncode": 0,
-  "offline_representation_check_stdout": "[OK] UBR schema: ubr-1.1\n[OK] Observation dimension: 472\n[OK] Action dimension: 10\n[OK] Schema SHA-256: 276327ddc0883116305f6d564cb34ba43d7cf2eff8294185aeb9587c4485a20e\n[OK] Gen 1: shape=(472,), legal_actions=2, opponent_revealed=1\n[OK] Gen 4: shape=(472,), legal_actions=2, opponent_revealed=1\n[OK] Gen 9: shape=(472,), legal_actions=2, opponent_revealed=1\n\n[OK] Universal representation offline checks passed.\n",
-  "offline_representation_check_stderr": "Spreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n",
-  "live_fix_target": {
-    "generation": 1,
-    "transient_moves": [
-      "recharge",
-      "fight"
-    ],
-    "poke_env_failure": "Move.priority raised KeyError when metadata was absent"
-  }
+  "dependency_light_test_output": "## test_rl_model_io.py\n\nSpreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n.....\n----------------------------------------------------------------------\nRan 5 tests in 0.002s\n\nOK\n\n## test_rl_config.py\n\nSpreadsheet runtime warmup failed during python startup\nTraceback (most recent call last):\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py\", line 26, in warm_spreadsheet_runtime_on_startup\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 785, in warm_spreadsheet_runtime\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 720, in _warm_feature_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py\", line 704, in _warm_collaboration_flows\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py\", line 32317, in hydrate_crdt_from_proto\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py\", line 749, in __call__\n  File \"/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py\", line 150, in call\nartifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.\n.\n----------------------------------------------------------------------\nRan 1 test in 0.002s\n\nOK",
+  "source_contract_checks": {
+    "version_0_5": true,
+    "maskable_ppo_dependency": true,
+    "ubr_1_1_config": true,
+    "training_entrypoint": true,
+    "controlled_eval_entrypoint": true,
+    "mask_adapter": true,
+    "policy_agent": true
+  },
+  "live_validation_status": "Not executable in the artifact build runtime because poke-env, gymnasium, stable-baselines3 and sb3-contrib are not installed there. Run scripts/check_rl_setup.py and the documented smoke training on the user's Windows environment.",
+  "v0_5_features": [
+    "UBR 1.1 frozen at 472 observations and 10 actions",
+    "MaskablePPO baseline via sb3-contrib",
+    "single-agent Gymnasium adapter over poke-env",
+    "legal-action mask bridge for MaskablePPO",
+    "random-battle training distribution",
+    "configurable scripted training opponent",
+    "dense interpretable reward",
+    "model/schema metadata compatibility checks",
+    "RLPolicyAgent for saved-model inference",
+    "fixed-team mirrored RL evaluation",
+    "same-generation gate; cross-generation transfer deferred to v0.6",
+    "training monitor and learning-curve plots"
+  ]
 }

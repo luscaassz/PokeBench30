@@ -12,3 +12,7 @@ results/run_*/
 # Fixed teams are intentionally versionable for reproducibility.
 !teams/fixed/
 !teams/fixed/**
+models/*
+!models/.gitkeep
+results/*
+!results/.gitkeep
