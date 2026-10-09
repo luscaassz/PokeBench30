@@ -71,65 +71,53 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
         key=lambda row: (
             int(row["generation"]),
             row["agent"],
-            row["battle_tag"],
-            int(row.get("request_index", 0) or 0),
+            row.get("battle_tag", ""),
+            int(float(row.get("request_index", 0) or 0)),
         ),
     )
 
     for row in actions:
         key = (int(row["generation"]), row["agent"])
         stats[key]["action_requests"] += 1
+
         if row["action_type"] == "move":
             stats[key]["moves"] += 1
         elif row["action_type"] == "switch":
             stats[key]["switches"] += 1
-            if row.get("voluntary_switch", "").lower() == "true":
-                stats[key]["voluntary_switches"] += 1
 
-                battle_key = (
-                    int(row["generation"]),
-                    row["agent"],
-                    row["battle_tag"],
+        if row.get("voluntary_switch", "").lower() == "true":
+            stats[key]["voluntary_switches"] += 1
+
+            battle_key = (
+                int(row["generation"]),
+                row["agent"],
+                row.get("battle_tag", ""),
+            )
+
+            current_switch = {
+                "from": row.get("active_pokemon", ""),
+                "to": row.get("action", ""),
+                "turn": int(float(row.get("turn", 0) or 0)),
+            }
+
+            previous_switch = last_voluntary_switch.get(battle_key)
+            if previous_switch is not None:
+                reversed_switch = (
+                    previous_switch["from"] == current_switch["to"]
+                    and previous_switch["to"] == current_switch["from"]
                 )
-
-                current_switch = {
-                    "from": row.get("active_pokemon", ""),
-                    "to": row.get("action", ""),
-                    "turn": int(
-                        float(row.get("turn", 0) or 0)
-                    ),
-                }
-
-                previous_switch = last_voluntary_switch.get(
-                    battle_key
+                turn_difference = (
+                    current_switch["turn"] - previous_switch["turn"]
                 )
+                close_in_time = 0 <= turn_difference <= 2
 
-                if previous_switch is not None:
-                    reversed_switch = (
-                        previous_switch["from"]
-                        == current_switch["to"]
-                        and previous_switch["to"]
-                        == current_switch["from"]
-                    )
+                if reversed_switch and close_in_time:
+                    stats[key]["switch_loop_events"] += 1
 
-                    close_in_time = (
-                        current_switch["turn"]
-                        - previous_switch["turn"]
-                        <= 2
-                    )
+            last_voluntary_switch[battle_key] = current_switch
 
-                    if (
-                        reversed_switch
-                        and close_in_time
-                    ):
-                        stats[key]["switch_loop_events"] += 1
-
-                last_voluntary_switch[
-                    battle_key
-                ] = current_switch
-
-            if row.get("forced_switch", "").lower() == "true":
-                stats[key]["forced_switches"] += 1
+        if row.get("forced_switch", "").lower() == "true":
+            stats[key]["forced_switches"] += 1
 
     rows = []
     for (generation, agent), s in sorted(stats.items()):
@@ -156,12 +144,8 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
             "forced_switches": s["forced_switches"],
             "switch_loop_events": s["switch_loop_events"],
             "switch_loop_rate": round(
-                s["switch_loop_events"]
-                / s["voluntary_switches"],
-                6,
-            )
-            if s["voluntary_switches"]
-            else 0.0,
+                s["switch_loop_events"] / s["voluntary_switches"], 6
+            ) if s["voluntary_switches"] else 0.0,
             "mean_opponent_reveal_fraction": round(
                 mean(s["opponent_reveal_fractions"]), 6
             ) if s["opponent_reveal_fractions"] else 0.0,
@@ -175,12 +159,8 @@ def build_agent_summary(run_dir: Path) -> list[dict]:
             "win_rate_all", "win_rate_decisive", "mean_battle_turns",
             "action_requests", "moves", "switches", "switch_rate",
             "voluntary_switch_rate", "forced_switch_rate",
-            "voluntary_switches",
-            "forced_switches",
-
-            "switch_loop_events",
-            "switch_loop_rate",
-
+            "voluntary_switches", "forced_switches",
+            "switch_loop_events", "switch_loop_rate",
             "mean_opponent_reveal_fraction",
         ],
     )

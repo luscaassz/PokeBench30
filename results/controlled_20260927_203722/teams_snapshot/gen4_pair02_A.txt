@@ -1,0 +1,54 @@
+Arceus (Arceus-Dragon) @ Draco Plate  
+Ability: Multitype  
+Level: 69  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- Recover  
+- Outrage  
+- Earthquake  
+
+Shedinja @ Focus Sash  
+Ability: Wonder Guard  
+Level: 96  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- X-Scissor  
+- Shadow Claw  
+- Shadow Sneak  
+
+Snorlax @ Leftovers  
+Ability: Thick Fat  
+Level: 76  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Rest  
+- Sleep Talk  
+- Curse  
+- Body Slam  
+
+Darkrai @ Leftovers  
+Ability: Bad Dreams  
+Level: 68  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Dark Pulse  
+- Nasty Plot  
+- Dark Void  
+- Substitute  
+
+Ninjask @ Life Orb  
+Ability: Speed Boost  
+Level: 86  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- Aerial Ace  
+- X-Scissor  
+- U-turn  
+
+Dunsparce @ Leftovers  
+Ability: Serene Grace  
+Level: 93  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Body Slam  
+- Roost  
+- Bite

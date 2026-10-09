@@ -1,0 +1,2 @@
+generation,battle_format,agent_1,agent_2,battles,wins_agent_1,wins_agent_2,draws,win_rate_agent_1,win_rate_agent_2,draw_rate,mean_turns,ci95_low_agent_1_decisive,ci95_high_agent_1_decisive,two_sided_binomial_p_vs_0_5,mean_remaining_agent_1_true,mean_remaining_agent_2_true,mean_opponent_reveal_fraction_agent_1,mean_opponent_reveal_fraction_agent_2
+9,gen9customgame@@@!teampreview,TypeAwareAgent,TypeAwareAgent,60,33,27,0,0.55,0.45,0.0,18.267,0.424919,0.669063,0.518958,0.883,0.65,0.963889,0.944444

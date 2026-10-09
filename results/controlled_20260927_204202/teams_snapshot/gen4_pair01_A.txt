@@ -1,0 +1,55 @@
+Latias (F) @ Soul Dew  
+Ability: Levitate  
+Level: 70  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Psychic  
+- Calm Mind  
+- Draco Meteor  
+- Roost  
+
+Jynx (F) @ Life Orb  
+Ability: Forewarn  
+Level: 83  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Ice Beam  
+- Nasty Plot  
+- Psychic  
+- Focus Blast  
+
+Whiscash @ Life Orb  
+Ability: Anticipation  
+Level: 87  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Dragon Dance  
+- Waterfall  
+- Stone Edge  
+
+Kingler @ Life Orb  
+Ability: Hyper Cutter  
+Level: 88  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Crabhammer  
+- Swords Dance  
+- Superpower  
+- X-Scissor  
+
+Cacturne @ Life Orb  
+Ability: Sand Veil  
+Level: 91  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Superpower  
+- Sucker Punch  
+- Swords Dance  
+- Seed Bomb  
+
+Sableye @ Leftovers  
+Ability: Keen Eye  
+Level: 96  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Recover  
+- Payback  
+- Seismic Toss  
+- Will-O-Wisp

@@ -1,0 +1,61 @@
+Mewtwo @ Life Orb  
+Ability: Pressure  
+Level: 72  
+Tera Type: Dark  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Nasty Plot  
+- Fire Blast  
+- Psystrike  
+- Dark Pulse  
+
+Sinistcha @ Leftovers  
+Ability: Heatproof  
+Level: 83  
+Tera Type: Steel  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Strength Sap  
+- Shadow Ball  
+- Matcha Gotcha  
+- Calm Mind  
+
+Walking Wake @ Choice Specs  
+Ability: Protosynthesis  
+Level: 79  
+Tera Type: Fire  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Flip Turn  
+- Hydro Pump  
+- Flamethrower  
+- Draco Meteor  
+
+Altaria (M) @ Heavy-Duty Boots  
+Ability: Natural Cure  
+Level: 89  
+Tera Type: Steel  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Roost  
+- Brave Bird  
+- Dragon Dance  
+- Earthquake  
+
+Wyrdeer (M) @ Leftovers  
+Ability: Intimidate  
+Level: 87  
+Tera Type: Ground  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Psychic Noise  
+- Body Slam  
+- Thunder Wave  
+- Earthquake  
+
+Quagsire (M) @ Leftovers  
+Ability: Unaware  
+Level: 84  
+Tera Type: Fairy  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Earthquake  
+- Spikes  
+- Toxic  
+- Recover

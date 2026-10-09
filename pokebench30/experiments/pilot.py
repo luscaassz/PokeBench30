@@ -309,7 +309,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
             "Random Battle team generation is not seed-controlled in this Player.battle_against workflow.",
             "Random teams confound agent strength with team matchup; fixed mirrored teams are planned for v0.3.",
             "SwitchAwareAgent uses a transparent type-matchup heuristic, not a full damage or search model.",
-            "Scripted v0.2.1 baselines do not intentionally activate generation-specific gimmicks; these will be modeled explicitly later.",
+            "Scripted v0.3 baselines do not intentionally activate generation-specific gimmicks; these will be modeled explicitly later.",
             "Earlier generations require targeted validation because poke-env is primarily developed around recent generations.",
         ],
     }
@@ -332,7 +332,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the PokéBench30 v0.2.2 partial-observation pilot.")
+    parser = argparse.ArgumentParser(description="Run the PokéBench30 v0.3 legacy Random-Battle pilot.")
     parser.add_argument("--generations", nargs="+", type=int, default=[1, 4, 9])
     parser.add_argument("--agents", nargs="+", default=["random", "max_damage", "type_aware", "switch_aware"])
     parser.add_argument("--battles", type=int, default=20, help="Battles per matchup per generation. Default: 20")

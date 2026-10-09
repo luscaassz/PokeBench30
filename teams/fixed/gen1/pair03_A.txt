@@ -1,0 +1,59 @@
+Machoke  
+Ability: No Ability  
+Level: 84  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Earthquake  
+- Body Slam  
+- Submission  
+- Rock Slide  
+
+Vileplume  
+Ability: No Ability  
+Level: 76  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Body Slam  
+- Sleep Powder  
+- Stun Spore  
+- Mega Drain  
+
+Dragonite  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Hyper Beam  
+- Body Slam  
+- Thunder Wave  
+- Blizzard  
+
+Seel  
+Ability: No Ability  
+Level: 88  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Rest  
+- Surf  
+- Body Slam  
+- Blizzard  
+
+Clefairy  
+Ability: No Ability  
+Level: 88  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Counter  
+- Thunder Wave  
+- Body Slam  
+- Blizzard  
+
+Electabuzz  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Psychic  
+- Seismic Toss  
+- Thunder Wave  
+- Thunderbolt

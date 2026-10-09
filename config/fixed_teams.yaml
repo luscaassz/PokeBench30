@@ -1,0 +1,54 @@
+schema_version: 1
+
+# Each prepared team is generated deterministically by the local Pokémon
+# Showdown random-team generator using the seed below. The resulting packed
+# team is then frozen on disk and reused in a non-random Custom Game.
+#
+# Team Preview is explicitly removed from controlled battles so the partial
+# information policy from v0.2.2 is preserved.
+
+generations:
+  1:
+    source_format: "gen1randombattle"
+    validation_format: "gen1customgame"
+    battle_format: "gen1customgame"
+    pairs:
+      - id: "pair01"
+        team_a_seed: "101,202,303,404"
+        team_b_seed: "505,606,707,808"
+      - id: "pair02"
+        team_a_seed: "1101,1202,1303,1404"
+        team_b_seed: "1505,1606,1707,1808"
+      - id: "pair03"
+        team_a_seed: "2101,2202,2303,2404"
+        team_b_seed: "2505,2606,2707,2808"
+
+  4:
+    source_format: "gen4randombattle"
+    validation_format: "gen4customgame"
+    battle_format: "gen4customgame"
+    pairs:
+      - id: "pair01"
+        team_a_seed: "3101,3202,3303,3404"
+        team_b_seed: "3505,3606,3707,3808"
+      - id: "pair02"
+        team_a_seed: "4101,4202,4303,4404"
+        team_b_seed: "4505,4606,4707,4808"
+      - id: "pair03"
+        team_a_seed: "5101,5202,5303,5404"
+        team_b_seed: "5505,5606,5707,5808"
+
+  9:
+    source_format: "gen9randombattle"
+    validation_format: "gen9customgame"
+    battle_format: "gen9customgame@@@!teampreview"
+    pairs:
+      - id: "pair01"
+        team_a_seed: "6101,6202,6303,6404"
+        team_b_seed: "6505,6606,6707,6808"
+      - id: "pair02"
+        team_a_seed: "7101,7202,7303,7404"
+        team_b_seed: "7505,7606,7707,7808"
+      - id: "pair03"
+        team_a_seed: "8101,8202,8303,8404"
+        team_b_seed: "8505,8606,8707,8808"

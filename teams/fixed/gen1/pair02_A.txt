@@ -1,0 +1,58 @@
+Raichu  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Surf  
+- Thunderbolt  
+- Thunder Wave  
+- Thunder  
+
+Zubat  
+Ability: No Ability  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Mega Drain  
+- Confuse Ray  
+- Substitute  
+- Double-Edge  
+
+Charizard  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Earthquake  
+- Swords Dance  
+- Fire Blast  
+- Hyper Beam  
+
+Ponyta  
+Ability: No Ability  
+Level: 84  
+EVs: 255 HP / 255 Atk / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Fire Blast  
+- Agility  
+- Reflect  
+- Body Slam  
+
+Venomoth  
+Ability: No Ability  
+Level: 74  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Psychic  
+- Mega Drain  
+- Sleep Powder  
+- Stun Spore  
+
+Hypno  
+Ability: No Ability  
+Level: 72  
+EVs: 255 HP / 255 Def / 255 SpA / 255 SpD / 255 Spe  
+IVs: 30 HP / 2 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Psychic  
+- Thunder Wave  
+- Hypnosis  
+- Seismic Toss

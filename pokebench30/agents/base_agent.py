@@ -5,6 +5,13 @@ import json
 import random
 from typing import Any
 
+import orjson
+
+from poke_env.battle.battle import Battle
+from poke_env.battle.pokemon import Pokemon
+from poke_env.data import GenData
+from poke_env.exceptions import ShowdownException
+from poke_env.teambuilder.constant_teambuilder import ConstantTeambuilder
 from poke_env.player import Player
 
 
@@ -98,6 +105,96 @@ class InstrumentedPlayer(Player):
         self.log_actions = log_actions
         self.action_log: list[dict[str, Any]] = []
         self.action_request_counts: dict[str, int] = defaultdict(int)
+
+    def _base_battle_format(self) -> str:
+        return self._format.split("@@@", 1)[0]
+
+    async def _handle_challenge_request(self, split_message):
+        challenging_player = split_message[2].strip()
+
+        if challenging_player == self.username:
+            return
+
+        if len(split_message) < 6:
+            return
+
+        received_format = split_message[5]
+        base_format = self._base_battle_format()
+
+        if received_format in (self._format, base_format):
+            await self._challenge_queue.put(challenging_player)
+
+    async def _update_challenges(self, split_message):
+        challenges = orjson.loads(
+            split_message[2]
+        ).get("challengesFrom", {})
+
+        base_format = self._base_battle_format()
+
+        for user, format_ in challenges.items():
+            if format_ in (self._format, base_format):
+                await self._challenge_queue.put(user)
+
+    async def _create_battle(self, split_message):
+        """
+        Workaround para poke-env #851.
+
+        O Showdown usa apenas o formato base no nome da sala:
+            gen9customgame
+
+        enquanto o Player usa:
+            gen9customgame@@@!teampreview
+
+        Esta implementação é específica para os singles
+        utilizados pelo PokéBench30.
+        """
+
+        base_format = self._base_battle_format()
+        received_format = split_message[1]
+
+        if received_format not in (
+            base_format,
+            f"{base_format}bo3",
+        ):
+            self.logger.critical(
+                "Unmanaged battle initialisation message received: %s",
+                split_message,
+            )
+            raise ShowdownException()
+
+        battle_tag = "-".join(split_message)[1:]
+
+        if battle_tag in self._battles:
+            return self._battles[battle_tag]
+
+        gen = GenData.from_format(base_format).gen
+
+        battle = Battle(
+            battle_tag=battle_tag,
+            username=self.username,
+            logger=self.logger,
+            save_replays=self._save_replays,
+            gen=gen,
+        )
+
+        # Registra o próprio time no objeto da batalha.
+        if isinstance(self._team, ConstantTeambuilder):
+            battle.teampreview_team = [
+                Pokemon(
+                    gen=gen,
+                    teambuilder=tb_mon,
+                )
+                for tb_mon in self._team.team
+            ]
+
+        await self._battle_count_queue.put(None)
+
+        async with self._battle_start_condition:
+            self._battle_semaphore.release()
+            self._battle_start_condition.notify_all()
+            self._battles[battle_tag] = battle
+
+        return battle
 
     @staticmethod
     def _action_info(order: Any) -> tuple[str, str, Any]:

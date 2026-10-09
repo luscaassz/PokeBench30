@@ -1,0 +1,55 @@
+Feraligatr @ Life Orb  
+Ability: Torrent  
+Level: 82  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Swords Dance  
+- Return  
+- Aqua Jet  
+- Waterfall  
+
+Chimecho @ Leftovers  
+Ability: Levitate  
+Level: 94  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Heal Bell  
+- Psychic  
+- Recover  
+- Thunder Wave  
+
+Infernape @ Life Orb  
+Ability: Blaze  
+Level: 76  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Overheat  
+- U-turn  
+- Grass Knot  
+- Close Combat  
+
+Spinda @ Silk Scarf  
+Ability: Own Tempo  
+EVs: 85 HP / 85 Atk / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+- Low Kick  
+- Fake Out  
+- Sucker Punch  
+- Double-Edge  
+
+Suicune @ Leftovers  
+Ability: Pressure  
+Level: 79  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 0 Atk  
+- Surf  
+- Rest  
+- Calm Mind  
+- Sleep Talk  
+
+Girafarig @ Life Orb  
+Ability: Inner Focus  
+Level: 92  
+EVs: 85 HP / 85 Def / 85 SpA / 85 SpD / 85 Spe  
+IVs: 3 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe  
+- Psychic  
+- Hidden Power [Fighting]  
+- Calm Mind  
+- Thunderbolt

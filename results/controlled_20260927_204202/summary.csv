@@ -1,0 +1,4 @@
+generation,battle_format,agent_1,agent_2,battles,wins_agent_1,wins_agent_2,draws,win_rate_agent_1,win_rate_agent_2,draw_rate,mean_turns,ci95_low_agent_1_decisive,ci95_high_agent_1_decisive,two_sided_binomial_p_vs_0_5,mean_remaining_agent_1_true,mean_remaining_agent_2_true,mean_opponent_reveal_fraction_agent_1,mean_opponent_reveal_fraction_agent_2
+1,gen1customgame,TypeAwareAgent,SwitchAwareAgent,60,25,35,0,0.416667,0.583333,0.0,21.367,0.300643,0.542719,0.24506083,0.7,1.333,0.963889,0.952778
+4,gen4customgame,TypeAwareAgent,SwitchAwareAgent,60,22,38,0,0.366667,0.633333,0.0,22.967,0.256209,0.49317,0.0518939,0.567,1.6,0.927778,0.958333
+9,gen9customgame@@@!teampreview,TypeAwareAgent,SwitchAwareAgent,60,20,40,0,0.333333,0.666667,0.0,18.517,0.227293,0.459431,0.01348929,0.467,1.767,0.919444,0.975

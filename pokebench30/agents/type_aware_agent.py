@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import random
 
 from poke_env.battle import AbstractBattle
@@ -11,8 +12,8 @@ class TypeAwareAgent(InstrumentedPlayer):
 
     score = base_power × accuracy × STAB × type_effectiveness
 
-    This deliberately is not the full Pokémon damage formula. It is a compact,
-    generation-aware baseline for the benchmark.
+    TypeAwareAgent never performs a voluntary switch. This keeps it as the
+    clean attack-only comparator for SwitchAwareAgent.
     """
 
     agent_name = "TypeAwareAgent"
@@ -75,19 +76,20 @@ class TypeAwareAgent(InstrumentedPlayer):
     def best_scored_move(cls, battle: AbstractBattle):
         if not battle.available_moves:
             return None, 0.0
-        scored = [(cls.score_move(battle, move), move) for move in battle.available_moves]
+        scored = [
+            (cls.score_move(battle, move), move)
+            for move in battle.available_moves
+        ]
         score, move = max(scored, key=lambda item: item[0])
         return move, float(score)
 
     def choose_move(self, battle: AbstractBattle):
-        # 1. Se a troca for obrigatória, escolhe um Pokémon aleatoriamente.
+        # Forced switches are allowed; voluntary switches are not.
         if is_force_switch(battle):
-            available_switches = list(battle.available_switches or [])
-
-            if available_switches:
-                switch_target = random.choice(available_switches)
-                order = self.create_order(switch_target)
-
+            switches = list(battle.available_switches or [])
+            if switches:
+                target = random.choice(switches)
+                order = self.create_order(target)
                 return self.record_order(
                     battle,
                     order,
@@ -95,12 +97,9 @@ class TypeAwareAgent(InstrumentedPlayer):
                     decision_reason="forced_random_switch",
                 )
 
-        # 2. Tenta usar o melhor ataque Type-Aware.
         best_move, score = self.best_scored_move(battle)
-
         if best_move is not None and score > 0:
             order = self.create_order(best_move)
-
             return self.record_order(
                 battle,
                 order,
@@ -108,14 +107,12 @@ class TypeAwareAgent(InstrumentedPlayer):
                 decision_reason="best_type_aware_attack",
             )
 
-        # 3. Se nenhum ataque tiver score positivo,
-        # ainda assim escolhe um MOVE, nunca um switch voluntário.
-        available_moves = list(battle.available_moves or [])
-
-        if available_moves:
-            move = random.choice(available_moves)
+        # If no damaging move has positive score, still choose a move instead
+        # of voluntarily switching.
+        moves = list(battle.available_moves or [])
+        if moves:
+            move = random.choice(moves)
             order = self.create_order(move)
-
             return self.record_order(
                 battle,
                 order,
@@ -123,13 +120,11 @@ class TypeAwareAgent(InstrumentedPlayer):
                 decision_reason="fallback_random_move",
             )
 
-        # 4. Fallback defensivo para estados incomuns.
-        available_switches = list(battle.available_switches or [])
-
-        if available_switches:
-            switch_target = random.choice(available_switches)
-            order = self.create_order(switch_target)
-
+        # Defensive fallback for unusual states with no move available.
+        switches = list(battle.available_switches or [])
+        if switches:
+            target = random.choice(switches)
+            order = self.create_order(target)
             return self.record_order(
                 battle,
                 order,
@@ -137,9 +132,7 @@ class TypeAwareAgent(InstrumentedPlayer):
                 decision_reason="fallback_required_switch",
             )
 
-        # 5. Último fallback.
         order, _ = self.choose_random_core_order(battle)
-
         return self.record_order(
             battle,
             order,
