@@ -1,0 +1,12 @@
+generations:
+  1:
+    name: "Generation I"
+    format: "gen1randombattle"
+
+  4:
+    name: "Generation IV"
+    format: "gen4randombattle"
+
+  9:
+    name: "Generation IX"
+    format: "gen9randombattle"
