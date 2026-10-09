@@ -7,6 +7,4 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
-
-# Experiment outputs
 results/run_*/

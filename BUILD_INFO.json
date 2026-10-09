@@ -1,6 +1,10 @@
 {
   "project": "PokeBench30",
-  "version": "0.1.0",
-  "python_files_checked": 13,
-  "syntax_errors": []
+  "version": "0.2.0",
+  "python_files_checked": 16,
+  "syntax_errors": [],
+  "unit_test_returncode": 0,
+  "unit_test_stdout": "",
+  "unit_test_stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\nOK\n",
+  "note": "Runtime battle integration must be smoke-tested on the user's installed poke-env + local Pokemon Showdown server."
 }

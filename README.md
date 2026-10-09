@@ -1,474 +1,289 @@
-# PokéBench30 v0.1
+# PokéBench30 v0.2 — Experimental Instrumentation
 
-**PokéBench30** é um projeto de pesquisa para estudar agentes de Inteligência Artificial em batalhas Pokémon ao longo de diferentes gerações.
+**PokéBench30** é um benchmark de pesquisa para estudar agentes de IA em batalhas Pokémon ao longo de diferentes gerações.
 
-A versão **v0.1** é deliberadamente simples. O objetivo é validar a infraestrutura experimental antes de adicionar Reinforcement Learning, continual learning ou transferência entre gerações.
+A v0.1 provou que o mesmo pipeline consegue executar Gen I, Gen IV e Gen IX. A **v0.2** transforma esse protótipo em uma infraestrutura experimental mais informativa.
 
-## Objetivo desta versão
+## O que mudou na v0.2
 
-Executar automaticamente batalhas em:
-
-- Generation I — `gen1randombattle`
-- Generation IV — `gen4randombattle`
-- Generation IX — `gen9randombattle`
-
-usando três agentes básicos:
-
-- **RandomAgent** — escolhe uma ação válida aleatoriamente.
-- **MaxDamageAgent** — prioriza o golpe disponível com maior Base Power.
-- **TypeAwareAgent** — usa Base Power, precisão, STAB e eficácia de tipo para escolher o golpe ofensivo com maior score.
-
-A saída é salva em CSV para permitir análise posterior.
+- Quarto agente: **SwitchAwareAgent**.
+- `decisions.csv` virou **`actions.csv`**: uma chamada de `choose_move()` é uma *action request*, não necessariamente um turno.
+- Estado da batalha é capturado antes de cada ação.
+- Logging de Pokémon ativos, HP, tipos, status, boosts e ações legais.
+- Separação de **switch voluntário** e **switch forçado**.
+- Métricas de Pokémon restantes e soma de HP no fim da batalha.
+- Intervalo de confiança de Wilson e teste binomial exploratório por matchup.
+- `agent_summary.csv` criado automaticamente.
+- Gráficos automáticos em `figures/`.
+- Versão do `poke-env` registrada no metadata.
 
 ---
 
-## Estrutura
+## Agentes
+
+### RandomAgent
+Escolhe qualquer ação legal aleatoriamente. É o baseline mínimo.
+
+### MaxDamageAgent
+Prioriza o golpe disponível com maior Base Power.
+
+### TypeAwareAgent
+Usa a heurística:
 
 ```text
-PokeBench30_v0.1/
-├── README.md
-├── requirements.txt
-├── run_pilot.py
-├── config/
-│   └── generations.yaml
-├── pokebench30/
-│   ├── __init__.py
-│   ├── agents/
-│   │   ├── __init__.py
-│   │   ├── base_agent.py
-│   │   ├── random_agent.py
-│   │   ├── max_damage_agent.py
-│   │   └── type_aware_agent.py
-│   ├── evaluation/
-│   │   ├── __init__.py
-│   │   └── metrics.py
-│   └── experiments/
-│       ├── __init__.py
-│       └── pilot.py
-├── scripts/
-│   └── check_setup.py
-├── tests/
-│   └── test_metrics.py
-└── results/
-    └── .gitkeep
+score = base_power × accuracy × STAB × type_effectiveness
 ```
+
+### SwitchAwareAgent
+Mantém a heurística ofensiva do TypeAwareAgent, mas compara o matchup atual com os Pokémon disponíveis para troca.
+
+Ele pode trocar quando:
+
+- a troca é obrigatória;
+- o matchup atual é desfavorável e existe uma melhora suficientemente grande;
+- o HP está muito baixo e uma troca melhora o matchup.
+
+O objetivo **não** é criar um agente ótimo, mas um baseline interpretável que possua decisão explícita `attack vs switch`.
 
 ---
 
-# 1. Requisitos
+# Instalação no Windows + VS Code + Conda
 
-## Python
-
-Use **Python 3.10 ou superior**.
-
-Verifique:
-
-```bash
-python --version
-```
-
-No Linux talvez o comando seja:
-
-```bash
-python3 --version
-```
-
-## Node.js
-
-O Pokémon Showdown atual exige **Node.js 22 ou superior**.
-
-Verifique:
-
-```bash
-node --version
-```
-
----
-
-# 2. Criar o ambiente Python
-
-No diretório do projeto:
-
-### Windows PowerShell
+Você já pode continuar usando o ambiente `games` sem precisar de `conda activate`:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+conda run -n games python -m pip install -r requirements.txt
 ```
 
-### Linux / macOS
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
----
-
-# 3. Instalar o Pokémon Showdown local
-
-Fora deste repositório:
-
-```bash
-git clone https://github.com/smogon/pokemon-showdown.git
-cd pokemon-showdown
-npm install
-```
-
-Copie o arquivo de configuração:
-
-### Linux / macOS
-
-```bash
-cp config/config-example.js config/config.js
-```
-
-### Windows PowerShell
+Mantenha o Pokémon Showdown local aberto em outro terminal:
 
 ```powershell
-Copy-Item config/config-example.js config/config.js
-```
-
-Inicie o servidor local:
-
-```bash
+cd C:\Users\lucas\OneDrive\Desktop\pokemon-showdown
 node pokemon-showdown start --no-security
 ```
 
-Por padrão ele ficará disponível em:
+Verifique o ambiente:
 
-```text
-http://localhost:8000
-```
-
-Mantenha esse terminal aberto.
-
----
-
-# 4. Verificar a instalação
-
-Abra um **segundo terminal**, entre na pasta do PokéBench30, ative o ambiente virtual e rode:
-
-```bash
-python scripts/check_setup.py
-```
-
-A saída esperada é parecida com:
-
-```text
-[OK] Python compatível
-[OK] poke-env importado
-[OK] generations.yaml encontrado
-[OK] Pokémon Showdown respondeu em localhost:8000
+```powershell
+conda run -n games python scripts\check_setup.py
 ```
 
 ---
 
-# 5. Primeiro smoke test
+# Primeiro smoke test da v0.2
 
-Execute apenas uma batalha na Generation IX:
+Teste primeiro somente Gen IX e 1 batalha por matchup:
 
-```bash
-python run_pilot.py --generations 9 --battles 1
+```powershell
+conda run -n games python run_pilot.py --generations 9 --battles 1
 ```
 
-Se funcionar, teste as três gerações:
+Como existem 4 agentes, há 6 combinações:
 
-```bash
-python run_pilot.py --generations 1 4 9 --battles 5
+```text
+Random × MaxDamage
+Random × TypeAware
+Random × SwitchAware
+MaxDamage × TypeAware
+MaxDamage × SwitchAware
+TypeAware × SwitchAware
+```
+
+Logo, esse comando executa 6 batalhas.
+
+Depois teste as três gerações:
+
+```powershell
+conda run -n games python run_pilot.py --generations 1 4 9 --battles 5
+```
+
+Isso produz:
+
+```text
+3 gerações × 6 matchups × 5 = 90 batalhas
 ```
 
 ---
 
-# 6. Rodar o piloto
+# Piloto recomendado
 
-O piloto padrão executa os três confrontos:
+Depois do smoke test:
+
+```powershell
+conda run -n games python run_pilot.py --generations 1 4 9 --battles 50
+```
+
+Total:
 
 ```text
-RandomAgent    vs MaxDamageAgent
-RandomAgent    vs TypeAwareAgent
-MaxDamageAgent vs TypeAwareAgent
+3 × 6 × 50 = 900 batalhas
 ```
 
-em cada geração selecionada.
-
-Exemplo:
-
-```bash
-python run_pilot.py --generations 1 4 9 --battles 50
-```
-
-Para uma primeira execução mais robusta:
-
-```bash
-python run_pilot.py --generations 1 4 9 --battles 100
-```
-
-Para desativar o log de decisões por turno:
-
-```bash
-python run_pilot.py --generations 1 4 9 --battles 100 --no-decision-log
-```
+Não é necessário rodar esse lote antes de validar o smoke test.
 
 ---
 
-# 7. Saídas
+# Arquivos gerados
 
-Cada execução cria uma pasta:
-
-```text
-results/run_YYYYMMDD_HHMMSS/
-```
-
-com:
-
-### `battles.csv`
-
-Uma linha por batalha.
-
-Exemplo de colunas:
+Cada execução cria:
 
 ```text
-run_id
-battle_tag
-generation
-battle_format
-agent_1
-agent_2
-winner
-result_agent_1
-turns
-agent_1_decisions
-agent_2_decisions
+results/
+└── run_YYYYMMDD_HHMMSS/
+    ├── battles.csv
+    ├── actions.csv
+    ├── summary.csv
+    ├── agent_summary.csv
+    ├── metadata.json
+    └── figures/
+        ├── agent_win_rate.png
+        └── switch_rate.png
 ```
 
-### `decisions.csv`
+## battles.csv
 
-Uma linha por decisão tomada por um dos agentes.
+Uma linha por batalha, com:
 
-Exemplo:
+- resultado;
+- duração;
+- action requests;
+- golpes;
+- switches;
+- switches voluntários;
+- switches forçados;
+- Pokémon conhecidos/restantes;
+- soma das frações de HP restantes.
+
+## actions.csv
+
+Uma linha por solicitação de ação. Inclui o estado **antes** da ação:
 
 ```text
 battle_tag
 generation
 turn
+request_index
 agent
+active_pokemon
+active_hp_fraction
+active_status
+active_type_1
+active_type_2
+active_boosts
+opponent_pokemon
+opponent_hp_fraction
+opponent_status
+opponent_type_1
+opponent_type_2
+opponent_boosts
 action_type
 action
-score
+voluntary_switch
+forced_switch
+decision_reason
+heuristic_score
+move_base_power
+move_accuracy
+move_type
+move_stab
+move_type_effectiveness
+...
 ```
 
-O `score` só é relevante para agentes heurísticos.
+## summary.csv
 
-### `summary.csv`
+Resumo por matchup e geração, incluindo:
 
-Resumo de cada matchup:
+- win rate;
+- draws;
+- duração média;
+- Wilson 95% CI;
+- teste binomial bilateral exploratório contra 50%;
+- Pokémon restantes médios.
 
-```text
-generation
-agent_1
-agent_2
-battles
-wins_agent_1
-wins_agent_2
-draws
-win_rate_agent_1
-win_rate_agent_2
-draw_rate
-mean_turns
-ci95_low_agent_1
-ci95_high_agent_1
-```
+**Importante:** o p-value desta versão é diagnóstico/exploratório. Ele não corrige múltiplas comparações e não elimina os vieses dos Random Battles.
 
-### `metadata.json`
+## agent_summary.csv
 
-Metadados da execução, incluindo argumentos utilizados.
+Resume cada agente por geração:
+
+- batalhas;
+- vitórias/derrotas/empates;
+- win rate;
+- duração média;
+- action requests;
+- movimentos;
+- switches;
+- switch rate;
+- switches voluntários/forçados.
 
 ---
 
-# 8. Como os agentes funcionam
+# Analisar novamente um run existente
 
-## RandomAgent
-
-Escolhe uma ação legal aleatoriamente.
-
-Ele é o nosso **baseline mínimo**.
-
-## MaxDamageAgent
-
-Entre os golpes disponíveis, escolhe aquele com maior:
-
-```text
-Base Power
+```powershell
+conda run -n games python run_analysis.py results\run_YYYYMMDD_HHMMSS
 ```
 
-Se nenhum golpe estiver disponível, escolhe uma ação válida aleatória.
+Para não gerar figuras:
 
-## TypeAwareAgent
-
-Calcula:
-
-```text
-score =
-    base_power
-    × accuracy
-    × STAB
-    × type_effectiveness
-```
-
-onde:
-
-```text
-STAB = 1.5 se o tipo do golpe pertence ao Pokémon ativo
-       1.0 caso contrário
-```
-
-A eficácia é obtida usando a tabela de tipos correspondente à própria geração da batalha.
-
-Esta heurística ainda **não representa a fórmula real de dano**. Ela é propositalmente simples e interpretável para funcionar como baseline.
-
----
-
-# 9. Por que começar com Random Battle?
-
-Porque o objetivo da v0.1 é validar:
-
-1. comunicação Python ↔ Pokémon Showdown;
-2. execução automática em diferentes gerações;
-3. arquitetura intercambiável de agentes;
-4. logging;
-5. métricas;
-6. execução em lote.
-
-Não queremos introduzir, ao mesmo tempo, problemas de teambuilding, RL, reward shaping e representação de estado.
-
----
-
-# 10. Limitações metodológicas da v0.1
-
-Estas limitações são **intencionais**.
-
-## Random teams
-
-Cada batalha de Random Battle pode usar equipes diferentes.
-
-Isso significa que win rate mistura:
-
-- qualidade do agente;
-- matchup;
-- composição das equipes;
-- aleatoriedade da batalha.
-
-Para o piloto isso é aceitável.
-
-Para o artigo final precisaremos controlar melhor essas variáveis.
-
-## Seed
-
-Nesta implementação baseada em `poke-env.Player.battle_against`, não controlamos diretamente a seed interna usada pelo servidor para gerar cada Random Battle.
-
-O projeto registra cada execução, mas ainda não oferece **reprodução exata da sequência de equipes e eventos aleatórios**.
-
-Uma versão futura deverá usar uma das seguintes estratégias:
-
-- geração explícita e armazenada de equipes;
-- interface direta com o simulador do Pokémon Showdown;
-- configuração de batalhas com seeds conhecidas.
-
-## Mecânicas especiais
-
-Os agentes básicos não tentam usar estrategicamente:
-
-- Mega Evolution;
-- Z-Moves;
-- Dynamax;
-- Terastallization.
-
-Isso será tratado em versões futuras quando expandirmos o benchmark.
-
-## Gerações antigas
-
-O `poke-env` pretende suportar todas as gerações, mas a própria documentação alerta que a biblioteca foi desenvolvida principalmente com gerações recentes em mente.
-
-Portanto, resultados da Generation I devem passar por validação específica antes de qualquer conclusão científica.
-
----
-
-# 11. Testes locais
-
-Rode:
-
-```bash
-python -m unittest discover tests
+```powershell
+conda run -n games python run_analysis.py results\run_YYYYMMDD_HHMMSS --no-plots
 ```
 
 ---
 
-# 12. Milestone da v0.1
+# Rodar apenas alguns agentes
 
-Consideramos a primeira versão validada quando conseguirmos:
+Exemplo, comparar TypeAware e SwitchAware:
 
-```text
-3 agentes
-× 3 gerações
-× 3 matchups
-× pelo menos 100 batalhas por matchup
+```powershell
+conda run -n games python run_pilot.py --generations 1 4 9 --agents type_aware switch_aware --battles 50
 ```
 
-sem erros de infraestrutura.
-
-Isso corresponde a:
-
-```text
-900 batalhas
-```
-
-no piloto completo.
+Isso é útil para experimentos específicos sem rodar todos os pares.
 
 ---
 
-# Próximas versões
+# Limitações ainda presentes
 
-## v0.2 — Validação experimental
+A v0.2 melhora **instrumentação**, não o controle experimental.
 
-- repetir cada matchup em múltiplos runs;
-- controlar melhor aleatoriedade;
-- validar Gen I;
-- adicionar bootstrap / intervalos estatísticos;
-- gerar gráficos automaticamente;
-- salvar versões exatas das dependências.
+Ainda usamos Random Battle. Portanto:
 
-## v0.3 — Universal State Representation
+1. os times mudam entre partidas;
+2. o matchup dos times influencia o resultado;
+3. a seed interna do Random Battle não é controlada neste workflow;
+4. os dois agentes não recebem necessariamente os mesmos times em condições espelhadas;
+5. o SwitchAware é uma heurística simples de tipos, não um planejador ótimo;
+6. Gen I precisa continuar sendo validada cuidadosamente.
 
-Criar uma representação que não dependa dos nomes dos Pokémon ou golpes.
-
-## v0.4 — Reinforcement Learning
-
-Adicionar primeiro agente PPO.
-
-## v0.5 — Transfer Experiment
-
-Treinar em uma geração e avaliar em outra.
-
-Objetivo:
-
-```text
-             TEST
-           G1   G4   G9
-
-TRAIN G1    ●    ●    ●
-TRAIN G4    ●    ●    ●
-TRAIN G9    ●    ●    ●
-```
-
-Essa matriz será o primeiro protótipo do experimento central do PokéBench30.
+Esses pontos são justamente o foco da **v0.3: Experimental Control**.
 
 ---
 
-## Nota
+# Roadmap
 
-Pokémon e Pokémon Showdown são propriedades de seus respectivos detentores. Este repositório é um projeto independente de pesquisa e não é afiliado à The Pokémon Company, Nintendo, Game Freak, Creatures ou Smogon.
+```text
+v0.1  Infrastructure validation        ✓
+v0.2  Experimental instrumentation     ← atual
+v0.3  Fixed teams + mirrored matches
+v0.4  Universal state representation
+v0.5  RL baseline (PPO)
+v0.6  Cross-generation transfer matrix
+```
+
+## Próximo objetivo científico
+
+A v0.2 deve permitir responder não apenas **quem ganha**, mas **como os agentes jogam**:
+
+- quais agentes trocam mais;
+- quais fazem switches voluntários;
+- que tipos de matchup desencadeiam troca;
+- quantos Pokémon restam no fim;
+- quanto tempo cada estilo leva para vencer;
+- como essas características mudam entre Gen I, IV e IX.
+
+---
+
+Pokémon e Pokémon Showdown pertencem aos seus respectivos detentores. Este projeto é independente, acadêmico e não afiliado à The Pokémon Company, Nintendo, Game Freak, Creatures ou Smogon.

@@ -6,28 +6,24 @@ from .base_agent import InstrumentedPlayer
 
 
 class TypeAwareAgent(InstrumentedPlayer):
-    """Simple interpretable offensive heuristic.
+    """Interpretable offensive heuristic.
 
     score = base_power × accuracy × STAB × type_effectiveness
 
-    This is NOT the Pokémon damage formula. It is intentionally a compact
-    baseline that uses information available in the battle state.
+    This deliberately is not the full Pokémon damage formula. It is a compact,
+    generation-aware baseline for the benchmark.
     """
 
     agent_name = "TypeAwareAgent"
 
     @staticmethod
     def _accuracy_fraction(accuracy) -> float:
-        # poke-env commonly represents move accuracy as a fraction.
-        # This defensive conversion also tolerates percentages.
         if accuracy is None or accuracy is True:
             return 1.0
-
         try:
             value = float(accuracy)
         except (TypeError, ValueError):
             return 1.0
-
         if value <= 0:
             return 1.0
         if value > 1:
@@ -35,11 +31,8 @@ class TypeAwareAgent(InstrumentedPlayer):
         return value
 
     @classmethod
-    def score_move(cls, battle: AbstractBattle, move) -> float:
+    def score_move_components(cls, battle: AbstractBattle, move) -> dict[str, float]:
         base_power = float(move.base_power or 0)
-        if base_power <= 0:
-            return 0.0
-
         accuracy = cls._accuracy_fraction(getattr(move, "accuracy", 1.0))
 
         stab = 1.0
@@ -59,27 +52,47 @@ class TypeAwareAgent(InstrumentedPlayer):
         effectiveness = 1.0
         opponent = battle.opponent_active_pokemon
         if opponent is not None:
-            # poke-env applies the type chart for the Pokémon's generation.
-            effectiveness = float(opponent.damage_multiplier(move))
+            try:
+                effectiveness = float(opponent.damage_multiplier(move))
+            except (AttributeError, TypeError, ValueError):
+                effectiveness = 1.0
 
-        return base_power * accuracy * stab * effectiveness
+        score = base_power * accuracy * stab * effectiveness
+        return {
+            "base_power": base_power,
+            "accuracy": accuracy,
+            "stab": stab,
+            "effectiveness": effectiveness,
+            "score": score,
+        }
+
+    @classmethod
+    def score_move(cls, battle: AbstractBattle, move) -> float:
+        return cls.score_move_components(battle, move)["score"]
+
+    @classmethod
+    def best_scored_move(cls, battle: AbstractBattle):
+        if not battle.available_moves:
+            return None, 0.0
+        scored = [(cls.score_move(battle, move), move) for move in battle.available_moves]
+        score, move = max(scored, key=lambda item: item[0])
+        return move, float(score)
 
     def choose_move(self, battle: AbstractBattle):
-        if battle.available_moves:
-            scored_moves = [
-                (self.score_move(battle, move), move)
-                for move in battle.available_moves
-            ]
-            score, best_move = max(scored_moves, key=lambda item: item[0])
-
-            # If every move is non-damaging, use any valid action instead of
-            # deterministically selecting the first status move.
-            if score <= 0:
-                order = self.choose_random_move(battle)
-                return self.record_order(battle, order, score=0.0)
-
+        best_move, score = self.best_scored_move(battle)
+        if best_move is not None and score > 0:
             order = self.create_order(best_move)
-            return self.record_order(battle, order, score=score)
+            return self.record_order(
+                battle,
+                order,
+                heuristic_score=score,
+                decision_reason="best_type_aware_attack",
+            )
 
         order = self.choose_random_move(battle)
-        return self.record_order(battle, order)
+        return self.record_order(
+            battle,
+            order,
+            heuristic_score=0.0,
+            decision_reason="fallback_random_legal_action",
+        )

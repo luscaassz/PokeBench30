@@ -4,7 +4,7 @@ from .base_agent import InstrumentedPlayer
 
 
 class MaxDamageAgent(InstrumentedPlayer):
-    """Selects the available move with the highest Base Power."""
+    """Selects the available damaging move with the highest Base Power."""
 
     agent_name = "MaxDamageAgent"
 
@@ -14,14 +14,19 @@ class MaxDamageAgent(InstrumentedPlayer):
                 battle.available_moves,
                 key=lambda move: float(move.base_power or 0),
             )
-
-            # Intentionally does not activate generation-specific special mechanics.
-            order = self.create_order(best_move)
-            return self.record_order(
-                battle,
-                order,
-                score=float(best_move.base_power or 0),
-            )
+            if float(best_move.base_power or 0) > 0:
+                order = self.create_order(best_move)
+                return self.record_order(
+                    battle,
+                    order,
+                    heuristic_score=float(best_move.base_power or 0),
+                    decision_reason="max_base_power",
+                )
 
         order = self.choose_random_move(battle)
-        return self.record_order(battle, order)
+        return self.record_order(
+            battle,
+            order,
+            heuristic_score=0.0,
+            decision_reason="fallback_random_legal_action",
+        )
