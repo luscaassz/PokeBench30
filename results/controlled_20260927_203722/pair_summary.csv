@@ -1,7 +1,0 @@
-generation,pair_id,agent_1,agent_2,battles,mirror_cycles,wins_agent_1,wins_agent_2,draws,raw_win_rate_agent_1,normalized_mirror_score_agent_1,mean_points_per_cycle_agent_1,cycles_agent_1_advantage,cycles_agent_2_advantage,cycles_balanced,agent_1_win_rate_as_team_a,agent_1_win_rate_as_team_b,agent_1_team_assignment_gap,team_a_wins,team_b_wins,team_draws,team_a_win_rate_all
-1,pair01,TypeAwareAgent,TypeAwareAgent,20,10,12,8,0,0.6,0.6,1.2,3,1,6,0.8,0.4,0.4,14,6,0,0.7
-1,pair02,TypeAwareAgent,TypeAwareAgent,20,10,8,11,1,0.4,0.425,0.85,2,3,5,0.5,0.3,0.2,11,8,1,0.55
-1,pair03,TypeAwareAgent,TypeAwareAgent,20,10,11,9,0,0.55,0.55,1.1,2,1,7,0.9,0.2,0.7,17,3,0,0.85
-4,pair01,TypeAwareAgent,TypeAwareAgent,20,10,15,4,1,0.75,0.775,1.55,6,0,4,0.9,0.6,0.3,12,7,1,0.6
-4,pair02,TypeAwareAgent,TypeAwareAgent,20,10,9,11,0,0.45,0.45,0.9,0,1,9,0.1,0.8,0.7,3,17,0,0.15
-4,pair03,TypeAwareAgent,TypeAwareAgent,20,10,9,9,2,0.45,0.5,1.0,1,2,7,0.1,0.8,0.7,1,17,2,0.05

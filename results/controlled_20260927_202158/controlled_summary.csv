@@ -1,2 +1,0 @@
-generation,agent_1,agent_2,team_pairs,battles,mirror_cycles,wins_agent_1,wins_agent_2,draws,raw_win_rate_agent_1,normalized_mirror_score_agent_1,mean_points_per_cycle_agent_1,cycles_agent_1_advantage,cycles_agent_2_advantage,cycles_balanced,agent_1_win_rate_as_team_a,agent_1_win_rate_as_team_b,agent_1_team_assignment_gap,team_a_wins,team_b_wins,team_draws,team_a_win_rate_all
-9,TypeAwareAgent,SwitchAwareAgent,1,2,1,1,1,0,0.5,0.5,1.0,0,0,1,0.0,1.0,1.0,0,2,0,0.0

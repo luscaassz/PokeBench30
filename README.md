@@ -1,193 +1,383 @@
-# PokéBench30 v0.3 — Fixed Teams + Mirrored Matches
+# PokéBench30 v0.4 — Universal Battle Representation
 
-A v0.3 transforma o PokéBench30 de um piloto baseado em Random Battle em um
-**experimento controlado por times fixos e partidas espelhadas**.
+A **v0.4** mantém todo o desenho experimental validado na v0.3 — fixed teams,
+mirrored matches, informação parcial e os agentes TypeAware/SwitchAware — e
+adiciona uma camada nova entre o Pokémon Showdown e futuros agentes de
+Reinforcement Learning:
 
-A v0.2.2 continua disponível no projeto por meio de `run_pilot.py`, mas o novo
-experimento principal é executado com:
+```text
+Pokémon Showdown
+      ↓
+poke-env Battle
+      ↓
+Universal Battle Representation (UBR 1.0)
+      ↓
+vetor fixo + máscara de ações
+      ↓
+futuro agente de RL
+```
+
+A meta desta versão **não é treinar RL ainda**. A meta é garantir que Gen I,
+Gen IV e Gen IX possam ser representadas pela mesma interface, sem vazar
+Pokémon adversários ocultos.
+
+---
+
+## O que a v0.4 adiciona
+
+### 1. UniversalStateEncoder
+
+Arquivo:
+
+```text
+pokebench30/representation/encoder.py
+```
+
+Uso:
+
+```python
+encoder = UniversalStateEncoder()
+
+observation = encoder.encode(battle)
+
+vector = observation.vector
+mask = observation.legal_action_mask
+```
+
+Todos os estados produzem:
+
+```text
+observation_dim = 472
+action_dim      = 10
+```
+
+independentemente de a batalha ser Gen I, IV ou IX.
+
+O schema atual é:
+
+```text
+UBR 1.0
+```
+
+com SHA-256 armazenado em:
+
+```text
+config/observation_schema.json
+```
+
+Assim, se a ordem ou quantidade de features mudar no futuro, o dataset deixa
+uma assinatura explícita da versão usada.
+
+---
+
+# 2. O que existe no vetor de 472 features
+
+A representação é deliberadamente **species-agnostic**.
+
+Ela não contém um one-hot de Pikachu, Charizard, Dragonite etc. Em vez disso,
+representa propriedades observáveis compartilhadas entre gerações.
+
+## Estado global
+
+```text
+generation_norm
+turn_norm
+force_switch
+own_remaining_fraction
+opponent_revealed_fraction
+opponent_revealed_remaining_fraction
+```
+
+## Boosts dos Pokémon ativos
+
+Para o próprio ativo e para o adversário ativo:
+
+```text
+atk
+def
+spa
+spd
+spe
+accuracy
+evasion
+```
+
+normalizados para aproximadamente:
+
+```text
+[-1, 1]
+```
+
+## Próprio time
+
+Existem sempre:
+
+```text
+6 slots
+```
+
+Cada slot possui:
+
+```text
+known
+active
+fainted
+hp_fraction
+level_norm
+18 tipos one-hot
+6 status one-hot
+```
+
+## Time adversário
+
+Também existem sempre:
+
+```text
+6 slots
+```
+
+mas apenas Pokémon **revelados** podem preencher esses slots.
+
+Exemplo:
+
+```text
+adversário revelou Dragonite e Gengar
+
+slot 1 → Dragonite
+slot 2 → Gengar
+slot 3 → UNKNOWN
+slot 4 → UNKNOWN
+slot 5 → UNKNOWN
+slot 6 → UNKNOWN
+```
+
+Slots desconhecidos são:
+
+```text
+TODOS ZERO
+```
+
+Essa é uma regra testada automaticamente.
+
+A UBR nunca tenta reconstruir o time completo a partir da ground truth do
+avaliador.
+
+---
+
+# 3. Moves
+
+O Pokémon ativo possui até quatro slots universais:
+
+```text
+move_slot_1
+move_slot_2
+move_slot_3
+move_slot_4
+```
+
+Cada um contém:
+
+```text
+present
+legal
+base_power_norm
+accuracy
+priority_norm
+type_one_hot_18
+category_one_hot_3
+```
+
+O encoder não inclui diretamente o score do TypeAware nem o score do
+SwitchAware. Isso evita inserir a própria heurística dos baselines dentro da
+observação que futuramente será entregue ao agente de RL.
+
+---
+
+# 4. Universal Action Space
+
+A v0.4 define exatamente:
+
+```text
+10 ações
+```
+
+## Moves
+
+```text
+0 → move slot 1
+1 → move slot 2
+2 → move slot 3
+3 → move slot 4
+```
+
+## Switches
+
+```text
+4 → own team slot 1
+5 → own team slot 2
+6 → own team slot 3
+7 → own team slot 4
+8 → own team slot 5
+9 → own team slot 6
+```
+
+O slot do Pokémon atualmente ativo simplesmente recebe:
+
+```text
+mask = 0
+```
+
+Exemplo:
+
+```text
+legal_action_mask =
+[
+  1, 1, 0, 0,
+  0, 1, 1, 0, 0, 1
+]
+```
+
+Isso significa que somente aquelas ações podem ser selecionadas.
+
+Durante um forced switch:
+
+```text
+mask[0:4] = 0
+```
+
+automaticamente.
+
+---
+
+# 5. Por que são 6 ações de switch, e não 5?
+
+Usar seis slots mantém uma associação estável com o próprio time:
+
+```text
+team slot 1
+team slot 2
+...
+team slot 6
+```
+
+Quando um desses slots contém o Pokémon ativo, ele fica ilegal na máscara.
+
+Isso evita que o significado de uma ação mude apenas porque outro Pokémon
+entrou em campo.
+
+---
+
+# 6. O que NÃO entra na UBR 1.0
+
+A primeira representação universal é propositalmente conservadora.
+
+Ainda não codificamos:
+
+```text
+species identity
+items
+abilities
+weather
+terrain
+hazards
+volatile effects
+Mega Evolution actions
+Z-Move actions
+Dynamax actions
+Terastallization actions
+```
+
+Esses elementos não serão adicionados silenciosamente. Uma mudança desse tipo
+deverá criar uma nova versão do schema, por exemplo:
+
+```text
+UBR 1.1
+```
+
+ou:
+
+```text
+UBR 2.0
+```
+
+Isso é importante para reprodutibilidade.
+
+---
+
+# 7. Estrutura nova
+
+```text
+pokebench30/
+│
+├── representation/
+│   ├── __init__.py
+│   ├── schema.py
+│   ├── action_space.py
+│   ├── encoder.py
+│   └── validator.py
+│
+├── agents/
+├── evaluation/
+├── experiments/
+└── teams/
+```
+
+Além disso:
+
+```text
+config/
+├── universal_representation.yaml
+└── observation_schema.json
+```
+
+---
+
+# 8. Instalação
+
+No Windows + VS Code:
 
 ```powershell
-python run_controlled.py
+python -m pip install -r requirements.txt
 ```
+
+A v0.4 adiciona:
+
+```text
+numpy
+```
+
+às dependências.
 
 ---
 
-## O problema que a v0.3 resolve
+# 9. Reutilizar os fixed teams da v0.3
 
-No Random Battle:
+A v0.4 usa exatamente o mesmo conceito de pool fixo.
 
-```text
-Agente A recebe Team X
-Agente B recebe Team Y
-```
-
-e em outra batalha:
+Você pode copiar:
 
 ```text
-Agente A recebe Team Z
-Agente B recebe Team W
+PokeBench30_v0.3\teams\fixed
 ```
 
-Isso mistura duas coisas:
+para:
 
 ```text
-qualidade do agente
-+
-qualidade/matchup dos times
+PokeBench30_v0.4\teams\fixed
 ```
 
-Na v0.3, cada confronto usa um par fixo:
-
-```text
-TEAM A
-vs
-TEAM B
-```
-
-e executa duas pernas:
-
-```text
-LEG AB
-Agent 1 + Team A
-vs
-Agent 2 + Team B
-
-LEG BA
-Agent 1 + Team B
-vs
-Agent 2 + Team A
-```
-
-Isso é um **mirrored match**.
-
----
-
-# 1. Times fixos reproduzíveis
-
-Os times não são escritos manualmente.
-
-Eles são gerados pelo próprio Pokémon Showdown usando:
-
-```text
-random-battle generator
-+
-seed explícita
-```
-
-Exemplo conceitual:
-
-```text
-gen1randombattle
-seed = 101,202,303,404
-        ↓
-packed team
-        ↓
-congelado em teams/fixed/
-```
-
-O Pokémon Showdown fornece geração de times por seed, e a v0.3 salva:
-
-```text
-seed
-packed team
-export humano
-SHA-256
-Showdown git commit
-Node version
-```
-
-Assim, depois de preparado, o experimento nunca depende de um novo Random Team.
-
----
-
-# 2. Por que gerar com Random Battle e lutar em Custom Game?
-
-O gerador de Random Battle fornece automaticamente sets coerentes com a geração.
-
-Depois de gerados, os times são congelados e enviados explicitamente aos jogadores.
-
-As batalhas controladas usam:
-
-```text
-gen1customgame@@@!teampreview
-gen4customgame@@@!teampreview
-gen9customgame@@@!teampreview
-```
-
-A remoção de Team Preview preserva a política de informação parcial:
-
-```text
-próprio time completo
-+
-oponentes já revelados
-+
-slots adversários ocultos continuam ocultos
-```
-
----
-
-# 3. Estrutura
-
-```text
-PokeBench30_v0.3/
-│
-├── prepare_fixed_teams.py
-├── run_controlled.py
-├── run_pilot.py
-│
-├── config/
-│   ├── generations.yaml
-│   └── fixed_teams.yaml
-│
-├── pokebench30/
-│   ├── agents/
-│   ├── evaluation/
-│   │   ├── analysis.py
-│   │   ├── information.py
-│   │   ├── metrics.py
-│   │   └── mirrored.py
-│   │
-│   ├── experiments/
-│   │   ├── pilot.py
-│   │   └── controlled.py
-│   │
-│   └── teams/
-│       └── fixed_pool.py
-│
-├── teams/
-│   └── fixed/        # criado pelo prepare_fixed_teams.py
-│
-└── results/
-```
-
----
-
-# 4. Preparar os times pela primeira vez
-
-Mantenha seu repositório local do Pokémon Showdown instalado.
-
-No VS Code, dentro de `PokeBench30_v0.3`:
+ou gerar novamente:
 
 ```powershell
-python prepare_fixed_teams.py --showdown-dir "C:\CAMINHO\pokemon-showdown"
+python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown" --force
 ```
 
-Exemplo, se o Showdown estiver no Desktop:
-
-```powershell
-python prepare_fixed_teams.py --showdown-dir "C:\Users\lucas\OneDrive\Desktop\pokemon-showdown"
-```
-
-O script irá gerar **18 times**:
+A configuração da v0.4 está corrigida para:
 
 ```text
-3 gerações
-×
-3 pares
-×
-2 times
-=
-18 times fixos
+Gen I  → gen1customgame
+Gen IV → gen4customgame
+Gen IX → gen9customgame@@@!teampreview
 ```
 
 Depois:
@@ -196,353 +386,265 @@ Depois:
 python scripts\check_fixed_pool.py
 ```
 
+---
+
+# 10. Primeiro teste da representação — sem Showdown
+
+Antes de abrir qualquer batalha:
+
+```powershell
+python scripts\check_representation.py
+```
+
 Saída esperada:
 
 ```text
-[OK] Fixed-team manifest found
-[OK] 18 team records
-[OK] Showdown commit: ...
-[OK] All packed-team SHA-256 hashes match
+[OK] UBR schema: ubr-1.0
+[OK] Observation dimension: 472
+[OK] Action dimension: 10
+[OK] Schema SHA-256: ...
+[OK] Gen 1: shape=(472,), ...
+[OK] Gen 4: shape=(472,), ...
+[OK] Gen 9: shape=(472,), ...
+
+[OK] Universal representation offline checks passed.
 ```
+
+Esse teste verifica que as três gerações têm o mesmo espaço.
 
 ---
 
-# 5. O que é salvo em `teams/fixed/`
+# 11. Smoke test real da v0.4
 
-Exemplo:
+Mantenha o servidor Pokémon Showdown aberto.
 
-```text
-teams/fixed/
-├── manifest.json
-├── gen1/
-│   ├── pair01_A.packed.txt
-│   ├── pair01_A.txt
-│   ├── pair01_B.packed.txt
-│   ├── pair01_B.txt
-│   └── ...
-├── gen4/
-└── gen9/
-```
-
-`.packed.txt` é o formato enviado ao simulador.
-
-`.txt` é a versão legível por humanos.
-
-Não altere manualmente esses arquivos após criar o pool. O projeto verifica os hashes.
-
----
-
-# 6. Smoke test da v0.3
-
-Com o servidor Pokémon Showdown aberto:
+Depois rode:
 
 ```powershell
-python run_controlled.py --generations 9 --matchup type_aware switch_aware --pairs pair01 --repeats 1
+python run_controlled.py --generations 1 4 9 --matchup type_aware switch_aware --pairs pair01 --repeats 1 --log-universal-state
 ```
 
-Isso executa somente:
-
-```text
-1 geração
-×
-1 par de times
-×
-2 pernas espelhadas
-×
-1 repetição
-=
-2 batalhas
-```
-
----
-
-# 7. Primeiro piloto controlado
-
-Depois:
-
-```powershell
-python run_controlled.py --generations 1 4 9 --matchup type_aware switch_aware --repeats 5
-```
-
-Com os três pares fixos:
+Serão:
 
 ```text
 3 gerações
 ×
-3 pares
+1 pair
 ×
-2 pernas
-×
-5 repetições
-=
-90 batalhas
+2 mirror legs
+
+= 6 batalhas
 ```
+
+TypeAware e SwitchAware continuam tomando decisões exatamente como antes.
+
+A diferença é que cada action request agora também pode gerar uma observação
+UBR.
 
 ---
 
-# 8. Experimento maior
+# 12. Novos arquivos de resultado
 
-Quando o piloto estiver validado:
+Com:
+
+```text
+--log-universal-state
+```
+
+o run também gera:
+
+```text
+universal_states.jsonl
+observation_schema.json
+```
+
+Cada linha do `universal_states.jsonl` contém:
+
+```text
+generation
+battle_tag
+turn
+agent
+
+pair_id
+mirror_leg
+agent_team_id
+opponent_team_id
+
+schema_sha256
+
+vector[472]
+
+legal_action_mask[10]
+
+chosen_action_index
+chosen_action_label
+```
+
+Exemplo conceitual:
+
+```json
+{
+  "generation": 9,
+  "agent": "SwitchAwareAgent",
+  "chosen_action_index": 7,
+  "chosen_action_label": "switch_team_slot_4",
+  "legal_action_mask": [1,1,0,0,0,1,0,1,0,1]
+}
+```
+
+O vetor é salvo separadamente no mesmo registro.
+
+---
+
+# 13. Validar o dataset real
+
+Depois que o experimento terminar, copie o caminho impresso no terminal:
+
+```text
+results\controlled_YYYYMMDD_HHMMSS
+```
+
+e rode:
 
 ```powershell
-python run_controlled.py --generations 1 4 9 --matchup type_aware switch_aware --repeats 50
+python scripts\validate_universal_states.py "results\controlled_YYYYMMDD_HHMMSS"
 ```
 
-Total:
+O script verifica:
 
 ```text
-3 × 3 × 2 × 50 = 900 batalhas
+schema hash
+vector dimension
+mask dimension
+NaN / infinity
+selected action mapping
+selected action legality
 ```
 
-Agora essas 900 batalhas usam **os mesmos times fixos**, alternados entre os agentes.
+Queremos:
+
+```text
+[OK] schema mismatches: 0
+[OK] dimension errors: 0
+[OK] mask errors: 0
+[OK] non-finite vectors: 0
+[OK] chosen actions marked illegal: 0
+```
 
 ---
 
-# 9. Null test
+# 14. Information leakage
 
-A v0.3 permite self-play do mesmo agente:
+A política continua sendo a mesma da v0.3:
+
+```text
+AGENTE
+│
+├── próprio time completo
+├── oponente ativo
+├── oponentes já revelados
+└── UNKNOWN nos slots ainda ocultos
+```
+
+Enquanto:
+
+```text
+AVALIADOR
+└── ground truth completa somente após a batalha
+```
+
+O encoder não acessa uma estrutura de "full opponent team".
+
+Os testes incluem uma estrutura propositalmente proibida que lança erro se o
+encoder tentar consultá-la.
+
+---
+
+# 15. Testes da v0.4
+
+Para executar tudo:
 
 ```powershell
-python run_controlled.py --generations 1 4 9 --matchup type_aware type_aware --repeats 10
+python -m unittest discover tests -v
 ```
 
-Isso funciona como teste do próprio harness.
-
-Com agentes idênticos e times espelhados, esperamos que a pontuação controlada tenda a:
+A suíte cobre:
 
 ```text
-0.5
-```
-
-Não precisa ser exatamente 0.5 em uma amostra pequena devido à aleatoriedade da batalha.
-
----
-
-# 10. Resultados novos
-
-Cada execução controlada cria:
-
-```text
-results/
-└── controlled_YYYYMMDD_HHMMSS/
-    ├── battles.csv
-    ├── actions.csv
-    ├── summary.csv
-    ├── agent_summary.csv
-    ├── mirror_cycles.csv
-    ├── pair_summary.csv
-    ├── controlled_summary.csv
-    ├── metadata.json
-    │
-    ├── teams_snapshot/
-    │   ├── manifest.json
-    │   ├── gen1_pair01_A.packed.txt
-    │   └── ...
-    │
-    └── figures/
-        ├── agent_win_rate.png
-        ├── switch_rate.png
-        ├── voluntary_switch_rate.png
-        ├── mirrored_score.png
-        └── team_assignment_gap.png
+fixed teams
+mirrored matches
+partial information
+switch metrics
+schema UBR
+action mask
+forced switch
+same shape Gen I / IV / IX
+deterministic encoding
+zero padding de UNKNOWN
 ```
 
 ---
 
-# 11. `mirror_cycles.csv`
+# 16. Como a v0.4 prepara a v0.5
 
-Cada linha representa:
+Na v0.5, o RL não precisará conhecer `poke-env`.
 
-```text
-mesmo par de times
-+
-mesmos dois agentes
-+
-uma batalha em cada orientação
+A interface poderá ser aproximadamente:
+
+```python
+observation = encoder.encode(battle)
+
+action = policy.predict(
+    observation.vector,
+    action_mask=observation.legal_action_mask,
+)
+
+selected = action_space.object_for_action(
+    battle,
+    action,
+)
+
+return player.create_order(selected)
 ```
 
-Exemplo:
+Portanto:
 
 ```text
-AB:
-TypeAware usa Team A
-SwitchAware usa Team B
-
-BA:
-TypeAware usa Team B
-SwitchAware usa Team A
-```
-
-O Agent 1 recebe:
-
-```text
-1 ponto por vitória
-0.5 por empate
-0 por derrota
-```
-
-Então um ciclo pode resultar em:
-
-```text
-2.0  → venceu as duas
-1.5  → vitória + empate
-1.0  → ciclo equilibrado
-0.5
-0.0
+v0.3
+controlled experiment
+        ↓
+v0.4
+universal observation/action interface
+        ↓
+v0.5
+reinforcement-learning baseline
+        ↓
+v0.6
+cross-generation transfer
 ```
 
 ---
 
-# 12. Métrica principal da v0.3
+# 17. Critérios para considerar a v0.4 validada
 
-A nova métrica é:
-
-```text
-normalized_mirror_score_agent_1
-```
-
-calculada como:
+Antes de começar RL:
 
 ```text
-pontos obtidos
-------------------------------
-2 × quantidade de mirror cycles
+[ ] offline representation check passa
+[ ] 6-battle live smoke test passa
+[ ] Gen I, IV e IX usam shape (472,)
+[ ] todas as máscaras têm shape (10,)
+[ ] 0 NaN / inf
+[ ] 0 hidden-slot leakage
+[ ] 0 chosen actions marcadas como ilegais
+[ ] schema SHA-256 idêntico nas três gerações
 ```
 
-Interpretação:
+Se esses critérios passarem, a representação pode ser congelada como:
 
 ```text
-0.50 → equilíbrio
->0.50 → Agent 1 obteve mais pontos
-<0.50 → Agent 2 obteve mais pontos
+UBR 1.0
 ```
 
-Ela deve ser interpretada junto com tamanho de amostra e variabilidade, não como
-uma pontuação absoluta de inteligência.
-
----
-
-# 13. Diagnóstico de viés de time
-
-Também registramos:
-
-```text
-agent_1_win_rate_as_team_a
-agent_1_win_rate_as_team_b
-agent_1_team_assignment_gap
-```
-
-onde:
-
-```text
-assignment gap =
-|WR usando Team A - WR usando Team B|
-```
-
-Se esse valor for alto, o par de times ainda está interagindo fortemente com o agente.
-
-Além disso:
-
-```text
-team_a_wins
-team_b_wins
-team_a_win_rate_all
-```
-
-permitem identificar pares de times muito desequilibrados.
-
----
-
-# 14. Reprodutibilidade
-
-Cada run guarda uma cópia exata dos times usados em:
-
-```text
-teams_snapshot/
-```
-
-e registra:
-
-```text
-team seed
-team SHA-256
-fixed-team config SHA-256
-Pokémon Showdown git commit
-Node version
-poke-env version
-Python version
-```
-
-Portanto, mesmo se `teams/fixed/` for modificado no futuro, cada resultado continua
-associado aos bytes exatos dos times daquele experimento.
-
----
-
-# 15. Informação parcial
-
-A política da v0.2.2 continua válida.
-
-Os agentes não recebem a ground truth do time adversário.
-
-Durante a batalha:
-
-```text
-battle.team
-→ próprio time
-
-battle.opponent_team
-→ somente informação revelada pelo simulador
-```
-
-A ground truth completa é usada somente após o fim da batalha para métricas.
-
----
-
-# 16. Limitação que ainda permanece
-
-A v0.3 controla:
-
-```text
-✓ composição dos times
-✓ seeds de geração dos times
-✓ atribuição A/B por espelhamento
-✓ versão do Showdown
-✓ hashes dos times
-```
-
-Mas ainda não controla diretamente:
-
-```text
-✗ RNG interno de cada batalha
-```
-
-Por exemplo:
-
-```text
-accuracy
-critical hits
-damage rolls
-secondary effects
-speed ties
-```
-
-O próximo passo de reprodutibilidade total exigiria controlar o simulador em um
-nível mais baixo, diretamente pelo BattleStream / simulator protocol.
-
----
-
-# Milestone da v0.3
-
-Consideramos a v0.3 validada quando:
-
-```text
-1. os 18 times são preparados e os hashes passam;
-2. smoke test de 2 batalhas funciona;
-3. null test fica aproximadamente centrado em 0.5;
-4. TypeAware × SwitchAware roda nas três gerações;
-5. cada mirror cycle contém exatamente AB + BA;
-6. nenhum slot oculto é vazado aos agentes.
-```
-
-Depois disso, o PokéBench30 estará pronto para começar a transição para a
-representação universal e, depois, Reinforcement Learning.
+e usada como base da v0.5.

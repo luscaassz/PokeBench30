@@ -1,0 +1,87 @@
+schema_version: "ubr-1.0"
+
+purpose:
+  - fixed-dimensional battle observation across Gen I, IV and IX
+  - partial observability without opponent-team leakage
+  - stable interface for future reinforcement-learning agents
+  - generation-independent core action mask
+
+observation:
+  dimension: 472
+  numeric_range: [-1.0, 1.0]
+
+  global:
+    - generation_norm
+    - turn_norm
+    - force_switch
+    - own_remaining_fraction
+    - opponent_revealed_fraction
+    - opponent_revealed_remaining_fraction
+
+  active_boosts:
+    fields:
+      - atk
+      - def
+      - spa
+      - spd
+      - spe
+      - accuracy
+      - evasion
+    normalization: "boost_stage / 6"
+
+  pokemon_slots:
+    own: 6
+    opponent: 6
+    opponent_policy: "revealed only; unknown slots are all-zero padding"
+
+    features:
+      - known
+      - active
+      - fainted
+      - hp_fraction
+      - level_norm
+      - type_one_hot_18
+      - status_one_hot_6
+
+  move_slots:
+    count: 4
+    features:
+      - present
+      - legal
+      - base_power_norm
+      - accuracy
+      - priority_norm
+      - type_one_hot_18
+      - category_one_hot_3
+
+action_space:
+  dimension: 10
+  indices:
+    0: move_slot_1
+    1: move_slot_2
+    2: move_slot_3
+    3: move_slot_4
+    4: switch_team_slot_1
+    5: switch_team_slot_2
+    6: switch_team_slot_3
+    7: switch_team_slot_4
+    8: switch_team_slot_5
+    9: switch_team_slot_6
+
+  note: >
+    Generation-specific gimmicks are intentionally excluded from UBR 1.0
+    because the scripted benchmark currently disables them.
+
+not_encoded_in_ubr_1_0:
+  - species identity
+  - hidden opponent slots
+  - items
+  - abilities
+  - weather
+  - terrain
+  - hazards
+  - volatile effects
+  - Mega Evolution actions
+  - Z-Move actions
+  - Dynamax actions
+  - Terastallization actions

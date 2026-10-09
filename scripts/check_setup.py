@@ -42,6 +42,13 @@ def main() -> int:
         fail("matplotlib not installed. Run: python -m pip install -r requirements.txt")
         status = 1
 
+    try:
+        import numpy  # noqa: F401
+        ok("NumPy imported")
+    except ImportError:
+        fail("NumPy not installed. Run: python -m pip install -r requirements.txt")
+        status = 1
+
     config = PROJECT_ROOT / "config" / "generations.yaml"
     if config.exists(): ok("generations.yaml found")
     else:
@@ -59,7 +66,7 @@ def main() -> int:
     finally:
         sock.close()
 
-    print("\nEnvironment ready for the v0.2 smoke test." if status == 0 else "\nFix the [FAIL] items before running the pilot.")
+    print("\nEnvironment ready for PokéBench30 v0.4." if status == 0 else "\nFix the [FAIL] items before running v0.4 experiments.")
     return status
 
 

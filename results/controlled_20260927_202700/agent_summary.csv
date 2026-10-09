@@ -1,2 +1,0 @@
-generation,agent,battles,wins,losses,draws,win_rate_all,win_rate_decisive,mean_battle_turns,action_requests,moves,switches,switch_rate,voluntary_switch_rate,forced_switch_rate,voluntary_switches,forced_switches,switch_loop_events,switch_loop_rate,mean_opponent_reveal_fraction
-9,TypeAwareAgent,40,20,20,0,0.5,0.5,16.6,852,664,188,0.220657,0.0,0.220657,0,188,0,0.0,0.95

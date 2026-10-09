@@ -25,6 +25,7 @@ from pokebench30.experiments.pilot import (
     action_counts,
     summarize_battles,
 )
+from pokebench30.representation.encoder import UniversalStateEncoder
 from pokebench30.teams.fixed_pool import (
     DEFAULT_POOL_ROOT,
     TeamRecord,
@@ -116,6 +117,20 @@ def write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
         writer.writerows(rows)
 
 
+
+def write_jsonl(path: Path, rows: list[dict]) -> None:
+    with path.open("w", encoding="utf-8") as handle:
+        for row in rows:
+            handle.write(
+                json.dumps(
+                    row,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+
+
 def make_player(
     agent_key: str,
     battle_format: str,
@@ -123,12 +138,14 @@ def make_player(
     *,
     max_concurrent_battles: int,
     log_actions: bool,
+    log_universal_state: bool,
 ):
     return AGENT_CLASSES[agent_key](
         battle_format=battle_format,
         team=team,
         max_concurrent_battles=max_concurrent_battles,
         log_actions=log_actions,
+        log_universal_state=log_universal_state,
     )
 
 
@@ -178,6 +195,43 @@ def _annotate_actions(
     return output
 
 
+def _annotate_universal_states(
+    player,
+    *,
+    generation: int,
+    battle_format: str,
+    pair_id: str,
+    mirror_leg: str,
+    repeat_map: dict[str, int],
+    agent_team_id: str,
+    opponent_team_id: str,
+    team_a_id: str,
+    team_b_id: str,
+) -> list[dict]:
+    output = []
+
+    for item in player.universal_state_log:
+        battle_tag = item["battle_tag"]
+
+        row = {
+            "experiment_mode": "fixed_mirrored",
+            "pair_id": pair_id,
+            "mirror_leg": mirror_leg,
+            "repeat_index": repeat_map[battle_tag],
+            "agent_team_id": agent_team_id,
+            "opponent_team_id": opponent_team_id,
+            "team_a_id": team_a_id,
+            "team_b_id": team_b_id,
+            "generation": generation,
+            "battle_format": battle_format,
+            **item,
+        }
+
+        output.append(row)
+
+    return output
+
+
 async def run_leg(
     *,
     generation: int,
@@ -192,8 +246,9 @@ async def run_leg(
     repeats: int,
     max_concurrent_battles: int,
     log_actions: bool,
+    log_universal_state: bool,
     run_id: str,
-) -> tuple[list[dict], list[dict]]:
+) -> tuple[list[dict], list[dict], list[dict]]:
     if agent_1_team.battle_format != agent_2_team.battle_format:
         raise ValueError("Team records disagree on battle format.")
 
@@ -205,6 +260,7 @@ async def run_leg(
         read_packed_team(agent_1_team),
         max_concurrent_battles=max_concurrent_battles,
         log_actions=log_actions,
+        log_universal_state=log_universal_state,
     )
     p2 = make_player(
         agent_2_key,
@@ -212,6 +268,7 @@ async def run_leg(
         read_packed_team(agent_2_team),
         max_concurrent_battles=max_concurrent_battles,
         log_actions=log_actions,
+        log_universal_state=log_universal_state,
     )
 
     print(
@@ -323,13 +380,46 @@ async def run_leg(
             )
         )
 
+    universal_states = []
+
+    if log_universal_state:
+        universal_states.extend(
+            _annotate_universal_states(
+                p1,
+                generation=generation,
+                battle_format=battle_format,
+                pair_id=pair_id,
+                mirror_leg=mirror_leg,
+                repeat_map=repeat_map,
+                agent_team_id=agent_1_team.team_id,
+                opponent_team_id=agent_2_team.team_id,
+                team_a_id=team_a.team_id,
+                team_b_id=team_b.team_id,
+            )
+        )
+
+        universal_states.extend(
+            _annotate_universal_states(
+                p2,
+                generation=generation,
+                battle_format=battle_format,
+                pair_id=pair_id,
+                mirror_leg=mirror_leg,
+                repeat_map=repeat_map,
+                agent_team_id=agent_2_team.team_id,
+                opponent_team_id=agent_1_team.team_id,
+                team_a_id=team_a.team_id,
+                team_b_id=team_b.team_id,
+            )
+        )
+
     print(
         f"  {p1.agent_name}: {p1.n_won_battles} win(s) | "
         f"{p2.agent_name}: {p2.n_won_battles} win(s) | "
         f"draws: {p1.n_tied_battles}"
     )
 
-    return rows, actions
+    return rows, actions, universal_states
 
 
 def _snapshot_teams(
@@ -430,6 +520,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
 
     all_battles: list[dict] = []
     all_actions: list[dict] = []
+    all_states: list[dict] = []
     used_records: list[TeamRecord] = []
 
     for generation in args.generations:
@@ -462,7 +553,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
                 used_records.extend([team_a, team_b])
 
                 # Leg AB: agent 1 uses A, agent 2 uses B.
-                battles, actions = await run_leg(
+                battles, actions, states = await run_leg(
                     generation=generation,
                     pair_id=pair_id,
                     mirror_leg="AB",
@@ -475,13 +566,15 @@ async def run_experiment(args: argparse.Namespace) -> Path:
                     repeats=args.repeats,
                     max_concurrent_battles=args.concurrency,
                     log_actions=not args.no_action_log,
+                    log_universal_state=args.log_universal_state,
                     run_id=run_id,
                 )
                 all_battles.extend(battles)
                 all_actions.extend(actions)
+                all_states.extend(states)
 
                 # Leg BA: same agents, fixed teams swapped.
-                battles, actions = await run_leg(
+                battles, actions, states = await run_leg(
                     generation=generation,
                     pair_id=pair_id,
                     mirror_leg="BA",
@@ -494,10 +587,12 @@ async def run_experiment(args: argparse.Namespace) -> Path:
                     repeats=args.repeats,
                     max_concurrent_battles=args.concurrency,
                     log_actions=not args.no_action_log,
+                    log_universal_state=args.log_universal_state,
                     run_id=run_id,
                 )
                 all_battles.extend(battles)
                 all_actions.extend(actions)
+                all_states.extend(states)
 
     write_csv(
         run_dir / "battles.csv",
@@ -510,6 +605,22 @@ async def run_experiment(args: argparse.Namespace) -> Path:
             run_dir / "actions.csv",
             all_actions,
             CONTROLLED_ACTION_FIELDS,
+        )
+
+    if args.log_universal_state:
+        write_jsonl(
+            run_dir / "universal_states.jsonl",
+            all_states,
+        )
+
+        schema = UniversalStateEncoder().schema
+        (run_dir / "observation_schema.json").write_text(
+            json.dumps(
+                schema.to_dict(),
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
         )
 
     # Backwards-compatible raw summary.
@@ -565,6 +676,20 @@ async def run_experiment(args: argparse.Namespace) -> Path:
         "battles_per_mirror_cycle": 2,
         "max_concurrent_battles": args.concurrency,
         "action_log": not args.no_action_log,
+        "universal_state_log": args.log_universal_state,
+        "universal_representation": (
+            {
+                "schema_version": UniversalStateEncoder().schema.version,
+                "schema_sha256": UniversalStateEncoder().schema.sha256,
+                "observation_dim": UniversalStateEncoder().schema.observation_dim,
+                "action_dim": UniversalStateEncoder().schema.action_dim,
+                "species_identity_encoded": False,
+                "hidden_opponent_slots_zero_padded": True,
+                "generation_specific_gimmicks_in_action_space": False,
+            }
+            if args.log_universal_state
+            else None
+        ),
         "fixed_team_pool": {
             "config_sha256": manifest.get("config_sha256"),
             "showdown_commit": manifest.get("showdown_commit"),
@@ -572,7 +697,10 @@ async def run_experiment(args: argparse.Namespace) -> Path:
             "node_version": manifest.get("node_version"),
         },
         "information_policy": {
-            "team_preview": "explicitly removed from controlled formats",
+            "team_preview": (
+                "Absent by default in Gen I/IV controlled formats; "
+                "explicitly removed in Gen IX to preserve partial observability."
+            ),
             "agent_observation": (
                 "Agents use only their own battle perspective. Hidden opponent "
                 "slots are not reconstructed."
@@ -618,7 +746,7 @@ async def run_experiment(args: argparse.Namespace) -> Path:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run PokéBench30 v0.3 fixed-team mirrored experiments."
+        description="Run PokéBench30 v0.4 fixed-team mirrored experiments."
     )
     parser.add_argument(
         "--generations",
@@ -663,6 +791,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_POOL_ROOT),
     )
     parser.add_argument("--no-action-log", action="store_true")
+    parser.add_argument(
+        "--log-universal-state",
+        action="store_true",
+        help=(
+            "Write UBR vectors, legal-action masks and selected action indices "
+            "to universal_states.jsonl."
+        ),
+    )
     parser.add_argument("--no-plots", action="store_true")
     return parser
 

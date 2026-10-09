@@ -1,11 +1,12 @@
 schema_version: 1
 
-# Each prepared team is generated deterministically by the local Pokémon
-# Showdown random-team generator using the seed below. The resulting packed
-# team is then frozen on disk and reused in a non-random Custom Game.
+# Fixed teams are generated deterministically from Pokémon Showdown's
+# random-battle generator, frozen on disk and then reused in Custom Game.
 #
-# Team Preview is explicitly removed from controlled battles so the partial
-# information policy from v0.2.2 is preserved.
+# Information policy:
+# - Gen I and Gen IV Custom Game do not use Team Preview by default.
+# - Gen IX Team Preview is explicitly removed to keep the same partial-
+#   observability condition across all three benchmark generations.
 
 generations:
   1:
